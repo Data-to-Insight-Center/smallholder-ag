@@ -128,7 +128,13 @@ public final class TextItClient {
 	protected List<String> getFlowIDs() throws IOException {	
 		final List<String> res = new ArrayList<String>();
 		
-		utils.processData(GET_FLOWS_URL, 
+		// get the flows created in the last two weeks
+		long DAY_IN_MS = 1000 * 60 * 60 * 24;
+		final String timestamp = new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis() - (14 * DAY_IN_MS)));	 
+		URL target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp + "T00:00:00.000");
+		
+//		utils.processData(GET_FLOWS_URL,
+		utils.processData(target,		
 			new TextItUtils.IJsonProcessor() {
 			@Override
 			public void process(Map<String, Object> data, int pageNum) throws IOException {				
