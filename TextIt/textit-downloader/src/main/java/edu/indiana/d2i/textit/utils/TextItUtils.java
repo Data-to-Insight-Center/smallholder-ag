@@ -16,6 +16,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.log4j.Logger;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class TextItUtils {
@@ -66,8 +67,9 @@ public final class TextItUtils {
 				
 				// TODO: use a streaming API
    			// parse json stream
-				InputStream stream = entity.getContent();
+				InputStream stream = entity.getContent();				
 				ObjectMapper mapper = new ObjectMapper();
+				mapper.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
 				Map<String,Object> data = mapper.readValue(stream, Map.class);
 				next = (data.get("next") != null) ? next = (String)data.get("next"): null;
 				
