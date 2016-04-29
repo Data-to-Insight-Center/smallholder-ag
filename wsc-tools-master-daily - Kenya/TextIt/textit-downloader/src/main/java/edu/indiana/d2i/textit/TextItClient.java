@@ -142,7 +142,7 @@ public final class TextItClient {
                 //final String timestamp_curr = df.format(new DateTime(df.format(date)).toDate());
                 final String timestamp = df.format(new DateTime(df.format(date)).minusDays(1).toDate());
                 URL target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp + "T00:00:00.000" + "&&"+
-                "?before=" + timestamp + "T23:59:59.000");
+                "before=" + timestamp + "T23:59:59.000");
 //              utils.processData(GET_FLOWS_URL,
                 utils.processData(target,
                         new TextItUtils.IJsonProcessor() {
