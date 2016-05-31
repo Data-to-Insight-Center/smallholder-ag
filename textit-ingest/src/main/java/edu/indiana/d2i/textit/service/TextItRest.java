@@ -28,7 +28,7 @@ public class TextItRest {
     private CacheControl control = new CacheControl();
 
     @GET
-    @Path("{country}/flows")
+    @Path("/{country}/flows")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllFlows(@PathParam("country") String country) {
         if (country.equals("zambia")){
@@ -56,7 +56,7 @@ public class TextItRest {
     }
 
     @GET
-    @Path("{country}/runs")
+    @Path("/{country}/runs")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllRuns(@PathParam("country") String country) {
         if (country.equals("zambia")){
@@ -85,7 +85,7 @@ public class TextItRest {
     }
 
     @GET
-    @Path("{country}/contacts")
+    @Path("/{country}/contacts")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllContacts(@PathParam("country") String country) {
         if (country.equals("zambia")){
@@ -113,7 +113,7 @@ public class TextItRest {
     }
 
     @GET
-    @Path("{country}/all")
+    @Path("/{country}/all")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllData(@PathParam("country") String country) {
         if (country.equals("zambia")){
