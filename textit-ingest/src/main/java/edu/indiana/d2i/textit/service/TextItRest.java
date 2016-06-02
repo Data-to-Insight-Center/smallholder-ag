@@ -1,22 +1,22 @@
 package edu.indiana.d2i.textit.service;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
 import edu.indiana.d2i.textit.utils.MongoDB;
+import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.ws.rs.*;
 import javax.ws.rs.core.CacheControl;
-import java.lang.reflect.Array;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by kunarath on 2/15/16.
@@ -28,6 +28,7 @@ public class TextItRest {
     private MongoCollection<Document> runsCollection = null;
     private MongoCollection<Document> contactsCollection = null;
     private CacheControl control = new CacheControl();
+    private SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     @GET
     @Path("/{country}/flows")
@@ -185,7 +186,9 @@ public class TextItRest {
     @GET
     @Path("/{country}/runsofflow")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getRunsOfFlowData(@PathParam("country") String country) {
+    public Response getRunsOfFlowData(@PathParam("country") String country,
+                                      @QueryParam("from") String fromDate,
+                                      @QueryParam("to") String toDate) {
         if (country.equals("zambia")){
             MongoDatabase db1 = MongoDB.getServicesDB1();
             flowsCollection = db1.getCollection(MongoDB.flowsObjects);
@@ -199,7 +202,21 @@ public class TextItRest {
 
         JSONArray array = new JSONArray();
 
-        FindIterable<Document> iter = flowsCollection.find();
+        BasicDBObject andQuery = new BasicDBObject();
+        List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
+        if (fromDate != null) {
+            fromDate = fromDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("date", new BasicDBObject("$gte", fromDate)));
+        }
+        if (toDate != null) {
+            toDate = toDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("date", new BasicDBObject("$lte", toDate)));
+        }
+        if (obj.size() != 0) {
+            andQuery.put("$and", obj);
+        }
+
+        FindIterable<Document> iter = flowsCollection.find(andQuery);
         MongoCursor<Document> cursor = iter.iterator();
 
         while (cursor.hasNext()) {
