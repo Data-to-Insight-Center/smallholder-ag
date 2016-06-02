@@ -15,6 +15,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.ws.rs.core.CacheControl;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 /**
  * Created by kunarath on 2/15/16.
@@ -145,6 +147,17 @@ public class TextItRest {
                 Document document1 = cursor1.next();
 
                 JSONObject new_list = new JSONObject();
+                Object ques = document1.get("steps");
+                Object values = document1.get("values");
+                if (ques instanceof ArrayList) {
+                    ArrayList<Document> quesIds = (ArrayList<Document>) ques;
+                    ArrayList<Document> quesNames = (ArrayList<Document>) values;
+                    for (Document node : quesIds) {
+                        node.getString("node");
+                    }
+                    new_list.put("steps", quesIds);
+                    new_list.put("values", quesNames);
+                }
 
                 String contactId = document1.getString("contact");
                 new_list.put("flow_name", document.getString("name"));
@@ -161,6 +174,61 @@ public class TextItRest {
                     new_list.put("contact_phone", document2.getString("phone"));
                     break;
                 }
+
+                array.put(new_list);
+            }
+        }
+
+        return Response.ok(array.toString()).cacheControl(control).build();
+    }
+
+    @GET
+    @Path("/{country}/runsofflow")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getRunsOfFlowData(@PathParam("country") String country) {
+        if (country.equals("zambia")){
+            MongoDatabase db1 = MongoDB.getServicesDB1();
+            flowsCollection = db1.getCollection(MongoDB.flowsObjects);
+            runsCollection = db1.getCollection(MongoDB.runsObjects);
+        }else if (country.equals("kenya")){
+            MongoDatabase db2 = MongoDB.getServicesDB2();
+            flowsCollection = db2.getCollection(MongoDB.flowsObjects);
+            runsCollection = db2.getCollection(MongoDB.runsObjects);
+        }
+        control.setNoCache(true);
+
+        JSONArray array = new JSONArray();
+
+        FindIterable<Document> iter = flowsCollection.find();
+        MongoCursor<Document> cursor = iter.iterator();
+
+        while (cursor.hasNext()) {
+            Document document = cursor.next();
+            String flow_uuid = (String) document.get("uuid");
+
+            FindIterable<Document> iter1 = runsCollection.find(new BasicDBObject("flow_uuid", flow_uuid));
+            MongoCursor<Document> cursor1 = iter1.iterator();
+
+            while (cursor1.hasNext()) {
+                Document document1 = cursor1.next();
+
+                JSONObject new_list = new JSONObject();
+
+                Object ques = document1.get("steps");
+                Object values = document1.get("values");
+                if (ques instanceof ArrayList) {
+                    ArrayList<Document> quesIds = (ArrayList<Document>) ques;
+                    ArrayList<Document> quesNames = (ArrayList<Document>) values;
+                    for (Document node : quesIds) {
+                        node.getString("node");
+                    }
+                    new_list.put("steps", quesIds);
+                    new_list.put("values", quesNames);
+                }
+                new_list.put("flow_name", document.getString("name"));
+                new_list.put("flow", document1.getInteger("flow"));
+                new_list.put("run", document1.getInteger("run"));
+                new_list.put("created_on", document1.getString("created_on"));
 
                 array.put(new_list);
             }
