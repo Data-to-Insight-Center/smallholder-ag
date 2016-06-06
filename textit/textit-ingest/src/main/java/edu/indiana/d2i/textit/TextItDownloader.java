@@ -12,7 +12,13 @@ public class TextItDownloader {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 	   @Override
 	   public void run() {
-	  	 System.out.println("Clean up resources.");
+           System.out.println("Sleeping....");
+           try {
+               Thread.sleep(3000);
+           } catch (InterruptedException e) {
+               e.printStackTrace();
+           }
+           System.out.println("Clean up resources.");
 	  	 if (hook != null)
 				try {
 					hook.stop();
