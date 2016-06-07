@@ -4,13 +4,13 @@
 	<groupId>edu.indiana.d2i.textit</groupId>
 	<artifactId>textit-ingest</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>TextIt Ingestor</name>
 
     <parent>
         <groupId>edu.indiana.d2i.textit</groupId>
         <artifactId>textit-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
 	<dependencies>
@@ -33,13 +33,6 @@
 			<version>4.3.3</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
-		</dependency>
-
-		<!-- servelet API -->
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
 		</dependency>
 
 		<!-- log4j -->
@@ -90,26 +83,6 @@
 			<version>2.4</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.sun.jersey</groupId>
-			<artifactId>jersey-server</artifactId>
-			<version>${jersey-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.jersey.contribs</groupId>
-			<artifactId>jersey-atom-abdera</artifactId>
-			<version>${jersey-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.jersey.contribs</groupId>
-			<artifactId>jersey-multipart</artifactId>
-			<version>${jersey-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.jersey</groupId>
-			<artifactId>jersey-client</artifactId>
-			<version>${jersey-version}</version>
-		</dependency>
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver</artifactId>
