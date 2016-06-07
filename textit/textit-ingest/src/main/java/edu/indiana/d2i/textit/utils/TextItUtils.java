@@ -1,10 +1,7 @@
 package edu.indiana.d2i.textit.utils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Map;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
@@ -16,7 +13,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.log4j.Logger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Map;
 
 public final class TextItUtils {
 	private static Logger logger = Logger.getLogger(TextItUtils.class);
@@ -55,7 +55,7 @@ public final class TextItUtils {
 					startPointer.toString());
 			request.addHeader("Authorization", "Token " + TOKEN);
 			logger.debug("request url: " + request.getURI().toString());
-			System.out.println("loggin information"
+			logger.info("loggin information"
 					+ request.getURI().toString() + "For " + TIMEZONE);
 
 			CloseableHttpResponse response = httpclient.execute(request);
@@ -63,14 +63,14 @@ public final class TextItUtils {
 				StatusLine statusLine = response.getStatusLine();
 				HttpEntity entity = response.getEntity();
 				if (statusLine.getStatusCode() >= 300) {
-					System.out.println("Error is "+ new HttpResponseException(statusLine.getStatusCode(),
+					logger.error("Error is "+ new HttpResponseException(statusLine.getStatusCode(),
 							statusLine.getReasonPhrase()));
 					throw new HttpResponseException(statusLine.getStatusCode(),
 							statusLine.getReasonPhrase());
 				}
 				if (entity == null) {
-				         System.out.println(new ClientProtocolException(
-							"Response contains no content"));	
+                    logger.error(new ClientProtocolException(
+                            "Response contains no content"));
 				throw new ClientProtocolException(
 							"Response contains no content");
 				}

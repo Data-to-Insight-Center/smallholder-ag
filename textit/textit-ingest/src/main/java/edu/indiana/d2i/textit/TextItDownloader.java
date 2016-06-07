@@ -1,41 +1,60 @@
 package edu.indiana.d2i.textit;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
+import java.io.InputStream;
+import java.util.Properties;
+
 public class TextItDownloader {
 	static TextItWebHook hook = null;
+    private static Logger logger = Logger.getLogger(TextItDownloader.class);
 	
 	public static void main(String[] args) throws Exception {
-		if (args.length != 0 && args.length != 1) {
-			System.out.println("Usage: [port]");
+        PropertyConfigurator.configure("./conf/log4j.properties");
+
+		if (args.length != 1 && args.length != 2) {
+			logger.error("Usage: [config_file] [port]");
 			System.exit(-1);
 		}
+
+        logger.info("Starting TextItDownloader...");
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                logger.info("Clean up resources.");
+                if (hook != null)
+                    try {
+                        hook.stop();
+                    } catch (Exception e) {
+                        System.err.println(e.getStackTrace());
+                    }
+            }
+        });
+
+        Properties properties = new Properties();
+        InputStream stream = TextItClient.class.getClassLoader()
+                .getResourceAsStream(args[0]);
+        if (stream == null) {
+            throw new RuntimeException("Error : " + args[0] + " is not found!");
+        }
+        properties.load(stream);
+        stream.close();
 		
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-	   @Override
-	   public void run() {
-           System.out.println("Sleeping....");
-           try {
-               Thread.sleep(3000);
-           } catch (InterruptedException e) {
-               e.printStackTrace();
-           }
-           System.out.println("Clean up resources.");
-	  	 if (hook != null)
-				try {
-					hook.stop();
-				} catch (Exception e) {
-					System.err.println(e.getStackTrace());
-				}
-	   }
-	  });
-		
-		if (args.length == 0) {
-			System.out.println("Just download the runs.");
-			TextItClient client = TextItClient.createClient();
+		if (args.length == 1) {
+            logger.info("Just download the runs.");
+			TextItClient client = TextItClient.createClient(properties);
 			client.downloadRuns();
 			client.close();
 		} else {
 			// TODO: check if there is any run before, try to resume first
-			System.out.println("Download the runs first and then runs as a callback service.");
+            logger.info("Download the runs first and then runs as a callback service.");
 			
 			// start downloading from scratch
 			TextItClient client = TextItClient.createClient();
@@ -43,9 +62,10 @@ public class TextItDownloader {
 			client.close();
 			
 			// run the web hook
-			int port = Integer.valueOf(args[0]);
-			hook = TextItWebHook.getSingleton(port);
+			int port = Integer.valueOf(args[1]);
+			hook = TextItWebHook.getSingleton(properties, port);
 			hook.start();
 		}
-	}
+        logger.info("Finished TextItDownloader...");
+    }
 }

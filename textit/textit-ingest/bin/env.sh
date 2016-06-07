@@ -6,19 +6,10 @@ bin=`dirname "$this"`
 bin=`cd "$bin"; pwd`
 TEXTIT_DOWNLOADER_HOME=$bin/..
 
-
 # java
 #JAVA=$JAVA_HOME/bin/java
 JAVA=java
-JAVA_HEAP_MAX=-Xmx2048m 
-
-ls "$TEXTIT_DOWNLOADER_HOME/conf/config.properties"
-out=$? 
-if [ $out -eq 0 ]; then
-rm "$TEXTIT_DOWNLOADER_HOME/conf/config.properties"
-fi
-
-printf "token=$token\noutputdir=$2\nworkernum=$workernum\ntimezone=$timezone\ndownload_no_of_days=$download_no_of_days" > $TEXTIT_DOWNLOADER_HOME/conf/config.properties
+JAVA_HEAP_MAX=-Xmx2048m
 
 # classpath
 TEXTIT_DOWNLOADER_CLASSPATH=.

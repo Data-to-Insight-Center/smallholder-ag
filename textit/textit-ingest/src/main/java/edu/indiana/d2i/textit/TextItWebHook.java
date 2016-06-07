@@ -1,25 +1,19 @@
 package edu.indiana.d2i.textit;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Properties;
+import org.apache.log4j.Logger;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 public class TextItWebHook {
 	private static Logger logger = Logger.getLogger(TextItWebHook.class);
@@ -60,9 +54,9 @@ public class TextItWebHook {
 	/** end of unit test features 
 	 * @throws IOException */
 	
-	public synchronized static TextItWebHook getSingleton(int port) throws IOException {
+	public synchronized static TextItWebHook getSingleton(Properties properties, int port) throws IOException {
 		if (instance == null) {
-			instance = new TextItWebHook(port);
+			instance = new TextItWebHook(properties, port);
 		}
 		return instance;
 	}

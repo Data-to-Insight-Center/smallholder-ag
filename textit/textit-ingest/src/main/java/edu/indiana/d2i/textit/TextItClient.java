@@ -1,24 +1,20 @@
 package edu.indiana.d2i.textit;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.indiana.d2i.textit.utils.TextItUtils;
+import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.joda.time.DateTime;
-import org.apache.log4j.Logger;
-import java.text.DateFormat;
-import java.util.TimeZone;
-import edu.indiana.d2i.textit.utils.TextItUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class TextItClient {
 	private static Logger logger = Logger.getLogger(TextItClient.class);
@@ -167,7 +163,7 @@ public final class TextItClient {
 		final String timestamp_1 = df.format(new DateTime(df.format(date))
 				.minusDays(1).toDate());
 
-		System.out.println("No of Days " + NO_OF_DAYS);
+		logger.info("No of Days " + NO_OF_DAYS);
 		URL target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp
 				+ "T00:00:00.000" + "&&" + "before=" + timestamp_1
 				+ "T23:59:59.000");
