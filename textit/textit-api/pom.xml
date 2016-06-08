@@ -78,7 +78,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>textit-ingest</finalName>
+		<finalName>textit-api</finalName>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>

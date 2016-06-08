@@ -33,7 +33,11 @@ public class TextItRest {
     @GET
     @Path("/{country}/flows")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllFlows(@PathParam("country") String country) {
+    public Response getAllFlows(@PathParam("country") String country,
+                                @QueryParam("flowId") String flowId,
+                                @QueryParam("from") String fromDate,
+                                @QueryParam("to") String toDate) {
+
         if (country.equals("zambia")){
             MongoDatabase db1 = MongoDB.getServicesDB1();
             flowsCollection = db1.getCollection(MongoDB.flowsObjects);
@@ -43,7 +47,24 @@ public class TextItRest {
         }
         control.setNoCache(true);
 
-        FindIterable<Document> iter = flowsCollection.find();
+        BasicDBObject andQuery = new BasicDBObject();
+        List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
+        if (fromDate != null) {
+            fromDate = fromDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$gte", fromDate)));
+        }
+        if (toDate != null) {
+            toDate = toDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
+        }
+        if (flowId != null) {
+            obj.add(new BasicDBObject("uuid", flowId));
+        }
+        if (obj.size() != 0) {
+            andQuery.put("$and", obj);
+        }
+
+        FindIterable<Document> iter = flowsCollection.find(andQuery);
         iter.projection(new Document("flows", 1)
                 .append("uuid", 1).append("name", 1)
                 .append("archived", 1).append("labels", 1)
@@ -187,6 +208,7 @@ public class TextItRest {
     @Path("/{country}/runsofflow")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRunsOfFlowData(@PathParam("country") String country,
+                                      @QueryParam("flowId") String flowId,
                                       @QueryParam("from") String fromDate,
                                       @QueryParam("to") String toDate) {
         if (country.equals("zambia")){
@@ -206,11 +228,14 @@ public class TextItRest {
         List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
         if (fromDate != null) {
             fromDate = fromDate.replace("+00:00", "Z");
-            obj.add(new BasicDBObject("date", new BasicDBObject("$gte", fromDate)));
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$gte", fromDate)));
         }
         if (toDate != null) {
             toDate = toDate.replace("+00:00", "Z");
-            obj.add(new BasicDBObject("date", new BasicDBObject("$lte", toDate)));
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
+        }
+        if (flowId != null) {
+            obj.add(new BasicDBObject("uuid", flowId));
         }
         if (obj.size() != 0) {
             andQuery.put("$and", obj);
