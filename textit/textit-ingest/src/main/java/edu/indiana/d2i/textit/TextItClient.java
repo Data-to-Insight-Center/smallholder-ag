@@ -299,7 +299,7 @@ public final class TextItClient {
 					"workernum", "1"));
 			timezone = properties.getProperty("timezone");
 			no_of_days = Integer.valueOf(properties
-					.getProperty("download_no_of_days"));
+					.getProperty("download_no_of_days", "1"));
 
 		}
 
@@ -323,7 +323,7 @@ public final class TextItClient {
 					"workernum", "1"));
 			timezone = properties.getProperty("timezone");
 			no_of_days = Integer.valueOf(properties
-					.getProperty("download_no_of_days"));
+					.getProperty("download_no_of_days", "1"));
 
 			return this;
 		}
