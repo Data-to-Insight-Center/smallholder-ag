@@ -54,9 +54,8 @@ public final class TextItUtils {
 					new URL(next).toString()) : new HttpGet(
 					startPointer.toString());
 			request.addHeader("Authorization", "Token " + TOKEN);
-			logger.debug("request url: " + request.getURI().toString());
-			logger.info("loggin information"
-					+ request.getURI().toString() + "For " + TIMEZONE);
+			logger.info("Request URL : "
+					+ request.getURI().toString() + " for " + TIMEZONE);
 
 			CloseableHttpResponse response = httpclient.execute(request);
 			try {

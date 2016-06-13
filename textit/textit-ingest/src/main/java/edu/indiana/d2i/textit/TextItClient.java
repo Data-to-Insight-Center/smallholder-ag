@@ -29,8 +29,14 @@ public final class TextItClient {
 	private final URL GET_RUNS_URL;
 	private final URL GET_CONTACTS_URL;
 
+    public static final String FLOWS = "flows";
+    public static final String RUNS = "runs";
+    public static final String CONTACTS = "contacts";
+
 	/** utilities for parsing responses from TextIt */
 	private final TextItUtils utils;
+
+    DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
 	/** multi-threaded downloader */
 	class ThreadedDownloader {
@@ -51,10 +57,10 @@ public final class TextItClient {
 						URL target = new URL(GET_RUNS_URL.toString()
 								+ flowParam + flowid);
 						final String id = flowid;
-						logger.info("Try to download flow " + flowid);
+						logger.info("Downloading runs for flow : " + flowid);
 
 						final String timestamp = new SimpleDateFormat(
-								"yyyyMMdd").format(new Date());
+								"yyyy_MM_dd").format(new Date());
 						utils.processData(target,
 								new TextItUtils.IJsonProcessor() {
 									@Override
@@ -65,9 +71,9 @@ public final class TextItClient {
 										objectMapper
 												.writeValue(
 														Paths.get(
-																OUTPUT_DIRECTORY,
+																OUTPUT_DIRECTORY + "/" + RUNS,
 																String.format(
-																		"%s-%s-%d-runs.json",
+																		"%s-%s-%d-" + RUNS + ".json",
 																		timestamp,
 																		id,
 																		pageNum))
@@ -77,7 +83,7 @@ public final class TextItClient {
 
 						finishedCount.incrementAndGet();
 					} catch (IOException e) {
-						logger.warn("There are errors while downloading flow "
+						logger.warn("There are errors while downloading runs for flow "
 								+ flowid, e);
 					}
 				}
@@ -106,22 +112,20 @@ public final class TextItClient {
 			}
 
 			long duration = System.currentTimeMillis() - startT;
-			logger.info(String
-					.format("Expected %d flows, actually downloaded %d, took %f seconds",
-							expectedCount, finishedCount.get(),
-							duration / 1000.0));
+			logger.info("Expected runs for " + expectedCount + " flows, actually downloaded runs for " + finishedCount.get() + " flows");
+            logger.info("Time to download total runs : " + duration / 1000.0);
 		}
 	}
 
 	private TextItClient(String token, String outputDir, String epr,
 			int workerNum, String timezone, int no_of_days) throws IOException {
-		TOKEN = token;
+        df.setTimeZone(TimeZone.getTimeZone("timezone"));
+
+        TOKEN = token;
 		TIMEZONE = timezone;
 		NO_OF_DAYS = no_of_days;
 
 		Date date = new Date();
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		df.setTimeZone(TimeZone.getTimeZone("timezone"));
 		String final_dir = outputDir + df.format(date);
 		OUTPUT_DIRECTORY = final_dir;
 
@@ -145,7 +149,9 @@ public final class TextItClient {
 				TEXTIT_BASE_URL.getHost(), TEXTIT_BASE_URL.getPort(),
 				TEXTIT_BASE_URL.getFile() + "/contacts.json", null);
 
-		Files.createDirectories(Paths.get(OUTPUT_DIRECTORY));
+		Files.createDirectories(Paths.get(OUTPUT_DIRECTORY + "/" + FLOWS));
+		Files.createDirectories(Paths.get(OUTPUT_DIRECTORY + "/" + RUNS));
+		Files.createDirectories(Paths.get(OUTPUT_DIRECTORY + "/" + CONTACTS));
 
 		utils = TextItUtils.createUtils(TOKEN, TIMEZONE);
 	}
@@ -155,20 +161,18 @@ public final class TextItClient {
 		final List<String> res = new ArrayList<String>();
 
 		Date date = new Date();
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		df.setTimeZone(TimeZone.getTimeZone("timezone"));
 
-		final String timestamp = df.format(new DateTime(df.format(date))
+		final String timestamp_prev = df.format(new DateTime(df.format(date))
 				.minusDays(NO_OF_DAYS).toDate());
-		final String timestamp_1 = df.format(new DateTime(df.format(date))
-				.minusDays(1).toDate());
+		final String timestamp_now = df.format(new DateTime(df.format(date))
+				.toDate());
 
 		logger.info("No of Days " + NO_OF_DAYS);
-		URL target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp
-				+ "T00:00:00.000" + "&&" + "before=" + timestamp_1
-				+ "T23:59:59.000");
-		final String timestamp_final = timestamp.replace("-", "") + "-"
-				+ timestamp_1.replace("-", "");
+		URL target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp_prev
+				+ "T00:00:00.000" + "&&" + "before=" + timestamp_now
+				+ "T00:00:00.000");
+		final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
+				+ timestamp_now.replace("-", "_");
 
 		utils.processData(target, new TextItUtils.IJsonProcessor() {
 			@Override
@@ -184,8 +188,8 @@ public final class TextItClient {
 				ObjectMapper objectMapper = new ObjectMapper();
 				objectMapper.writeValue(
 						Paths.get(
-								OUTPUT_DIRECTORY,
-								String.format("%s-%d-flows.json",
+								OUTPUT_DIRECTORY + "/" + FLOWS,
+								String.format("%s-%d-" + FLOWS + ".json",
 										timestamp_final, pageNum)).toFile(),
 						data);
 
@@ -200,18 +204,16 @@ public final class TextItClient {
 		final List<String> res = new ArrayList<String>();
 
 		Date date = new Date();
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		df.setTimeZone(TimeZone.getTimeZone("timezone"));
 
-		final String timestamp = df.format(new DateTime(df.format(date))
+		final String timestamp_prev = df.format(new DateTime(df.format(date))
 				.minusDays(NO_OF_DAYS).toDate());
-		final String timestamp_1 = df.format(new DateTime(df.format(date))
-				.minusDays(1).toDate());
+		final String timestamp_now = df.format(new DateTime(df.format(date))
+				.toDate());
 		URL target = new URL(GET_CONTACTS_URL.toString() + "?after="
-				+ timestamp + "T00:00:00.000" + "&&" + "before=" + timestamp_1
-				+ "T23:59:59.000");
-		final String timestamp_final = timestamp.replace("-", "") + "-"
-				+ timestamp_1.replace("-", "");
+				+ timestamp_prev + "T00:00:00.000" + "&&" + "before=" + timestamp_now
+				+ "T00:00:00.000");
+		final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
+				+ timestamp_now.replace("-", "_");
 
 		utils.processData(target, new TextItUtils.IJsonProcessor() {
 			@Override
@@ -227,8 +229,8 @@ public final class TextItClient {
 				ObjectMapper objectMapper = new ObjectMapper();
 				objectMapper.writeValue(
 						Paths.get(
-								OUTPUT_DIRECTORY,
-								String.format("%s-%d-contacts.json",
+								OUTPUT_DIRECTORY + "/" + CONTACTS,
+								String.format("%s-%d-" + CONTACTS + ".json",
 										timestamp_final, pageNum)).toFile(),
 						data);
 
