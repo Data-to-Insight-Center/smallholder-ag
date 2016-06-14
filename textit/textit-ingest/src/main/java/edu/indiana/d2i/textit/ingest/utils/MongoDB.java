@@ -21,6 +21,17 @@ public class MongoDB {
     public static String CONTACTS_COLLECTION_NAME = "contacts";
     public static String STATUS_COLLECTION_NAME = "status";
 
+    //status elements
+    public static final String TYPE = "type";
+    public static final String ACTION = "action";
+    public static final String DOWNLOAD = "download";
+    public static final String WRITE_TO_MONGO = "writeToMongo";
+    public static final String DATE = "date";
+    public static final String STATUS = "status";
+    public static final String SUCCESS = "success";
+    public static final String FAILURE = "failure";
+    public static final String MESSAGE = "message";
+
     private static MongoDatabase database = null;
     private static MongoCollection<Document> flowsCollection = null;
     private static MongoCollection<Document> contactsCollection = null;

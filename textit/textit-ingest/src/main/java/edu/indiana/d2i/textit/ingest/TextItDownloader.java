@@ -4,6 +4,7 @@ import edu.indiana.d2i.textit.ingest.utils.MongoDB;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -11,7 +12,7 @@ public class TextItDownloader {
 	static TextItWebHook hook = null;
     private static Logger logger = Logger.getLogger(TextItDownloader.class);
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws IOException {
         PropertyConfigurator.configure("./conf/log4j.properties");
 
 		if (args.length != 2 && args.length != 3) {
@@ -67,13 +68,14 @@ public class TextItDownloader {
             System.exit(-1);
         }
 
+        boolean downloaded;
         if (args.length == 2) {
             logger.info("Just download the runs.");
 			TextItClient client = TextItClient.createClient(properties);
-			client.downloadRuns();
-			client.close();
+            downloaded = client.downloadRuns();
+            client.close();
 		} else {
-			// TODO: check if there is any run before, try to resume first
+			/*// TODO: check if there is any run before, try to resume first
             logger.info("Download the runs first and then runs as a callback service.");
 			
 			// start downloading from scratch
@@ -84,7 +86,7 @@ public class TextItDownloader {
 			// run the web hook
 			int port = Integer.valueOf(args[2]);
 			hook = TextItWebHook.getSingleton(properties, port);
-			hook.start();
+			hook.start();*/
 		}
         logger.info("Finished TextItDownloader...");
     }

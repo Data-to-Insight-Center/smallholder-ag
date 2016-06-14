@@ -1,8 +1,10 @@
 package edu.indiana.d2i.textit.ingest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.indiana.d2i.textit.ingest.utils.MongoDB;
 import edu.indiana.d2i.textit.ingest.utils.TextItUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +31,7 @@ public final class TextItClient {
 	private final URL GET_RUNS_URL;
 	private final URL GET_CONTACTS_URL;
 
-
+    static SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     public static final String FLOWS = "flows";
     public static final String RUNS = "runs";
@@ -170,35 +172,37 @@ public final class TextItClient {
 				.toDate());
 
 		logger.info("No of Days " + NO_OF_DAYS);
-		URL target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp_prev
-				+ "T00:00:00.000" + "&&" + "before=" + timestamp_now
-				+ "T00:00:00.000");
-		final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
+        URL target = null;
+        target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp_prev
+                    + "T00:00:00.000" + "&&" + "before=" + timestamp_now
+                    + "T00:00:00.000");
+
+        final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
 				+ timestamp_now.replace("-", "_");
 
-		utils.processData(target, new TextItUtils.IJsonProcessor() {
-			@Override
-			public void process(Map<String, Object> data, int pageNum)
-					throws IOException {
-				List<Object> results = (List<Object>) data.get("results");
-				for (Object result : results) {
-					Map<Object, Object> map = (Map<Object, Object>) result;
-					if (map.get("uuid") != null) {
-						res.add((String) map.get("uuid"));
-					}
-				}
-				ObjectMapper objectMapper = new ObjectMapper();
-				objectMapper.writeValue(
-						Paths.get(
-								OUTPUT_DIRECTORY + "/" + FLOWS,
-								String.format("%s-%d-" + FLOWS + ".json",
-										timestamp_final, pageNum)).toFile(),
-						data);
+        utils.processData(target, new TextItUtils.IJsonProcessor() {
+            @Override
+            public void process(Map<String, Object> data, int pageNum)
+                    throws IOException {
+                List<Object> results = (List<Object>) data.get("results");
+                for (Object result : results) {
+                    Map<Object, Object> map = (Map<Object, Object>) result;
+                    if (map.get("uuid") != null) {
+                        res.add((String) map.get("uuid"));
+                    }
+                }
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.writeValue(
+                        Paths.get(
+                                OUTPUT_DIRECTORY + "/" + FLOWS,
+                                String.format("%s-%d-" + FLOWS + ".json",
+                                        timestamp_final, pageNum)).toFile(),
+                        data);
 
-			}
-		});
+            }
+        });
 
-		return res;
+        return res;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -353,13 +357,65 @@ public final class TextItClient {
 		downloadData("?flow=", flowIDs);
 	}
 
-	public void downloadRuns() throws IOException {
+	public boolean downloadRuns(){
 
-		List<String> flowIDs = getFlowIDs();
-		List<String> contactInfo = getContactInfo();
+        boolean status = false;
 
-		downloadData(null, flowIDs);
-	}
+        JSONObject statusObject = new JSONObject();
+        statusObject.put(MongoDB.DATE, df.format(new Date()));
+        statusObject.put(MongoDB.ACTION, MongoDB.DOWNLOAD);
+
+        statusObject.put(MongoDB.TYPE, FLOWS);
+        List<String> flowIDs = null;
+        try {
+            flowIDs = getFlowIDs();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            statusObject.put(MongoDB.STATUS, MongoDB.FAILURE);
+            statusObject.put(MongoDB.MESSAGE, e.getMessage());
+            MongoDB.addStatus(statusObject.toString());
+            // update contact status
+            statusObject.put(MongoDB.TYPE, CONTACTS);
+            statusObject.put(MongoDB.MESSAGE, "Failed to download Flows hence halted");
+            MongoDB.addStatus(statusObject.toString());
+            // update runs status
+            statusObject.put(MongoDB.TYPE, RUNS);
+            MongoDB.addStatus(statusObject.toString());
+            return status;
+        }
+        statusObject.put(MongoDB.STATUS, MongoDB.SUCCESS);
+        MongoDB.addStatus(statusObject.toString());
+
+        statusObject.put(MongoDB.TYPE, CONTACTS);
+        try {
+            List<String> contactInfo = getContactInfo();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            statusObject.put(MongoDB.STATUS, MongoDB.FAILURE);
+            statusObject.put(MongoDB.MESSAGE, e.getMessage());
+            MongoDB.addStatus(statusObject.toString());
+            // update runs status
+            statusObject.put(MongoDB.TYPE, RUNS);
+            statusObject.put(MongoDB.MESSAGE, "Failed to download Contacts hence halted");
+            MongoDB.addStatus(statusObject.toString());
+            return status;
+        }
+        MongoDB.addStatus(statusObject.toString());
+
+        statusObject.put(MongoDB.TYPE, RUNS);
+        try {
+            downloadData(null, flowIDs);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            statusObject.put(MongoDB.STATUS, MongoDB.FAILURE);
+            statusObject.put(MongoDB.MESSAGE, e.getMessage());
+            MongoDB.addStatus(statusObject.toString());
+            return status;
+        }
+        MongoDB.addStatus(statusObject.toString());
+
+        return true;
+    }
 
 	public void close() throws IOException {
 		utils.close();

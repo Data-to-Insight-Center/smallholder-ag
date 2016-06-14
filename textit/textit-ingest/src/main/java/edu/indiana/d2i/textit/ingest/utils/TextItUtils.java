@@ -45,49 +45,48 @@ public final class TextItUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void processData(URL startPointer, IJsonProcessor processor)
-			throws IOException {
+	public void processData(URL startPointer, IJsonProcessor processor) throws IOException {
 		String next = null;
 		int pageNum = 1;
 		do {
-			HttpGet request = (next != null) ? new HttpGet(
-					new URL(next).toString()) : new HttpGet(
-					startPointer.toString());
-			request.addHeader("Authorization", "Token " + TOKEN);
-			logger.info("Request URL : "
-					+ request.getURI().toString() + " for " + TIMEZONE);
+            HttpGet request = (next != null) ? new HttpGet(
+                    new URL(next).toString()) : new HttpGet(
+                    startPointer.toString());
+            request.addHeader("Authorization", "Token " + TOKEN);
+            logger.info("Request URL : "
+                    + request.getURI().toString() + " for " + TIMEZONE);
 
-			CloseableHttpResponse response = httpclient.execute(request);
-			try {
-				StatusLine statusLine = response.getStatusLine();
-				HttpEntity entity = response.getEntity();
-				if (statusLine.getStatusCode() >= 300) {
-					logger.error("Error is "+ new HttpResponseException(statusLine.getStatusCode(),
-							statusLine.getReasonPhrase()));
-					throw new HttpResponseException(statusLine.getStatusCode(),
-							statusLine.getReasonPhrase());
-				}
-				if (entity == null) {
+            CloseableHttpResponse response = httpclient.execute(request);
+            try {
+                StatusLine statusLine = response.getStatusLine();
+                HttpEntity entity = response.getEntity();
+                if (statusLine.getStatusCode() >= 300) {
+                    logger.error("Error is " + new HttpResponseException(statusLine.getStatusCode(),
+                            statusLine.getReasonPhrase()));
+                    throw new HttpResponseException(statusLine.getStatusCode(),
+                            statusLine.getReasonPhrase());
+                }
+                if (entity == null) {
                     logger.error(new ClientProtocolException(
                             "Response contains no content"));
-				throw new ClientProtocolException(
-							"Response contains no content");
-				}
+                    throw new ClientProtocolException(
+                            "Response contains no content");
+                }
 
-				InputStream stream = entity.getContent();
-				ObjectMapper mapper = new ObjectMapper();
-				mapper.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS,
-						true);
-				Map<String, Object> data = mapper.readValue(stream, Map.class);
-				next = (data.get("next") != null) ? next = (String) data
-						.get("next") : null;
+                InputStream stream = entity.getContent();
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS,
+                        true);
+                Map<String, Object> data = mapper.readValue(stream, Map.class);
+                next = (data.get("next") != null) ? next = (String) data
+                        .get("next") : null;
 
-				if (data.get("results") != null) {
-					processor.process(data, pageNum++);
-				}
-				stream.close();
-			} finally {
-				response.close();
+                if (data.get("results") != null) {
+                    processor.process(data, pageNum++);
+                }
+                stream.close();
+            } finally {
+                response.close();
 			}
 		} while (next != null);
 	}
