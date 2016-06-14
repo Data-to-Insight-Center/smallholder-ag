@@ -1,4 +1,4 @@
-package edu.indiana.d2i.textit.utils;
+package edu.indiana.d2i.textit.ingest.utils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;

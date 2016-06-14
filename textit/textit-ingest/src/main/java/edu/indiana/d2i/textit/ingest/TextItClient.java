@@ -1,6 +1,6 @@
-package edu.indiana.d2i.textit;
+package edu.indiana.d2i.textit.ingest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.indiana.d2i.textit.utils.TextItUtils;
+import edu.indiana.d2i.textit.ingest.utils.TextItUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
@@ -28,6 +28,8 @@ public final class TextItClient {
 	private final URL GET_FLOWS_URL;
 	private final URL GET_RUNS_URL;
 	private final URL GET_CONTACTS_URL;
+
+
 
     public static final String FLOWS = "flows";
     public static final String RUNS = "runs";

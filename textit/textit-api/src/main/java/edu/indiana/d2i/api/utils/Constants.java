@@ -1,4 +1,4 @@
-package edu.indiana.d2i.textit.utils;
+package edu.indiana.d2i.api.utils;
 
 import java.io.IOException;
 import java.io.InputStream;

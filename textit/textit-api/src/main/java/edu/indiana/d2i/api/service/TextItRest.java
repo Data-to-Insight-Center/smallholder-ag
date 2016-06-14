@@ -1,11 +1,11 @@
-package edu.indiana.d2i.textit.service;
+package edu.indiana.d2i.api.service;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
-import edu.indiana.d2i.textit.utils.MongoDB;
+import edu.indiana.d2i.api.utils.MongoDB;
 import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONObject;

@@ -1,4 +1,4 @@
-package edu.indiana.d2i.textit;
+package edu.indiana.d2i.textit.ingest;
 
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;

@@ -12,7 +12,7 @@
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
         <init-param>
             <param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>edu.indiana.d2i.textit.service;org.codehaus.jackson.jaxrs</param-value>
+            <param-value>edu.indiana.d2i.textit.api.service;org.codehaus.jackson.jaxrs</param-value>
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>

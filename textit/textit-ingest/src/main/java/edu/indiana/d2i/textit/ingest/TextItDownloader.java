@@ -1,5 +1,6 @@
-package edu.indiana.d2i.textit;
+package edu.indiana.d2i.textit.ingest;
 
+import edu.indiana.d2i.textit.ingest.utils.MongoDB;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -56,8 +57,17 @@ public class TextItDownloader {
         }
         properties.load(stream);
         stream.close();
-		
-		if (args.length == 2) {
+
+        try {
+            MongoDB.createDatabase(properties.getProperty("mongodb.host"), Integer.parseInt(properties.getProperty("mongodb.port"))
+                    , properties.getProperty("mongodb.db.name"), properties.getProperty("mongodb.username")
+                    , properties.getProperty("mongodb.password"));
+        } catch (Exception e) {
+            logger.error("Error while initializing Mongo instance with properties, " + properties.toString());
+            System.exit(-1);
+        }
+
+        if (args.length == 2) {
             logger.info("Just download the runs.");
 			TextItClient client = TextItClient.createClient(properties);
 			client.downloadRuns();
