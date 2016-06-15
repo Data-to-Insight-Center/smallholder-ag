@@ -82,7 +82,7 @@ bin=`dirname "$this"`
 bin=`cd "$bin"; pwd`
 HOME=`cd "$bin"; cd ..; pwd`
 
-start_script=$bin"/start-downloader.sh"
+start_script=$bin"/start-ingestor.sh"
 log_file=$HOME"/cron_log.txt"
 config_file_path=$HOME"/"$config_file
 

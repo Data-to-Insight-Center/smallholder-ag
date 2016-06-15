@@ -31,8 +31,6 @@ public final class TextItClient {
 	private final URL GET_RUNS_URL;
 	private final URL GET_CONTACTS_URL;
 
-    static SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-
     public static final String FLOWS = "flows";
     public static final String RUNS = "runs";
     public static final String CONTACTS = "contacts";

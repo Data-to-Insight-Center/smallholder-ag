@@ -6,14 +6,20 @@ import org.apache.log4j.PropertyConfigurator;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
+import java.util.TimeZone;
 
-public class TextItDownloader {
+public class TextItIngestor {
 	static TextItWebHook hook = null;
-    private static Logger logger = Logger.getLogger(TextItDownloader.class);
+    private static Logger logger = Logger.getLogger(TextItIngestor.class);
+    static DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 	
 	public static void main(String[] args) throws IOException {
         PropertyConfigurator.configure("./conf/log4j.properties");
+        df.setTimeZone(TimeZone.getTimeZone("timezone"));
 
 		if (args.length != 2 && args.length != 3) {
 			logger.error("Usage: [config_file] [weekly|daily] [port]");
@@ -25,7 +31,7 @@ public class TextItDownloader {
             System.exit(-1);
         }
 
-        logger.info("Starting TextItDownloader...");
+        logger.info("Starting TextItIngestor...");
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -59,16 +65,21 @@ public class TextItDownloader {
         properties.load(stream);
         stream.close();
 
+        Date date = new Date();
+        String output_dir = properties.getProperty("outputdir") + df.format(date);
+
         try {
             MongoDB.createDatabase(properties.getProperty("mongodb.host"), Integer.parseInt(properties.getProperty("mongodb.port"))
                     , properties.getProperty("mongodb.db.name"), properties.getProperty("mongodb.username")
                     , properties.getProperty("mongodb.password"));
+            MongoDB.createRawDatabase(properties.getProperty("raw.mongodb.host"), Integer.parseInt(properties.getProperty("raw.mongodb.port"))
+                    , properties.getProperty("mongodb.db.name"));
         } catch (Exception e) {
-            logger.error("Error while initializing Mongo instance with properties, " + properties.toString());
+            logger.error("Error while initializing Mongo instances with properties, " + properties.toString());
             System.exit(-1);
         }
 
-        boolean downloaded;
+        boolean downloaded = false;
         if (args.length == 2) {
             logger.info("Just download the runs.");
 			TextItClient client = TextItClient.createClient(properties);
@@ -88,6 +99,21 @@ public class TextItDownloader {
 			hook = TextItWebHook.getSingleton(properties, port);
 			hook.start();*/
 		}
-        logger.info("Finished TextItDownloader...");
+
+        if(!downloaded) {
+            logger.error("Failure to download data from TextIt");
+            System.exit(-1);
+        }
+
+        DBHandler dbHandler = new DBHandler(output_dir);
+        boolean persisted = dbHandler.persistData();
+
+        if(!persisted) {
+            logger.error("Failure to persist data in MongoDB");
+            System.exit(-1);
+        }
+        logger.info("Finished persisting data to MongoDB...");
+
+        logger.info("Finished TextItIngestor...");
     }
 }
