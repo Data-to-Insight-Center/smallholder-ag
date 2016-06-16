@@ -65,7 +65,7 @@ public class MongoDB {
     public static synchronized DB createRawDatabase(String host, int port, String dbName) {
         if (rawDatabase == null) {
             MongoClientOptions.Builder builder = MongoClientOptions.builder().serverSelectionTimeout(5000);
-            MongoClient client = client = new MongoClient(new ServerAddress(host, port), builder.build());
+            MongoClient client = new MongoClient(new ServerAddress(host, port), builder.build());
             client.getAddress();
             rawDatabase = client.getDB(dbName);
             logger.info("Initialized database '" + rawDatabase.getName() + "' with port " + port + " and host " + host);

@@ -244,6 +244,48 @@ public final class TextItClient {
 		return res;
 	}
 
+    @SuppressWarnings("unchecked")
+    protected List<String> getUpdatedRuns() throws IOException {
+        final List<String> res = new ArrayList<String>();
+
+        Date date = new Date();
+
+        final String timestamp_prev = df.format(new DateTime(df.format(date))
+                .minusDays(NO_OF_DAYS).toDate());
+        final String timestamp_now = df.format(new DateTime(df.format(date))
+                .toDate());
+        URL target = new URL(GET_RUNS_URL.toString() + "?after="
+                + timestamp_prev + "T00:00:00.000" + "&&" + "before=" + timestamp_now
+                + "T00:00:00.000");
+        final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
+                + timestamp_now.replace("-", "_");
+        logger.info("Downloading updated runs for : " + timestamp_final);
+
+        utils.processData(target, new TextItUtils.IJsonProcessor() {
+            @Override
+            public void process(Map<String, Object> data, int pageNum)
+                    throws IOException {
+                List<Object> results = (List<Object>) data.get("results");
+                for (Object result : results) {
+                    Map<Object, Object> map = (Map<Object, Object>) result;
+                    if (map.get("uuid") != null) {
+                        res.add((String) map.get("uuid"));
+                    }
+                }
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.writeValue(
+                        Paths.get(
+                                OUTPUT_DIRECTORY + "/" + RUNS,
+                                String.format("%s-%d-" + RUNS + ".json",
+                                        timestamp_final, pageNum)).toFile(),
+                        data);
+
+            }
+        });
+
+        return res;
+    }
+
 	protected void downloadData(String param, List<String> flowIDs)
 			throws IOException {
 		ThreadedDownloader downloader = new ThreadedDownloader(flowIDs,
@@ -402,6 +444,7 @@ public final class TextItClient {
 
         statusObject.put(MongoDB.TYPE, RUNS);
         try {
+            getUpdatedRuns();
             downloadData(null, flowIDs);
         } catch (Exception e) {
             logger.error(e.getMessage());
