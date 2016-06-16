@@ -83,8 +83,7 @@ public class TextItRest {
     @Path("/{country}/runs")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllRuns(@PathParam("country") String country,
-                               @QueryParam("flowId") String flowId,
-                               @QueryParam("contact") String contact,
+                               @QueryParam("contact") String contactId,
                                @QueryParam("from") String fromDate,
                                @QueryParam("to") String toDate) {
         control.setNoCache(true);
@@ -102,11 +101,8 @@ public class TextItRest {
             toDate = toDate.replace("+00:00", "Z");
             obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
         }
-        if (flowId != null) {
-            obj.add(new BasicDBObject("flow_uuid", flowId));
-        }
-        if (contact != null) {
-            obj.add(new BasicDBObject("contact", contact));
+        if (contactId != null) {
+            obj.add(new BasicDBObject("contact", contactId));
         }
         if (obj.size() != 0) {
             andQuery.put("$and", obj);
@@ -332,6 +328,69 @@ public class TextItRest {
                 new_list.put("run", runsDocument.getInteger("run"));
                 new_list.put("created_on", runsDocument.getString("created_on"));
                 new_list.put("contact", runsDocument.getString("contact"));
+
+                array.put(new_list);
+            }
+        }
+
+        return Response.ok(array.toString()).cacheControl(control).build();
+    }
+
+    @GET
+    @Path("/{country}/runsandcontacts")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getRunsAndContactsData(@PathParam("country") String country,
+                                           @QueryParam("contact") String contactId,
+                                           @QueryParam("from") String fromDate,
+                                           @QueryParam("to") String toDate) {
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollection);
+        MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
+
+        control.setNoCache(true);
+
+        JSONArray array = new JSONArray();
+
+        BasicDBObject andQuery = new BasicDBObject();
+        List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
+        if (fromDate != null) {
+            fromDate = fromDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$gte", fromDate)));
+        }
+        if (toDate != null) {
+            toDate = toDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
+        }
+        if (contactId != null) {
+            obj.add(new BasicDBObject("contact", contactId));
+        }
+        if (obj.size() != 0) {
+            andQuery.put("$and", obj);
+        }
+
+        FindIterable<Document> iter = runsCollection.find(andQuery);
+        MongoCursor<Document> cursor = iter.iterator();
+
+        while (cursor.hasNext()) {
+            Document document = cursor.next();
+            String contact_id = (String) document.get("contact");
+
+            FindIterable<Document> iter1 = contactsCollection.find(new BasicDBObject("uuid", contact_id));
+            MongoCursor<Document> cursor1 = iter1.iterator();
+
+            while (cursor1.hasNext()) {
+                Document document1 = cursor1.next();
+
+                JSONObject new_list = new JSONObject();
+
+                new_list.put("contact_id", document.getString("contact"));
+                new_list.put("run_id", document.getString("flow_uuid"));
+                new_list.put("status", document.getBoolean("completed"));
+                new_list.put("created_on", document.getString("created_on"));
+                new_list.put("contact_name", document1.getString("name"));
+                new_list.put("contact_phone", document1.getString("phone"));
+                new_list.put("modified_on", document1.getString("modified_on"));
 
                 array.put(new_list);
             }

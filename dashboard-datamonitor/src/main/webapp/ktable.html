@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Admin Dashboard | Dashboard Data Monitor</title>
+
+    <!-- Bootstrap -->
+    <link href="media/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="media/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Custom Theme Style -->
+    <link href="media/css/custom.min.css" rel="stylesheet">
+    <!-- load jquery -->
+    <script src="media/js/jquery-min.js"></script>
+    <!-- load datatables js library -->
+    <script type="text/javascript" src="media/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="media/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="media/js/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" src="media/js/json2.js"></script>
+  </head>
+
+  <body class="nav-md">
+    <div class="container body">
+      <div class="main_container">
+        <div class="col-md-3 left_col">
+          <div class="left_col scroll-view">
+            <div class="navbar nav_title" style="border: 0;">
+              <a href="./" class="site_title"><i class="glyphicon glyphicon-stats"></i> <span>Admin Dashboard</span></a>
+            </div>
+
+            <div class="clearfix"></div>
+
+            <!-- menu profile quick info -->
+            <div class="profile">
+              <div class="profile_pic">
+                <img src="media/images/user.png" alt="..." class="img-circle profile_img">
+              </div>
+              <div class="profile_info">
+                <span>Welcome,</span>
+                <h2>Admin</h2>
+              </div>
+            </div>
+            <!-- /menu profile quick info -->
+
+            <br /><br /><br /><br /><br />
+
+            <!-- sidebar menu -->
+            <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+              <div class="menu_section">
+                <ul class="nav side-menu">
+                  <li><a><i class="fa fa-map-marker"></i> Kenya <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="kenya.html">Dashboard</a></li>
+                      <li><a href="ktable.html">Table</a></li>
+                    </ul>
+                  </li>
+                  <li><a><i class="fa fa-map-marker"></i> Zambia <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="zambia.html">Dashboard</a></li>
+                      <li><a href="ztable.html">Table</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+             </div>
+            <!-- /sidebar menu -->
+          </div>
+        </div>
+
+        <!-- top navigation -->
+        <div class="top_nav">
+          <div class="nav_menu">
+            <nav class="" role="navigation">
+              <div class="nav toggle">
+                <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+              </div>
+					
+              <ul class="nav navbar-nav navbar-right">
+              <div style="text-align:left;float:left;font-size:30px;"><strong>Data Tables - Kenya</strong></div>
+                <li class="">
+                  <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <img src="media/images/user.png" alt="">Admin
+                    <span class=" fa fa-angle-down"></span>
+                  </a>
+                  <ul class="dropdown-menu dropdown-usermenu pull-right">
+                    <li><a href="login.html"><i class="fa fa-sign-out pull-right"></i> Log Out</a></li>
+                  </ul>
+                </li>                
+              </ul>
+            </nav>
+          </div>
+        </div>
+        <!-- /top navigation -->
+
+        <!-- page content -->
+        <div class="right_col" role="main">
+          <div class="">           
+
+            <div class="row">             
+
+              <div class="clearfix"></div>
+
+              <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">                  
+
+                  <div class="x_content">
+
+                    <div class="table-responsive">
+                    
+                        <div>
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li class="active">
+                                    <a href="#tab-table1" data-toggle="tab">Flows Table</a>
+                                </li>
+                                <li>
+                                    <a href="#tab-table2" data-toggle="tab">Runs Table</a>
+                                </li>
+                                <li>
+                                    <a href="#tab-table3" data-toggle="tab">Contact Table</a>
+                                </li>
+                            </ul>
+                    
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tab-table1">
+                                    <h3 style="text-align:center;">Flows Table</h3>
+                                    <table id="flowTable" class="table table-striped table-bordered" width="100%" cellspacing="0">
+                                        <thead>
+                                        <tr>
+                                            <th>UUID</th>
+                                            <th>Name</th>
+                                            <th>Archived</th>
+                                            <th>Labels</th>
+                                            <th>Created On</th>
+                                            <th>Expires On</th>
+                                            <th>Runs</th>
+                                            <th>Completed Runs</th>
+                                            <th>RuleSets</th>
+                                        </tr>
+                                        </thead>
+                                    </table>
+                                                    
+                                    <div style="margin-top:50px;"></div>
+                                </div>
+                    
+                                <div class="tab-pane" id="tab-table2">
+                                    <h3 style="text-align:center;">Runs Table</h3>
+                                    <table id="runTable" class="table table-striped table-bordered" width="100%" cellspacing="0">
+                                        <thead>
+                                        <tr>
+                                            <th>Flow UUID</th>
+                                            <th>Flow</th>
+                                            <th>Contact</th>
+                                            <th>Created On</th>
+                                            <th>Modified On</th>
+                                            <th>Completed</th>
+                                            <th>Expires On</th>
+                                            <th>Qustions</th>
+                                            <th>Answers</th>
+                                        </tr>
+                                        </thead>
+                                    </table>
+                                    
+                                    <div style="margin-top:50px;"></div>
+                                    
+                                </div>
+                    
+                                <div class="tab-pane" id="tab-table3">
+                                    <h3 style="text-align:center;">Contact Table</h3>
+                                    <table id="contactTable" class="table table-striped table-bordered" width="100%" cellspacing="0">
+                                        <thead>
+                                        <tr>
+                                            <th>UUID</th>
+                                            <th>Name</th>
+                                            <th>Language</th>
+                                            <th>Phone No</th>
+                                            <th>Group UUID</th>
+                                            <th>Modified Date</th>
+                                        </tr>
+                                        </thead>
+                                    </table>
+                                    
+                                    <div style="margin-top:50px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- /page content -->
+
+        <!-- footer content -->
+        <footer>
+          <div class="pull-right">
+             Dashboard Data Monitor - Admin Monitoring UI
+          </div>
+          <div class="clearfix"></div>
+        </footer>
+        <!-- /footer content -->
+      </div>
+    </div>
+
+<!-- Custom JQuery -->
+<script src="media/js/custom.min.js" type="text/javascript"></script>    
+<script type="text/javascript">
+$(document).ready(function() {
+
+	$('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
+        $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
+    } );
+
+    flow_data = [];
+	var textit_prefix = "./api/kenya";
+	$.ajax({
+		url: textit_prefix + "/flows",
+		success: function (data) {
+				for (i in data) {
+					var label_data = [];
+					var rule_label_data = [];
+					for (p=0; p < data[i].rulesets.length; p++){	
+						rule_label_data.push(data[i].rulesets[p].label + "\n")
+					}
+					flow_data.push([data[i].uuid, data[i].name, data[i].archived, data[i].labels, data[i].created_on, 
+					                data[i].expires, data[i].runs, data[i].completed_runs, rule_label_data])
+					}
+
+		$("#flowTable").dataTable({
+			"aaData": flow_data
+		})
+		}
+	});
+	
+	var run_data = [];
+	$.ajax({
+		url: textit_prefix + "/runs",
+		success: function (data) {
+				
+				for (j in data) {
+					var ques_data = [];
+					var ans_data = [];
+					for (k=0; k < data[j].steps.length; k++){	
+						if (k%2 == 0){					
+							ques_data.push(data[j].steps[k].text + "\n")
+						}else{
+							ans_data.push(data[j].steps[k].text + "\n")
+						}
+					}
+					run_data.push([data[j].flow_uuid, data[j].flow, data[j].contact, data[j].created_on, data[j].modified_on,
+					               data[j].completed, data[j].expires_on, ques_data, ans_data])
+					}
+
+		$("#runTable").dataTable({
+			"aaData": run_data
+		})
+		}
+	});
+	
+	var contact_data = [];
+	$.ajax({
+		url: textit_prefix + "/contacts",
+		success: function (data) {
+				
+				for (c in data) {
+					contact_data.push([data[c].uuid, data[c].name, data[c].language, data[c].phone, data[c].group_uuids,
+					              		data[c].modified_on])
+					}
+
+		$("#contactTable").dataTable({
+			"aaData": contact_data
+		})
+		}
+	});
+});
+</script>
+</body>
+</html>
