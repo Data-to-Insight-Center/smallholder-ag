@@ -345,7 +345,7 @@ public class TextItRest {
                                            @QueryParam("to") String toDate) {
 
         MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
-        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollectionName);
+        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollection);
         MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
 
         control.setNoCache(true);
