@@ -6,6 +6,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import edu.indiana.d2i.textit.api.utils.MongoDB;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -24,11 +26,14 @@ import java.util.List;
 
 @Path("/")
 public class TextItRest {
-    private MongoCollection<Document> flowsCollection = null;
-    private MongoCollection<Document> runsCollection = null;
-    private MongoCollection<Document> contactsCollection = null;
+
     private CacheControl control = new CacheControl();
     private SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private static Logger logger = Logger.getLogger(TextItRest.class);
+
+    static {
+        PropertyConfigurator.configure(TextItRest.class.getResource("./../log4j.properties"));
+    }
 
     @GET
     @Path("/{country}/flows")
@@ -37,15 +42,10 @@ public class TextItRest {
                                 @QueryParam("flowId") String flowId,
                                 @QueryParam("from") String fromDate,
                                 @QueryParam("to") String toDate) {
-
-        if (country.equals("zambia")){
-            MongoDatabase db1 = MongoDB.getServicesDB1();
-            flowsCollection = db1.getCollection(MongoDB.flowsObjects);
-        }else if (country.equals("kenya")){
-            MongoDatabase db2 = MongoDB.getServicesDB2();
-            flowsCollection = db2.getCollection(MongoDB.flowsObjects);
-        }
         control.setNoCache(true);
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
 
         BasicDBObject andQuery = new BasicDBObject();
         List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
@@ -86,14 +86,10 @@ public class TextItRest {
                                @QueryParam("contact") String contactId,
                                @QueryParam("from") String fromDate,
                                @QueryParam("to") String toDate) {
-        if (country.equals("zambia")){
-            MongoDatabase db1 = MongoDB.getServicesDB1();
-            runsCollection = db1.getCollection(MongoDB.runsObjects);
-        }else if (country.equals("kenya")){
-            MongoDatabase db2 = MongoDB.getServicesDB2();
-            runsCollection = db2.getCollection(MongoDB.runsObjects);
-        }
         control.setNoCache(true);
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
 
         BasicDBObject andQuery = new BasicDBObject();
         List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
@@ -104,14 +100,15 @@ public class TextItRest {
         if (toDate != null) {
             toDate = toDate.replace("+00:00", "Z");
             obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
-        }if (contactId != null) {
+        }
+        if (contactId != null) {
             obj.add(new BasicDBObject("contact", contactId));
         }
         if (obj.size() != 0) {
             andQuery.put("$and", obj);
         }
 
-        FindIterable<Document> iter = runsCollection.find();
+        FindIterable<Document> iter = runsCollection.find(andQuery);
         iter.projection(new Document("runs", 1)
                 .append("flow_uuid", 1).append("flow", 1)
                 .append("contact", 1)
@@ -130,17 +127,33 @@ public class TextItRest {
     @GET
     @Path("/{country}/contacts")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllContacts(@PathParam("country") String country) {
-        if (country.equals("zambia")){
-            MongoDatabase db1 = MongoDB.getServicesDB1();
-            contactsCollection = db1.getCollection(MongoDB.contactsObjects);
-        }else if (country.equals("kenya")){
-            MongoDatabase db2 = MongoDB.getServicesDB2();
-            contactsCollection = db2.getCollection(MongoDB.contactsObjects);
-        }
+    public Response getAllContacts(@PathParam("country") String country,
+                                   @QueryParam("uuid") String contact,
+                                   @QueryParam("from") String fromDate,
+                                   @QueryParam("to") String toDate) {
         control.setNoCache(true);
 
-        FindIterable<Document> iter = contactsCollection.find();
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollectionName);
+
+        BasicDBObject andQuery = new BasicDBObject();
+        List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
+        if (fromDate != null) {
+            fromDate = fromDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("modified_on", new BasicDBObject("$gte", fromDate)));
+        }
+        if (toDate != null) {
+            toDate = toDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("modified_on", new BasicDBObject("$lte", toDate)));
+        }
+        if (contact != null) {
+            obj.add(new BasicDBObject("uuid", contact));
+        }
+        if (obj.size() != 0) {
+            andQuery.put("$and", obj);
+        }
+
+        FindIterable<Document> iter = contactsCollection.find(andQuery);
         iter.projection(new Document("contacts", 1)
                 .append("uuid", 1).append("name", 1)
                 .append("language", 1).append("phone", 1)
@@ -158,38 +171,59 @@ public class TextItRest {
     @GET
     @Path("/{country}/all")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllData(@PathParam("country") String country) {
-        if (country.equals("zambia")){
-            MongoDatabase db1 = MongoDB.getServicesDB1();
-            flowsCollection = db1.getCollection(MongoDB.flowsObjects);
-            runsCollection = db1.getCollection(MongoDB.runsObjects);
-            contactsCollection = db1.getCollection(MongoDB.contactsObjects);
-        }else if (country.equals("kenya")){
-            MongoDatabase db2 = MongoDB.getServicesDB2();
-            flowsCollection = db2.getCollection(MongoDB.flowsObjects);
-            runsCollection = db2.getCollection(MongoDB.runsObjects);
-            contactsCollection = db2.getCollection(MongoDB.contactsObjects);
-        }
+    public Response getAllData(@PathParam("country") String country,
+                               @QueryParam("flowId") String flowId,
+                               @QueryParam("contact") String contact,
+                               @QueryParam("from") String fromDate,
+                               @QueryParam("to") String toDate) {
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
+        MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
+        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollectionName);
+
         control.setNoCache(true);
 
         JSONArray array = new JSONArray();
+        BasicDBObject andQuery = new BasicDBObject();
+        List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
+        if (fromDate != null) {
+            fromDate = fromDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$gte", fromDate)));
+        }
+        if (toDate != null) {
+            toDate = toDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
+        }
+        if (flowId != null) {
+            obj.add(new BasicDBObject("uuid", flowId));
+        }
+        if (obj.size() != 0) {
+            andQuery.put("$and", obj);
+        }
 
-        FindIterable<Document> iter = flowsCollection.find();
-        MongoCursor<Document> cursor = iter.iterator();
+        FindIterable<Document> flowIter = flowsCollection.find(andQuery);
+        MongoCursor<Document> flowCursor = flowIter.iterator();
 
-        while (cursor.hasNext()) {
-            Document document = cursor.next();
-            String flow_uuid = (String) document.get("uuid");
+        while (flowCursor.hasNext()) {
+            Document flowDocument = flowCursor.next();
+            String flow_uuid = (String) flowDocument.get("uuid");
 
-            FindIterable<Document> iter1 = runsCollection.find(new BasicDBObject("flow_uuid", flow_uuid));
-            MongoCursor<Document> cursor1 = iter1.iterator();
+            BasicDBObject runsQuery = new BasicDBObject();
+            runsQuery.put("flow_uuid", flow_uuid);
+            if (contact != null) {
+                runsQuery.put("contact", contact);
+            }
 
-            while (cursor1.hasNext()) {
-                Document document1 = cursor1.next();
+            FindIterable<Document> runsIter = runsCollection.find(runsQuery);
+            MongoCursor<Document> runsCursor = runsIter.iterator();
+
+            while (runsCursor.hasNext()) {
+                Document runsDocument = runsCursor.next();
 
                 JSONObject new_list = new JSONObject();
-                Object ques = document1.get("steps");
-                Object values = document1.get("values");
+                Object ques = runsDocument.get("steps");
+                Object values = runsDocument.get("values");
                 if (ques instanceof ArrayList) {
                     ArrayList<Document> quesIds = (ArrayList<Document>) ques;
                     ArrayList<Document> quesNames = (ArrayList<Document>) values;
@@ -200,19 +234,19 @@ public class TextItRest {
                     new_list.put("values", quesNames);
                 }
 
-                String contactId = document1.getString("contact");
-                new_list.put("flow_name", document.getString("name"));
-                new_list.put("flow", document1.getInteger("flow"));
-                new_list.put("run", document1.getInteger("run"));
-                new_list.put("created_on", document1.getString("created_on"));
+                String contactId = runsDocument.getString("contact");
+                new_list.put("flow_name", flowDocument.getString("name"));
+                new_list.put("flow", runsDocument.getInteger("flow"));
+                new_list.put("run", runsDocument.getInteger("run"));
+                new_list.put("created_on", runsDocument.getString("created_on"));
 
-                FindIterable<Document> iter2 = contactsCollection.find(new BasicDBObject("uuid", contactId));
-                MongoCursor<Document> cursor2 = iter2.iterator();
+                FindIterable<Document> contactIter = contactsCollection.find(new BasicDBObject("uuid", contactId));
+                MongoCursor<Document> contactCursor = contactIter.iterator();
 
-                while (cursor2.hasNext()) {
-                    Document document2 = cursor2.next();
-                    new_list.put("contact_name", document2.getString("name"));
-                    new_list.put("contact_phone", document2.getString("phone"));
+                while (contactCursor.hasNext()) {
+                    Document contactDocument = contactCursor.next();
+                    new_list.put("contact_name", contactDocument.getString("name"));
+                    new_list.put("contact_phone", contactDocument.getString("phone"));
                     break;
                 }
 
@@ -228,17 +262,14 @@ public class TextItRest {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRunsOfFlowData(@PathParam("country") String country,
                                       @QueryParam("flowId") String flowId,
+                                      @QueryParam("contact") String contact,
                                       @QueryParam("from") String fromDate,
                                       @QueryParam("to") String toDate) {
-        if (country.equals("zambia")){
-            MongoDatabase db1 = MongoDB.getServicesDB1();
-            flowsCollection = db1.getCollection(MongoDB.flowsObjects);
-            runsCollection = db1.getCollection(MongoDB.runsObjects);
-        }else if (country.equals("kenya")){
-            MongoDatabase db2 = MongoDB.getServicesDB2();
-            flowsCollection = db2.getCollection(MongoDB.flowsObjects);
-            runsCollection = db2.getCollection(MongoDB.runsObjects);
-        }
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
+        MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
+
         control.setNoCache(true);
 
         JSONArray array = new JSONArray();
@@ -260,23 +291,29 @@ public class TextItRest {
             andQuery.put("$and", obj);
         }
 
-        FindIterable<Document> iter = flowsCollection.find(andQuery);
-        MongoCursor<Document> cursor = iter.iterator();
+        FindIterable<Document> flowsIter = flowsCollection.find(andQuery);
+        MongoCursor<Document> flowsCursor = flowsIter.iterator();
 
-        while (cursor.hasNext()) {
-            Document document = cursor.next();
-            String flow_uuid = (String) document.get("uuid");
+        while (flowsCursor.hasNext()) {
+            Document flowsDocument = flowsCursor.next();
+            String flow_uuid = (String) flowsDocument.get("uuid");
 
-            FindIterable<Document> iter1 = runsCollection.find(new BasicDBObject("flow_uuid", flow_uuid));
-            MongoCursor<Document> cursor1 = iter1.iterator();
+            BasicDBObject runsQuery = new BasicDBObject();
+            runsQuery.put("flow_uuid", flow_uuid);
+            if (contact != null) {
+                runsQuery.put("contact", contact);
+            }
 
-            while (cursor1.hasNext()) {
-                Document document1 = cursor1.next();
+            FindIterable<Document> runsIter = runsCollection.find(runsQuery);
+            MongoCursor<Document> runsCursor = runsIter.iterator();
+
+            while (runsCursor.hasNext()) {
+                Document runsDocument = runsCursor.next();
 
                 JSONObject new_list = new JSONObject();
 
-                Object ques = document1.get("steps");
-                Object values = document1.get("values");
+                Object ques = runsDocument.get("steps");
+                Object values = runsDocument.get("values");
                 if (ques instanceof ArrayList) {
                     ArrayList<Document> quesIds = (ArrayList<Document>) ques;
                     ArrayList<Document> quesNames = (ArrayList<Document>) values;
@@ -286,10 +323,11 @@ public class TextItRest {
                     new_list.put("steps", quesIds);
                     new_list.put("values", quesNames);
                 }
-                new_list.put("flow_name", document.getString("name"));
-                new_list.put("flow", document1.getInteger("flow"));
-                new_list.put("run", document1.getInteger("run"));
-                new_list.put("created_on", document1.getString("created_on"));
+                new_list.put("flow_name", flowsDocument.getString("name"));
+                new_list.put("flow", runsDocument.getInteger("flow"));
+                new_list.put("run", runsDocument.getInteger("run"));
+                new_list.put("created_on", runsDocument.getString("created_on"));
+                new_list.put("contact", runsDocument.getString("contact"));
 
                 array.put(new_list);
             }
@@ -297,22 +335,19 @@ public class TextItRest {
 
         return Response.ok(array.toString()).cacheControl(control).build();
     }
-    @GET
+	
+	@GET
     @Path("/{country}/runsandcontacts")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRunsAndContactsData(@PathParam("country") String country,
                                            @QueryParam("contact") String contactId,
                                            @QueryParam("from") String fromDate,
                                            @QueryParam("to") String toDate) {
-        if (country.equals("zambia")){
-            MongoDatabase db1 = MongoDB.getServicesDB1();
-            contactsCollection = db1.getCollection(MongoDB.contactsObjects);
-            runsCollection = db1.getCollection(MongoDB.runsObjects);
-        }else if (country.equals("kenya")){
-            MongoDatabase db2 = MongoDB.getServicesDB2();
-            contactsCollection = db2.getCollection(MongoDB.contactsObjects);
-            runsCollection = db2.getCollection(MongoDB.runsObjects);
-        }
+		
+		MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollection);
+        MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
+		
         control.setNoCache(true);
 
         JSONArray array = new JSONArray();
