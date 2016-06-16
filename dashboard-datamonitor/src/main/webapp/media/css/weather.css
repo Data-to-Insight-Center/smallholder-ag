@@ -1,0 +1,86 @@
+﻿.fullDay
+{
+    background-color: rgba(31, 92, 153, 0.4);
+    border: 1px solid #000;
+    color: #fff;
+    margin-top: 10px;
+    overflow: hidden;
+    padding: 5px;
+    width: 140px;
+}
+.weatherSummary
+{
+    background-size:cover;
+    background-repeat:no-repeat;
+    
+}
+.today
+{
+    margin: 0 5px 0 50px;
+    padding: 10px;
+    color: #FFF;
+    width: 180px;
+    vertical-align:top;
+    overflow:hidden;
+    border: 1px solid #000;
+}
+.today p
+{
+    margin-bottom: 0;
+}
+h2.weather
+{
+    border-bottom: 1px solid #999;
+}
+
+.fullDay:hover
+{
+    background-color: #4C7DAD;
+}
+
+.lastUpdate
+{
+    color: #880000;
+    font-size:0.5em;
+}
+
+.highTemp
+{
+    color: #FFDE58;
+    font-weight: bolder;
+}
+
+.lowTemp
+{
+    color: #FFF;
+    font-weight: bolder;
+}
+
+.day
+{
+    font-size:medium;
+    font-weight:bold;
+    
+}
+
+ul
+{
+    list-style-type: none;
+}
+
+.fullday p
+{
+    margin: 0;
+}
+
+ul li
+{
+    display:inline-block;
+}
+
+.weather 
+{
+    margin-left:auto;
+    margin-right:auto;
+
+}

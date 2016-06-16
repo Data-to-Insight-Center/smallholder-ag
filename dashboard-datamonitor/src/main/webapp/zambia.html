@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Admin Dashboard | Dashboard Data Monitor</title>
+
+    <!-- Bootstrap -->
+    <link href="media/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="media/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Custom Theme Style -->
+    <link href="media/css/custom.min.css" rel="stylesheet"> 
+    
+    <!-- Weather Style -->
+    <link rel="stylesheet" type="text/css" href="media/css/jquery-ui.css"/>
+    <link rel="stylesheet" href="media/css/weather.css" />    
+    
+    <script src="media/js/jquery-min.js"></script>
+    <script src="media/js/jquery-ui.js"></script>
+    <script src="media/js/weather.js"></script>
+    
+    <style type="text/css">
+		.count{
+			font-size:22px !important;
+		}h2{
+			font-size:23px !important;
+		}h2.weather {
+			font-size:18px !important;
+		}.today p{
+			font-size:14px !important;
+		}
+	</style>
+    
+    <script type="text/javascript">        
+       $(document).ready(function () {
+           $(".weather").weatherFeed({relativeTimeZone:true});
+        });
+	</script>
+	<script type="text/javascript">
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-36251023-1']);
+	  _gaq.push(['_setDomainName', 'jqueryscript.net']);
+	  _gaq.push(['_trackPageview']);
+	
+	  (function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+	</script>
+  </head>
+
+  <body class="nav-md">
+    <div class="container body">
+      <div class="main_container">
+        <div class="col-md-3 left_col">
+          <div class="left_col scroll-view">
+            <div class="navbar nav_title" style="border: 0;">
+              <a href="./" class="site_title"><i class="glyphicon glyphicon-stats"></i> <span>Admin Dashboard</span></a>
+            </div>
+
+            <div class="clearfix"></div>
+
+            <!-- menu profile quick info -->
+            <div class="profile">
+              <div class="profile_pic">
+                <img src="media/images/user.png" alt="..." class="img-circle profile_img">
+              </div>
+              <div class="profile_info">
+                <span>Welcome,</span>
+                <h4 style="color:#ffffff">Admin</h4>
+              </div>
+            </div>
+            <!-- /menu profile quick info -->
+
+            <br /><br /><br /><br /><br />
+
+            <!-- sidebar menu -->
+            <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+              <div class="menu_section">
+                <ul class="nav side-menu">
+                  <li><a><i class="fa fa-map-marker"></i> Kenya <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="kenya.html">Dashboard</a></li>
+                      <li><a href="ktable.html">Table</a></li>
+                    </ul>
+                  </li>
+                  <li><a><i class="fa fa-map-marker"></i> Zambia <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="zambia.html">Dashboard</a></li>
+                      <li><a href="ztable.html">Table</a></li>
+                    </ul>
+                  </li>                  
+                </ul>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- top navigation -->
+        <div class="top_nav">
+          <div class="nav_menu">
+            <nav class="" role="navigation">
+              <div class="nav toggle">
+                <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+              </div>
+					
+              <ul class="nav navbar-nav navbar-right">
+              <div style="text-align:left;float:left;font-size:30px;"><strong>Dashboard Data Monitor - Zambia</strong></div>
+                <li class="">
+                  <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <img src="media/images/user.png" alt="">Admin
+                    <span class=" fa fa-angle-down"></span>
+                  </a>
+                  <ul class="dropdown-menu dropdown-usermenu pull-right">
+                    <li><a href="login.html"><i class="fa fa-sign-out pull-right"></i> Log Out</a></li>
+                  </ul>
+                </li>                
+              </ul>
+            </nav>
+          </div>
+        </div>
+        <!-- /top navigation -->
+
+        <!-- page content -->
+        <div class="right_col" role="main">
+          <!-- top tiles -->
+          <div class="row tile_count">
+            
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="text-align:center">
+              <span class="count_top"><i class="fa fa-clock-o"></i> Total Flows</span>
+              <div class="count blue" id="total_flows_count"></div>
+              <span class="count_top"><i class="fa fa-clock-o"></i> from last week</span>
+              <div class="count green" id="last_week_flows_count"></div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="text-align:center">
+              <span class="count_top"><i class="fa fa-user"></i> Total Users</span>
+              <div class="count blue" id="total_user_count"></div>
+              <span class="count_top"><i class="fa fa-clock-o"></i> from last week</span>
+              <div class="count green" id="last_week_flows_count1">113</div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="text-align:center">
+              <span class="count_top"><i class="fa fa-user"></i> Total Archived Flows</span>
+              <div class="count blue" id="archived_flows_count"></div>
+              <span class="count_top"><i class="fa fa-clock-o"></i> from last week</span>
+              <div class="count green" id="last_week_archived_flows_count">1</div>
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="text-align:center">
+              <span class="count_top"><i class="fa fa-user"></i> Total Open Flows</span>
+              <div class="count blue" id="archived_flows_count1">4</div>
+              <span class="count_top"><i class="fa fa-clock-o"></i> from last week</span>
+              <div class="count green" id="last_week_flows_count2">1</div>
+            </div>
+            <div class="col-md-3 col-sm-2 col-xs-6 tile_stats_count" style="text-align:center">
+              <span class="count_top"><i class="fa fa-clock-o"></i> Last week data download & server status</span>
+                <div style="text-align:center;padding:0px 0px 0px 40px">
+                    <table>
+                        <tr valign="top" style="line-height:2.5;padding:5px;">
+                            <th style="width: 120px">Flows:</th>
+                            <td><span class="label label-success">Success</span></td>
+                        </tr>
+                        <tr valign="top" style="line-height:2.5;padding:5px;">
+                            <th style="width: 120px">Runs:</th>
+                            <td><span class="label label-warning">Warning</span></td>
+                        </tr>				
+                        <tr valign="top" style="line-height:2.5;padding:5px;">
+                            <th style="width: 120px">Contacts:</th>
+                            <td><span class="label label-danger">Failure</span></td>
+                        </tr>
+                        <tr valign="top" style="line-height:2.5;padding:5px;">
+                            <th style="width: 120px">Server status:</th>
+                            <td><span class="label label-success">Success</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+          </div>
+          <!-- /top tiles -->
+
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+            	<div class="row x_title">
+                  <div class="col-md-6">
+                    <h2>Last Week Analysis<small>-   flows and runs</small></h2>
+                  </div>
+                  <!--<div class="col-md-6">
+                    <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                      <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                      <span>December 30, 2014 - January 28, 2015</span> <b class="caret"></b>
+                    </div>
+                  </div>-->
+                </div>
+            </div>
+            <div class="col-md-8 col-sm-8 col-xs-12">
+                  <div id="placeholder33" style="height: 320px; display: none" class="demo-placeholder"></div>
+                  <div style="width: 100%;">
+                    <div id="runchartContainer" class="demo-placeholder" style="width: 100%; height:310px;"></div>
+                  </div>
+                </div>
+            <div class="col-md-4 col-sm-4 col-xs-12 bg-white">
+              <div class="x_title">
+                <h2>Most Recent Flows</h2>
+                <div class="clearfix"></div>
+              </div>
+
+              <div class="col-md-12 col-sm-12 col-xs-6" style="height:260px;overflow:scroll;">
+                <div id="most_recent_flow"></div>
+              </div>
+           </div>
+           </div>
+           <br />
+
+          <div class="row">          
+            
+            <div id="pie_chart"></div>
+                
+                <div class="col-md-4 col-sm-4 col-xs-12" style="padding-top:10px;height:450px;overflow:scroll;">
+                	<div id="most_recent_contact" class="x_panel"></div>
+              	</div>
+                
+                <div class="col-md-4 col-sm-4 col-xs-12" style="padding-top:10px;height:450px;overflow:scroll;">
+                  <div class="x_panel">
+                  	<div class="x_title">
+                      <h2>Weather<small>- This week</small></h2>
+                      <div class="clearfix"></div>
+                    </div>
+                  	<div class="x_content weather">Lusaka, Zambia</div>
+                  </div>
+                </div>
+          </div>
+
+		<div class="row" style="padding-top:10px;color:#848484">
+            <div class="col-md-8 col-sm-8 col-xs-12">
+              <div class="row">
+              </div>
+              <div class="row">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- /page content -->
+
+        <!-- footer content -->
+        <footer>
+          <div class="pull-right">
+           Dashboard Data Monitor - Admin Monitoring UI
+          </div>
+          <div class="clearfix"></div>
+        </footer>
+        <!-- /footer content -->
+      </div>
+    </div>
+
+    <!-- Bootstrap -->
+    <script src="media/js/bootstrap.min.js"></script>
+    <!-- bootstrap-daterangepicker -->
+    <script src="media/js/moment/moment.min.js"></script>
+    <script src="media/js/datepicker/daterangepicker.js"></script>
+
+    <!-- Custom Theme Scripts -->
+    <script src="media/js/custom.min.js"></script>
+    <script type="text/javascript" src="media/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="media/js/jquery.canvasjs.min.js"></script>
+    
+    <script type="text/javascript">
+      $(document).ready(function() {
+		  
+		function getLastWeek(){
+			var today = new Date();
+			var lastWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 27);
+			return lastWeek;
+		}
+		
+		var lastWeek = getLastWeek();
+		  
+		flow_data = [];
+		flow_rule_data =[];
+		completed_runs_data = [];		
+		total_runs_data = [];
+		more_recent_flow = [];
+		archived_flows = [];
+		
+		var textit_prefix = "./api/zambia";
+		var contact_count = 10;
+		$.ajax({
+			url: textit_prefix + "/activecontacts?count=" + contact_count,
+			success: function (cdata) {
+					var total_contacts = cdata.length;
+					output = '<div class="x_title"><h2>Top Recent Active Contacts</h2><div class="clearfix"></div></div><ul class="list-unstyled top_profiles scroll-view">';
+					for (c=0; c < cdata.length; c++){
+						output += '<li class="media event">' + 
+							   ' <a class="pull-left border-aero profile_thumb">' +
+								  '<i class="fa fa-user aero"></i>' +
+								'</a>' +
+								'<div class="media-body">' +
+								  '<a class="title" href="#">' + cdata[c].name + '</a>' +
+								  '<p><strong>Phone: </strong>' +  cdata[c].contact_no +
+								  '<p> <strong>Created on: </strong><small>' + moment(cdata[c].created_on).format('MMMM Do YYYY, h:mm:ss a') + '</small> </p>' +
+								'</div>' +
+							  '</li>';
+					}
+					output += '<ul>';
+					$("#most_recent_contact").html(output);
+		
+			}
+		});		
+		
+		$.ajax({
+			url: textit_prefix + "/flows",
+			success: function (data) {
+					var total_flows = data.length;
+					for (i in data) {
+						if (	data[i].archived){			
+							archived_flows.push(data[i].archived)
+						}
+						
+					}
+			
+			$("#total_flows_count").html(total_flows);
+			$("#archived_flows_count").html(archived_flows.length);
+				
+			}
+		});
+		
+		var contact_data = [];
+		$.ajax({
+			url: textit_prefix + "/contacts",
+			success: function (cdata) {
+					var total_contacts = cdata.length;
+			
+					$("#total_user_count").html(total_contacts);
+			}
+		});
+		
+		
+		$.ajax({
+			url: textit_prefix + "/lastweekflows",
+			success: function (fdata) {
+					var last_week_total_flows = fdata.length;
+					for (i in fdata) {
+						flow_rule_label_data = [];
+						var label_data = [];
+						var rule_label_data = [];					
+							completed_runs_data.push({ 
+								"y" : fdata[i].completed_runs  ,
+								"label" : '"' + fdata[i].name + '"'
+							});
+							
+							total_runs_data.push({ 
+								"y" : fdata[i].runs ,
+								"label" : '"' + fdata[i].name + '"'
+							});
+							
+							more_recent_flow.push({ 
+								"total_runs" : fdata[i].runs ,
+								"name" : fdata[i].name,
+								"completed_runs" : fdata[i].completed_runs,
+								"created_on" : fdata[i].created_on,
+								"fields" : fdata[i].rulesets.length
+							});
+							for (p=0; p < fdata[i].rulesets.length; p++){	
+								flow_rule_label_data.push({"y" : 100, "label": fdata[i].rulesets[p].label})
+							}
+						flow_rule_data.push(flow_rule_label_data);
+					}
+								
+				$("#last_week_flows_count").html(last_week_total_flows);
+				
+				output = '<ul class="list-unstyled top_profiles scroll-view">';
+				for (m=0; m < more_recent_flow.length; m++){
+					output += '<li class="media event">' + 
+                           ' <a class="pull-left border-aero profile_thumb">' +
+                              '<i style="font-size:18px;font-weight:600;">' + more_recent_flow[m].total_runs + '</i>' +
+							  '<p style="padding-top:10px;">runs</p>' +
+                            '</a>' +
+                            '<div class="media-body">' +
+                              '<a class="title" href="#">' + more_recent_flow[m].name + '</a>' +
+                              '<p><strong>' +  more_recent_flow[m].completed_runs + '</strong> Completed runs </p>' +
+                              '<p> <small>' + more_recent_flow[m].fields + '</small> fields</p>' +
+							  '<p> <strong>created on: </strong><small>' + moment(more_recent_flow[m].created_on).format('MMMM Do YYYY, h:mm:ss a') + '</small> </p>' +
+                            '</div>' +
+                          '</li>';
+				}
+				output += '<ul>';
+				$("#most_recent_flow").html(output);
+				
+				pie_data = [];
+				pie_data_incomplete = [];
+				for (m=0; m < more_recent_flow.length; m++){
+					var perc = Math.round((more_recent_flow[m].completed_runs/more_recent_flow[m].total_runs)*100);
+					pie_data.push({  "y": perc, "legendText": "Completed Runs", "exploded": true, "label": more_recent_flow[m].name, "val": more_recent_flow[m].completed_runs});
+					pie_data_incomplete.push({   "y": 100-perc, "legendText": "In-completed Runs", "label": more_recent_flow[m].name, "val": more_recent_flow[m].total_runs - more_recent_flow[m].completed_runs});
+				}
+				
+				pie_output = '';
+				for (p=0; p < pie_data.length; p++){
+					pie_output += '<div class="col-md-4 col-sm-4 col-xs-12" style="border:1px #848484 ridge;padding:10px;">' +
+					'<h2 style="text-align:left;">' + pie_data[p].label.charAt(0).toUpperCase() + pie_data[p].label.slice(1) + '<h2>' +
+              '<div class="x_panel tile fixed_height_320 overflow_hidden">' +
+                 '<div id="piechartContainer' + p + '"' + 'style="height: 280px; width: 100%;"></div>' +
+              '</div>' +
+			  '<div class="x_panel tile fixed_height_320 overflow_hidden">' +
+                 '<div id="quesContainer' + p + '"' + 'style="height: 310px; width: 100%;"></div>' +
+              '</div>' +
+			  '<div class="x_panel tile fixed_height_320 overflow_hidden">' +
+                 '<div id="runnewContainer' + p + '"' + 'style="height: 310px; width: 100%;"></div>' +
+              '</div>' +
+            '</div>';
+				}
+				$("#pie_chart").html(pie_output);
+			
+			}
+		});
+		  
+		setTimeout(function () {
+			for (p=0; p < pie_data.length; p++){
+			
+			var chart = new CanvasJS.Chart("piechartContainer" + p,
+			{
+				title:{
+					text: "Completed, In-completed runs for flow"
+				},
+				exportFileName: "Pie Chart",
+				exportEnabled: true,
+						animationEnabled: true,
+				legend:{
+					verticalAlign: "bottom",
+					horizontalAlign: "center"
+				},
+				data: [
+				{       
+					type: "pie",
+					showInLegend: true,
+					toolTipContent: "{legendText}: <strong>{val}runs , {y}%</strong>",
+					indexLabel: "{y}%",
+					dataPoints: [
+						pie_data[p], pie_data_incomplete[p]
+					]
+			}
+			]
+			});
+			chart.render();
+		  }}, 3000);
+		  
+		  setTimeout(function () {
+			for (p=0; p < flow_rule_data.length; p++){
+				
+				
+				var chart = new CanvasJS.Chart("quesContainer" +p ,
+				{
+					title:{
+						text: "Name of various ruleset fields for flow"
+					},
+					exportFileName: "Pie Chart",
+					exportEnabled: true,
+					animationEnabled: true,
+					legend:{
+						verticalAlign: "bottom",
+						horizontalAlign: "center"
+					},
+					data: [
+					{       
+						type: "pie",
+						showInLegend: false,
+						toolTipContent: "{label}",
+						indexLabel: "{label}",
+						dataPoints: flow_rule_data[p]
+				}
+				]
+				});
+				chart.render();
+		  }}, 3000);
+		  
+		  
+		setTimeout(function () {  
+			var chart = new CanvasJS.Chart("runchartContainer",
+			{
+			title: {
+				text: "Completed, In-completed runs for flow in last week"             
+			},
+			animationEnabled: true,
+			axisX:{      
+				interval: 1,
+				labelAngle : -15
+				// valueFormatString: "HHmm'hrs'"
+	
+			},
+			axisY: {
+				title: "Number of Runs"
+			},
+			legend: {
+				verticalAlign: "bottom",
+				horizontalAlign: "center"
+			},
+	
+			data: [{        
+				name: "number of total runs",
+				showInLegend: true,
+				legendMarkerType: "square",
+				type: "area",	
+				markerType: "circle",				
+				markerBorderColor: "rgba(40,175,101,0.6)",
+				markerBorderThickness: 4,
+				color: "rgba(40,175,101,0.6)",
+				markerSize: 4,            
+				dataPoints: total_runs_data
+			},
+			{        
+				name: "number of completed runs",
+				showInLegend: true,
+				legendMarkerType: "square",
+				type: "area",	
+				markerType: "circle",		
+				markerBorderColor: "rgba(0,75,141,0.7)",
+				markerBorderThickness: 4,
+				color: "rgba(0,75,141,0.7)",
+				markerSize: 4,
+				label: "",
+				dataPoints: completed_runs_data
+			}
+			]
+		});
+		
+		chart.render();
+	   }, 1000);
+		
+		count = 0;
+		new_count = 0;
+		answered_ques = [];
+		flow_steps_final_data = [];
+		flow_steps_correct_final_data = [];
+		
+		$.ajax({
+			url: textit_prefix + "/quesforanswers",
+			success: function (frdata) {
+				
+					
+					for (j in frdata){
+						
+						flow_steps_data = [];
+						flow_steps_corrct_data = [];
+						
+						for (k=0; k < frdata[Object.keys(frdata)[count]].length; k++){
+						
+						not_ans = frdata[Object.keys(frdata)[count]][k].total - frdata[Object.keys(frdata)[count]][k].count;
+						ques_label = frdata[Object.keys(frdata)[count]][k].q_name;
+						
+						
+						flow_steps_data.push({"y" : frdata[Object.keys(frdata)[count]][k].count, "label" : ques_label});	
+						flow_steps_corrct_data.push({"y" : not_ans, "label" : ques_label});	
+						
+						}
+						count = count + 1;	
+						
+						flow_steps_final_data.push(flow_steps_data)
+						flow_steps_correct_final_data.push(flow_steps_corrct_data)
+					}
+	
+					$("#flow_steps_count").html(flow_steps_correct_final_data.length);		
+				}
+		});
+		
+   setTimeout(function () {	
+	   for (p=0; p < pie_data.length; p++){	
+		var chart = new CanvasJS.Chart("runnewContainer" + p,
+		{
+		  title:{
+		  text: "Number of people who answered, not answered for the questions"
+		  },
+		  axisY:{
+			title:"Number of people"   
+		  },
+		  axisX:{
+			labelAngle:-45
+		  },
+		  exportEnabled: true,
+		  animationEnabled: true,
+		  data: [
+		  {        
+			type: "stackedColumn",
+			toolTipContent: "{label}<br/><span style='\"'color: {color};'\"'><strong>{name}</strong></span>: {y}people",
+			name: "Answered People",
+			showInLegend: "true",
+			dataPoints: flow_steps_final_data[p]
+		  },  {        
+			type: "stackedColumn",
+			toolTipContent: "{label}<br/><span style='\"'color: {color};'\"'><strong>{name}</strong></span>: {y}people",
+			name: "Not Answered People",
+			showInLegend: "true",
+			dataPoints: flow_steps_correct_final_data[p]
+		  }            
+		  ]
+		  ,
+		  legend:{
+			cursor:"pointer",
+			itemclick: function(e) {
+			  if (typeof (e.dataSeries.visible) ===  "undefined" || e.dataSeries.visible) {
+				  e.dataSeries.visible = false;
+			  }
+			  else
+			  {
+				e.dataSeries.visible = true;
+			  }
+			  chart.render();
+			}
+		  }
+		});
+	
+		chart.render();
+			  }}, 1500);		
+			  
+      });
+    </script>
+    
+    <!-- bootstrap-daterangepicker -->
+    <script>
+      $(document).ready(function() {
+
+        var cb = function(start, end, label) {
+          console.log(start.toISOString(), end.toISOString(), label);
+          $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+        };
+
+        var optionSet1 = {
+          startDate: moment().subtract(29, 'days'),
+          endDate: moment(),
+          minDate: '01/01/2012',
+          maxDate: '12/31/2015',
+          dateLimit: {
+            days: 60
+          },
+          showDropdowns: true,
+          showWeekNumbers: true,
+          timePicker: false,
+          timePickerIncrement: 1,
+          timePicker12Hour: true,
+          ranges: {
+            'Today': [moment(), moment()],
+            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+          },
+          opens: 'left',
+          buttonClasses: ['btn btn-default'],
+          applyClass: 'btn-small btn-primary',
+          cancelClass: 'btn-small',
+          format: 'MM/DD/YYYY',
+          separator: ' to ',
+          locale: {
+            applyLabel: 'Submit',
+            cancelLabel: 'Clear',
+            fromLabel: 'From',
+            toLabel: 'To',
+            customRangeLabel: 'Custom',
+            daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+            monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+            firstDay: 1
+          }
+        };
+        $('#reportrange span').html(moment().subtract(29, 'days').format('MMMM D, YYYY') + ' - ' + moment().format('MMMM D, YYYY'));
+        $('#reportrange').daterangepicker(optionSet1, cb);
+        $('#reportrange').on('show.daterangepicker', function() {
+          console.log("show event fired");
+        });
+        $('#reportrange').on('hide.daterangepicker', function() {
+          console.log("hide event fired");
+        });
+        $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
+          console.log("apply event fired, start/end dates are " + picker.startDate.format('MMMM D, YYYY') + " to " + picker.endDate.format('MMMM D, YYYY'));
+        });
+        $('#reportrange').on('cancel.daterangepicker', function(ev, picker) {
+          console.log("cancel event fired");
+        });
+        $('#options1').click(function() {
+          $('#reportrange').data('daterangepicker').setOptions(optionSet1, cb);
+        });
+        $('#options2').click(function() {
+          $('#reportrange').data('daterangepicker').setOptions(optionSet2, cb);
+        });
+        $('#destroy').click(function() {
+          $('#reportrange').data('daterangepicker').remove();
+        });
+      });
+    </script>
+    <!-- /bootstrap-daterangepicker -->
+    
+  </body>
+</html>
