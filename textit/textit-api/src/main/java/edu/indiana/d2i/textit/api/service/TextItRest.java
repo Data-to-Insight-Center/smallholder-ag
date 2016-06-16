@@ -82,7 +82,10 @@ public class TextItRest {
     @GET
     @Path("/{country}/runs")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllRuns(@PathParam("country") String country) {
+    public Response getAllRuns(@PathParam("country") String country,
+                               @QueryParam("contact") String contactId,
+                               @QueryParam("from") String fromDate,
+                               @QueryParam("to") String toDate) {
         if (country.equals("zambia")){
             MongoDatabase db1 = MongoDB.getServicesDB1();
             runsCollection = db1.getCollection(MongoDB.runsObjects);
@@ -91,6 +94,22 @@ public class TextItRest {
             runsCollection = db2.getCollection(MongoDB.runsObjects);
         }
         control.setNoCache(true);
+
+        BasicDBObject andQuery = new BasicDBObject();
+        List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
+        if (fromDate != null) {
+            fromDate = fromDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$gte", fromDate)));
+        }
+        if (toDate != null) {
+            toDate = toDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
+        }if (contactId != null) {
+            obj.add(new BasicDBObject("contact", contactId));
+        }
+        if (obj.size() != 0) {
+            andQuery.put("$and", obj);
+        }
 
         FindIterable<Document> iter = runsCollection.find();
         iter.projection(new Document("runs", 1)
@@ -271,6 +290,72 @@ public class TextItRest {
                 new_list.put("flow", document1.getInteger("flow"));
                 new_list.put("run", document1.getInteger("run"));
                 new_list.put("created_on", document1.getString("created_on"));
+
+                array.put(new_list);
+            }
+        }
+
+        return Response.ok(array.toString()).cacheControl(control).build();
+    }
+    @GET
+    @Path("/{country}/runsandcontacts")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getRunsAndContactsData(@PathParam("country") String country,
+                                           @QueryParam("contact") String contactId,
+                                           @QueryParam("from") String fromDate,
+                                           @QueryParam("to") String toDate) {
+        if (country.equals("zambia")){
+            MongoDatabase db1 = MongoDB.getServicesDB1();
+            contactsCollection = db1.getCollection(MongoDB.contactsObjects);
+            runsCollection = db1.getCollection(MongoDB.runsObjects);
+        }else if (country.equals("kenya")){
+            MongoDatabase db2 = MongoDB.getServicesDB2();
+            contactsCollection = db2.getCollection(MongoDB.contactsObjects);
+            runsCollection = db2.getCollection(MongoDB.runsObjects);
+        }
+        control.setNoCache(true);
+
+        JSONArray array = new JSONArray();
+
+        BasicDBObject andQuery = new BasicDBObject();
+        List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
+        if (fromDate != null) {
+            fromDate = fromDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$gte", fromDate)));
+        }
+        if (toDate != null) {
+            toDate = toDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
+        }
+        if (contactId != null) {
+            obj.add(new BasicDBObject("contact", contactId));
+        }
+        if (obj.size() != 0) {
+            andQuery.put("$and", obj);
+        }
+
+        FindIterable<Document> iter = runsCollection.find(andQuery);
+        MongoCursor<Document> cursor = iter.iterator();
+
+        while (cursor.hasNext()) {
+            Document document = cursor.next();
+            String contact_id = (String) document.get("contact");
+
+            FindIterable<Document> iter1 = contactsCollection.find(new BasicDBObject("uuid", contact_id));
+            MongoCursor<Document> cursor1 = iter1.iterator();
+
+            while (cursor1.hasNext()) {
+                Document document1 = cursor1.next();
+
+                JSONObject new_list = new JSONObject();
+
+                new_list.put("contact_id", document.getString("contact"));
+                new_list.put("run_id", document.getString("flow_uuid"));
+                new_list.put("status", document.getBoolean("completed"));
+                new_list.put("created_on", document.getString("created_on"));
+                new_list.put("contact_name", document1.getString("name"));
+                new_list.put("contact_phone", document1.getString("phone"));
+                new_list.put("modified_on", document1.getString("modified_on"));
 
                 array.put(new_list);
             }
