@@ -84,7 +84,9 @@ public class DBHandler {
                 JSONObject runs = new JSONObject(fileString);
                 JSONArray runsArray = runs.getJSONArray("results");
                 for(int i=0 ; i < runsArray.length() ; i++){
-                    MongoDB.addRun(runsArray.getJSONObject(i).toString());
+                    JSONObject run = runsArray.getJSONObject(i);
+                    MongoDB.addRun(run.getString("flow_uuid"), run.getString("contact")
+                            , runsArray.getJSONObject(i).toString());
                 }
             }
         }
@@ -105,7 +107,8 @@ public class DBHandler {
                 JSONObject flows = new JSONObject(fileString);
                 JSONArray flowsArray = flows.getJSONArray("results");
                 for(int i=0 ; i < flowsArray.length() ; i++){
-                    MongoDB.addFlow(flowsArray.getJSONObject(i).toString());
+                    MongoDB.addFlow(flowsArray.getJSONObject(i).getString("uuid"),
+                            flowsArray.getJSONObject(i).toString());
                 }
             }
         }
@@ -126,7 +129,8 @@ public class DBHandler {
                 JSONObject contacts = new JSONObject(fileString);
                 JSONArray contactsArray = contacts.getJSONArray("results");
                 for(int i=0 ; i < contactsArray.length() ; i++){
-                    MongoDB.addContact(contactsArray.getJSONObject(i).toString());
+                    MongoDB.addContact(contactsArray.getJSONObject(i).getString("uuid"),
+                            contactsArray.getJSONObject(i).toString());
                 }
             }
         }

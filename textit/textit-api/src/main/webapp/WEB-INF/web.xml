@@ -5,10 +5,10 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
          id="WebApp_ID" version="3.0">
 
-    <display-name>TextIt Ingest</display-name>
+    <display-name>TextIt API</display-name>
 
     <servlet>
-        <servlet-name>textit-ingest</servlet-name>
+        <servlet-name>textit-api</servlet-name>
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
         <init-param>
             <param-name>com.sun.jersey.config.property.packages</param-name>
@@ -22,7 +22,7 @@
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>textit-ingest</servlet-name>
+        <servlet-name>textit-api</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
 

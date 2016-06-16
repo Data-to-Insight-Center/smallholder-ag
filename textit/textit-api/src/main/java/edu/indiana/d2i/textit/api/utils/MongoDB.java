@@ -1,4 +1,4 @@
-package edu.indiana.d2i.api.utils;
+package edu.indiana.d2i.textit.api.utils;
 
 /**
  * Created by kunarath on 5/13/16.

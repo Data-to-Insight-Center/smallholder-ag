@@ -3,6 +3,7 @@ package edu.indiana.d2i.textit.ingest.utils;
 import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSInputFile;
 import org.apache.commons.lang.StringUtils;
@@ -79,25 +80,38 @@ public class MongoDB {
         statusCollection.insertOne(Document.parse(status));
     }
 
-    public static void addFlow(String flow) {
+    public static void addFlow(String uuid, String flow) {
         if(flowsCollection == null) {
             flowsCollection = database.getCollection(FLOWS_COLLECTION_NAME);
+            BasicDBObject index = new BasicDBObject();
+            index.put("uuid", 1);
+            flowsCollection.createIndex(index);
         }
-        flowsCollection.insertOne(Document.parse(flow));
+        flowsCollection.replaceOne(new Document("uuid", uuid), Document.parse(flow),
+                (new UpdateOptions()).upsert(true));
     }
 
-    public static void addContact(String contacts) {
+    public static void addContact(String uuid, String contacts) {
         if(contactsCollection == null) {
             contactsCollection = database.getCollection(CONTACTS_COLLECTION_NAME);
+            BasicDBObject index = new BasicDBObject();
+            index.put("uuid", 1);
+            contactsCollection.createIndex(index);
         }
-        contactsCollection.insertOne(Document.parse(contacts));
+        contactsCollection.replaceOne(new Document("uuid", uuid), Document.parse(contacts),
+                (new UpdateOptions()).upsert(true));
     }
 
-    public static void addRun(String runs) {
+    public static void addRun(String flow_uuid, String contact, String runs) {
         if(runsCollection == null) {
             runsCollection = database.getCollection(RUNS_COLLECTION_NAME);
+            BasicDBObject index = new BasicDBObject();
+            index.put("flow_uuid", 1);
+            index.put("contact", 1);
+            runsCollection.createIndex(index);
         }
-        runsCollection.insertOne(Document.parse(runs));
+        BasicDBObject query = new BasicDBObject("flow_uuid", flow_uuid).append("contact", contact);
+        runsCollection.replaceOne(query, Document.parse(runs), (new UpdateOptions()).upsert(true));
     }
 
     public static void addRawRuns(String folder, String fileName) throws FileNotFoundException {
