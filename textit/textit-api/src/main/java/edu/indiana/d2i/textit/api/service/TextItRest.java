@@ -84,6 +84,7 @@ public class TextItRest {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllRuns(@PathParam("country") String country,
                                @QueryParam("contact") String contactId,
+                               @QueryParam("flowId") String flowId,
                                @QueryParam("from") String fromDate,
                                @QueryParam("to") String toDate) {
         control.setNoCache(true);
@@ -100,6 +101,9 @@ public class TextItRest {
         if (toDate != null) {
             toDate = toDate.replace("+00:00", "Z");
             obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
+        }
+        if (flowId != null) {
+            obj.add(new BasicDBObject("flow_uuid", flowId));
         }
         if (contactId != null) {
             obj.add(new BasicDBObject("contact", contactId));
@@ -345,7 +349,7 @@ public class TextItRest {
                                            @QueryParam("to") String toDate) {
 
         MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
-        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollection);
+        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollectionName);
         MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
 
         control.setNoCache(true);
@@ -369,18 +373,18 @@ public class TextItRest {
             andQuery.put("$and", obj);
         }
 
-        FindIterable<Document> iter = runsCollection.find(andQuery);
-        MongoCursor<Document> cursor = iter.iterator();
+        FindIterable<Document> runsIter = runsCollection.find(andQuery);
+        MongoCursor<Document> runsCursor = runsIter.iterator();
 
-        while (cursor.hasNext()) {
-            Document document = cursor.next();
+        while (runsCursor.hasNext()) {
+            Document document = runsCursor.next();
             String contact_id = (String) document.get("contact");
 
-            FindIterable<Document> iter1 = contactsCollection.find(new BasicDBObject("uuid", contact_id));
-            MongoCursor<Document> cursor1 = iter1.iterator();
+            FindIterable<Document> contactsIter = contactsCollection.find(new BasicDBObject("uuid", contact_id));
+            MongoCursor<Document> contactsCursor = contactsIter.iterator();
 
-            while (cursor1.hasNext()) {
-                Document document1 = cursor1.next();
+            while (contactsCursor.hasNext()) {
+                Document document1 = contactsCursor.next();
 
                 JSONObject new_list = new JSONObject();
 
