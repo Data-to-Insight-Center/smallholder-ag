@@ -5,32 +5,25 @@ package edu.indiana.d2i.textit.api.utils;
  */
 
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
+import org.apache.log4j.Logger;
 
 public class MongoDB {
 
     static public MongoClient mongoClientInstance = null;
-    public static String flowsObjects = "flows";
-    public static String runsObjects = "runs";
-    public static String contactsObjects = "contacts";
+    public static String flowsCollectionName = "flows";
+    public static String runsCollectionName = "runs";
+    public static String contactsCollectionName = "contacts";
+    public static String statusCollectionName = "status";
+    private static Logger logger = Logger.getLogger(MongoDB.class);
 
     public static synchronized MongoClient getMongoClientInstance() {
         if (mongoClientInstance == null) {
             try {
                 mongoClientInstance = new MongoClient(Constants.mongoHost, Constants.mongoPort);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Error initializing MongoClient: " + e.getMessage());
             }
         }
         return mongoClientInstance;
-    }
-
-    static public MongoDatabase getServicesDB1() {
-        MongoDatabase db1 = getMongoClientInstance().getDatabase(Constants.textitDbName1);
-        return db1;
-    }
-    static public MongoDatabase getServicesDB2() {
-        MongoDatabase db2 = getMongoClientInstance().getDatabase(Constants.textitDbName2);
-        return db2;
     }
 }

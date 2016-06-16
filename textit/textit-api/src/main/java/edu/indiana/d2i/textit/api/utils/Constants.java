@@ -1,5 +1,7 @@
 package edu.indiana.d2i.textit.api.utils;
 
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -11,16 +13,14 @@ public class Constants {
 
     public static String mongoHost;
     public static int mongoPort;
-
-    public static String textitDbName1;
-    public static String textitDbName2;
-
+    private static Logger logger = Logger.getLogger(Constants.class);
 
     static {
         try {
             loadConfigurations();
+            logger.info("Configuration loaded.");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error while loading configuration : " + e.getMessage());
         }
     }
 
@@ -31,7 +31,5 @@ public class Constants {
         props.load(inputStream);
         mongoHost = props.getProperty("mongo.host", "localhost");
         mongoPort = Integer.parseInt(props.getProperty("mongo.port", "27017"));
-        textitDbName1 = props.getProperty("textit.db1.name", "zambia");
-        textitDbName2 = props.getProperty("textit.db2.name", "kenya");
     }
 }
