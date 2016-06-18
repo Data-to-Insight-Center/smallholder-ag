@@ -104,7 +104,7 @@ crontab -l > textitcron
 if [ "$daily" != "" ]; then
     echo "0 "$hour" * * * "$start_script" "$HOME" "$config_file" "$daily" >> "$log_file" 2>&1" >> textitcron
 else
-    echo "0 1 * * "$day" "$start_script" "$HOME" "$config_file" "$weekly" >> "$log_file" 2>&1" >> textitcron
+    echo "0 11 * * "$day" "$start_script" "$HOME" "$config_file" "$weekly" >> "$log_file" 2>&1" >> textitcron
 fi
 
 #install new cron file
