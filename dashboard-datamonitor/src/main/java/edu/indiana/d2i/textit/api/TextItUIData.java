@@ -36,6 +36,11 @@ public abstract class TextItUIData {
 	public abstract Response getAllContacts(@PathParam("country") String country);
 
 	@GET
+	@Path("/{country}/lastweekcontacts")
+	@Produces(MediaType.APPLICATION_JSON)
+	public abstract Response getAllLastWeekModifiedContacts(@PathParam("country") String country);
+
+	@GET
 	@Path("/{country}/all")
 	@Produces(MediaType.APPLICATION_JSON)
 	public abstract Response getAllData(@PathParam("country") String country);

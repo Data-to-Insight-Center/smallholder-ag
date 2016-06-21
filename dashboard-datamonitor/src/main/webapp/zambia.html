@@ -144,19 +144,19 @@
               <span class="count_top"><i class="fa fa-user"></i> Total Users</span>
               <div class="count blue" id="total_user_count"></div>
               <span class="count_top"><i class="fa fa-clock-o"></i> from last week</span>
-              <div class="count green" id="last_week_flows_count1">113</div>
+              <div class="count green" id="last_week_user_count"></div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="text-align:center">
               <span class="count_top"><i class="fa fa-user"></i> Total Archived Flows</span>
               <div class="count blue" id="archived_flows_count"></div>
               <span class="count_top"><i class="fa fa-clock-o"></i> from last week</span>
-              <div class="count green" id="last_week_archived_flows_count">1</div>
+              <div class="count green" id="last_week_archived_flows_count"></div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count" style="text-align:center">
               <span class="count_top"><i class="fa fa-user"></i> Total Open Flows</span>
-              <div class="count blue" id="archived_flows_count1">4</div>
+              <div class="count blue" id="open_flows_count"></div>
               <span class="count_top"><i class="fa fa-clock-o"></i> from last week</span>
-              <div class="count green" id="last_week_flows_count2">1</div>
+              <div class="count green" id="last_week_open_flows_count"></div>
             </div>
             <div class="col-md-3 col-sm-2 col-xs-6 tile_stats_count" style="text-align:center">
               <span class="count_top"><i class="fa fa-clock-o"></i> Last week data download & server status</span>
@@ -279,14 +279,24 @@
 			return lastWeek;
 		}
 		
+		function getLastSunday() {
+			var now = new Date();
+			var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+			var lastSunday = new Date(today.setDate(today.getDate()-today.getDay()));
+			return lastSunday;
+		}
+		
 		var lastWeek = getLastWeek();
-		  
-		flow_data = [];
+		var lastSunday = getLastSunday();
+		
 		flow_rule_data =[];
 		completed_runs_data = [];		
 		total_runs_data = [];
 		more_recent_flow = [];
 		archived_flows = [];
+		last_week_archived_flows =[];
+		open_flows = [];
+		last_week_open_flows =[];
 		
 		var textit_prefix = "./api/zambia";
 		var contact_count = 10;
@@ -321,22 +331,35 @@
 						if (	data[i].archived){			
 							archived_flows.push(data[i].archived)
 						}
+						someDate = new Date(data[i].created_on);						
+						if (new Date(someDate.setDate(someDate.getDate() + data[i].expires/(60*24))) > lastSunday){							
+							open_flows.push(data[i].created_on)
+						}
 						
 					}
 			
 			$("#total_flows_count").html(total_flows);
 			$("#archived_flows_count").html(archived_flows.length);
+			$("#open_flows_count").html(open_flows.length);
 				
 			}
 		});
 		
-		var contact_data = [];
 		$.ajax({
 			url: textit_prefix + "/contacts",
 			success: function (cdata) {
 					var total_contacts = cdata.length;
 			
 					$("#total_user_count").html(total_contacts);
+			}
+		});
+		
+		$.ajax({
+			url: textit_prefix + "/lastweekcontacts",
+			success: function (ldata) {
+					var last_contacts = ldata.length;
+			
+					$("#last_week_user_count").html(last_contacts);
 			}
 		});
 		
@@ -369,10 +392,20 @@
 							for (p=0; p < fdata[i].rulesets.length; p++){	
 								flow_rule_label_data.push({"y" : 100, "label": fdata[i].rulesets[p].label})
 							}
+							if (	fdata[i].archived){			
+								last_week_archived_flows.push(fdata[i].archived)
+							}
+							lastDate = new Date(fdata[i].created_on);						
+							if (new Date(lastDate.setDate(lastDate.getDate() + fdata[i].expires/(60*24))) > lastSunday){							
+								last_week_open_flows.push(fdata[i].created_on)
+							}
 						flow_rule_data.push(flow_rule_label_data);
 					}
 								
 				$("#last_week_flows_count").html(last_week_total_flows);
+				$("#last_week_archived_flows_count").html(last_week_archived_flows.length);
+				$("#last_week_open_flows_count").html(last_week_open_flows.length);
+				
 				
 				output = '<ul class="list-unstyled top_profiles scroll-view">';
 				for (m=0; m < more_recent_flow.length; m++){

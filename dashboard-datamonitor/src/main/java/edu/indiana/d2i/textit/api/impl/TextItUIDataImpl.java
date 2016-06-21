@@ -35,18 +35,32 @@ public class TextItUIDataImpl extends TextItUIData {
 		control.setNoCache(true);
 	}
 
-	public String getLastWeek() {
-		Date today = new Date();
+	public String getLastWeek(String country) {
+//		Date today = new Date();
+//		Calendar c = Calendar.getInstance();
+//		c.setTime(today);
+//		int i = c.get(Calendar.DAY_OF_WEEK) - c.getFirstDayOfWeek();
+//		c.add(Calendar.DATE, -i - 7);
+//		Date start = c.getTime();
+//		c.add(Calendar.DATE, 6);
+//		Date before = c.getTime();
+//		String fromDate = sdfDate.format(before);
+//		String fromDate1 = sdfDate.format(start);
+//		return fromDate;
+
+
 		Calendar c = Calendar.getInstance();
-		c.setTime(today);
-		int i = c.get(Calendar.DAY_OF_WEEK) - c.getFirstDayOfWeek();
-		c.add(Calendar.DATE, -i - 34);
-		Date start = c.getTime();
-		c.add(Calendar.DATE, 6);
+		if (country == "kenya") {
+			c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+		}else if (country == "zambia"){
+			c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+		}
+		Date last_country_day = c.getTime();
+		c.add(Calendar.DATE, -7);
 		Date before = c.getTime();
-		String fromDate = sdfDate.format(before);
-		String fromDate1 = sdfDate.format(start);
-		return fromDate;
+		String start = sdfDate.format(before);
+		String end = sdfDate.format(last_country_day);
+		return start;
 	}
 
 	@GET
@@ -69,7 +83,7 @@ public class TextItUIDataImpl extends TextItUIData {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAllLastWeekFlows(@PathParam("country") String country) {
 		WebResource webResource = resource();
-		String fromDate = getLastWeek();
+		String fromDate = getLastWeek(country);
 
 		ClientResponse response = webResource.path(country + "/flows")
 				.queryParam("from", fromDate)
@@ -101,7 +115,7 @@ public class TextItUIDataImpl extends TextItUIData {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAllLastWeekRuns(@PathParam("country") String country) {
 		WebResource webResource = resource();
-		String fromDate = getLastWeek();
+		String fromDate = getLastWeek(country);
 
 		ClientResponse response = webResource.path(country + "/runs")
 				.queryParam("from", fromDate)
@@ -120,6 +134,23 @@ public class TextItUIDataImpl extends TextItUIData {
 		WebResource webResource = resource();
 
 		ClientResponse response = webResource.path(country + "/contacts")
+				.accept("application/json")
+				.type("application/json")
+				.get(ClientResponse.class);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
+
+	@GET
+	@Path("/{country}/lastweekcontacts")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAllLastWeekModifiedContacts(@PathParam("country") String country) {
+		WebResource webResource = resource();
+		String modified_date = getLastWeek(country);
+
+		ClientResponse response = webResource.path(country + "/contacts")
+				.queryParam("from", modified_date)
 				.accept("application/json")
 				.type("application/json")
 				.get(ClientResponse.class);
@@ -149,7 +180,7 @@ public class TextItUIDataImpl extends TextItUIData {
 	public Response getRunsOfFlowData(@PathParam("country") String country) {
 		WebResource webResource = resource();
 
-		String fromDate = getLastWeek();
+		String fromDate = getLastWeek(country);
 		Response output = getAllLastWeekFlows(country);
 		String str_output = output.getEntity().toString();
 
@@ -181,7 +212,7 @@ public class TextItUIDataImpl extends TextItUIData {
 	public Response getRunsAndContactsData(@PathParam("country") String country) {
 		WebResource webResource = resource();
 
-		String fromDate = getLastWeek();
+		String fromDate = getLastWeek(country);
 		ClientResponse response = webResource.path(country + "/runsandcontacts")
 				.queryParam("from", fromDate)
 				.accept("application/json")
