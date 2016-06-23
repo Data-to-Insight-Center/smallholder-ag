@@ -163,13 +163,14 @@ public final class TextItClient {
 		final List<String> res = new ArrayList<String>();
 
 		Date date = new Date();
+        int no_of_days = NO_OF_DAYS + 7;
 
 		final String timestamp_prev = df.format(new DateTime(df.format(date))
-				.minusDays(NO_OF_DAYS).toDate());
+				.minusDays(no_of_days).toDate());
 		final String timestamp_now = df.format(new DateTime(df.format(date))
 				.toDate());
 
-		logger.info("No of Days " + NO_OF_DAYS);
+		logger.info("No of Days " + no_of_days);
         URL target = null;
         target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp_prev
                     + "T00:00:00.000" + "&&" + "before=" + timestamp_now
