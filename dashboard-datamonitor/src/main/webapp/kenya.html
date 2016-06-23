@@ -160,25 +160,7 @@
             </div>
             <div class="col-md-3 col-sm-2 col-xs-6 tile_stats_count" style="text-align:center">
               <span class="count_top"><i class="fa fa-clock-o"></i> Last week data download & server status</span>
-                <div style="text-align:center;padding:0px 0px 0px 40px">
-                    <table>
-                        <tr valign="top" style="line-height:2.5;padding:5px;">
-                            <th style="width: 120px">Flows:</th>
-                            <td><span class="label label-success">Success</span></td>
-                        </tr>
-                        <tr valign="top" style="line-height:2.5;padding:5px;">
-                            <th style="width: 120px">Runs:</th>
-                            <td><span class="label label-warning">Warning</span></td>
-                        </tr>				
-                        <tr valign="top" style="line-height:2.5;padding:5px;">
-                            <th style="width: 120px">Contacts:</th>
-                            <td><span class="label label-danger">Failure</span></td>
-                        </tr>
-                        <tr valign="top" style="line-height:2.5;padding:5px;">
-                            <th style="width: 120px">Server status:</th>
-                            <td><span class="label label-success">Success</span></td>
-                        </tr>
-                    </table>
+                <div style="text-align:center;padding:0px 0px 0px 40px" id="server_status">
                 </div>
             </div>
           </div>
@@ -188,7 +170,7 @@
             <div class="col-md-12 col-sm-12 col-xs-12">
             	<div class="row x_title">
                   <div class="col-md-6">
-                    <h2>Last Week Analysis<small>-   flows and runs</small></h2>
+                    <div id="lastweek"></div>
                   </div>
                   <!--<div class="col-md-6">
                     <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
@@ -225,7 +207,7 @@
                 	<div id="most_recent_contact" class="x_panel"></div>
               	</div>
                 
-                <div class="col-md-4 col-sm-4 col-xs-12" style="padding-top:10px;height:450px;overflow:scroll;">
+                <div class="col-md-4 col-sm-4 col-xs-12" style="padding-top:10px;height:600px;overflow:scroll;">
                   <div class="x_panel">
                   	<div class="x_title">
                       <h2>Weather<small>- This week</small></h2>
@@ -275,7 +257,7 @@
 		  
 		function getLastWeek(){
 			var today = new Date();
-			var lastWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 27);
+			var lastWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
 			return lastWeek;
 		}
 		
@@ -286,8 +268,20 @@
 			return lastSunday;
 		}
 		
+		function getLastSaturday(){
+			var now = new Date();
+			var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+			var lastSaturday = new Date(today.setDate(today.getDate()-(today.getDay()+1)%7));
+			var beforeSaturday = new Date(lastSaturday.getFullYear(), lastSaturday.getMonth(), lastSaturday.getDate()-7);
+			return beforeSaturday;
+		}
+		
 		var lastWeek = getLastWeek();
 		var lastSunday = getLastSunday();
+		var lastBeforeSaturday = getLastSaturday();
+		
+		lastweek_output = '<h4>Analysis for flows and runs -  <small>[' + moment(lastBeforeSaturday).format('MMMM Do YYYY, h:mm:ss a') + ' - ' + moment(new Date()).format('MMMM Do YYYY, h:mm:ss a') + ']</small></h4>';
+		$("#lastweek").html(lastweek_output);
 		
 		flow_rule_data =[];
 		completed_runs_data = [];		
@@ -297,6 +291,9 @@
 		last_week_archived_flows =[];
 		open_flows = [];
 		last_week_open_flows =[];
+		last_week_flow_status = [];
+		last_week_runs_status = [];
+		last_week_contacts_status = [];	
 		
 		var textit_prefix = "./api/kenya";
 		var contact_count = 8;
@@ -358,11 +355,21 @@
 			url: textit_prefix + "/lastweekcontacts",
 			success: function (ldata) {
 					var last_contacts = ldata.length;
-			
+					for (i in ldata) {
+					last_week_contacts_status.push(ldata[i].uuid);
+					}
 					$("#last_week_user_count").html(last_contacts);
 			}
 		});
 		
+		$.ajax({
+			url: textit_prefix + "/lastweekruns",
+			success: function (rdata) {
+					for (i in rdata) {
+					last_week_runs_status.push(rdata[i].flow);
+					}
+			}
+		});		
 		
 		$.ajax({
 			url: textit_prefix + "/lastweekflows",
@@ -381,6 +388,8 @@
 								"y" : fdata[i].runs ,
 								"label" : '"' + fdata[i].name + '"'
 							});
+							
+							last_week_flow_status.push(fdata[i].uuid);
 							
 							more_recent_flow.push({ 
 								"total_runs" : fdata[i].runs ,
@@ -452,6 +461,43 @@
 			
 			}
 		});
+		
+		setTimeout(function () {
+			status_output = '<table><tr valign="top" style="line-height:2.5;padding:5px;"><th style="width: 120px">Flows:</th>';
+					if (last_week_flow_status.length != 0){ 
+						status_output += '<td><span class="label label-success">Success</span></td>';
+					}else{
+						status_output += '<td><span class="label label-warning">Warning</span></td>';
+					}
+					status_output += '</tr><tr valign="top" style="line-height:2.5;padding:5px;"><th style="width: 120px">Runs:</th>';
+					
+					if (last_week_runs_status.length != 0){
+						status_output += '<td><span class="label label-success">Success</span></td>';
+					}else{
+						status_output += '<td><span class="label label-danger">Failure</span></td>';
+					}
+					status_output += '</tr><tr valign="top" style="line-height:2.5;padding:5px;"><th style="width: 120px">Contacts:</th>';
+					
+					if (last_week_contacts_status.length != 0){
+						status_output += '<td><span class="label label-success">Success</span></td>';
+					}else{
+						status_output += '<td><span class="label label-danger">Failure</span></td>';
+					}
+					status_output += '</tr><tr valign="top" style="line-height:2.5;padding:5px;"><th style="width: 120px">Server status:</th>';
+					
+					if (last_week_runs_status.length == 0 && last_week_flow_status.length == 0 && last_week_contacts_status.length == 0){
+						status_output += '<td><span class="label label-danger">Failure</span></td>';
+					}else if(last_week_runs_status.length != 0 && last_week_flow_status.length != 0 && last_week_contacts_status.length != 0){
+						status_output += '<td><span class="label label-success">Success</span></td>';
+					}else{
+						status_output += '<td><span class="label label-warning">Warning</span></td>';
+					}
+					
+					status_output += '</tr></table>';
+				
+			$("#server_status").html(status_output);	
+			
+			 }, 1500);
 		  
 		setTimeout(function () {
 			for (p=0; p < pie_data.length; p++){
@@ -577,21 +623,26 @@
 				
 					
 					for (j in frdata){
-						
-						flow_steps_data = [];
-						flow_steps_corrct_data = [];
-						
-						for (k=0; k < frdata[Object.keys(frdata)[count]].length; k++){
-						
-						not_ans = frdata[Object.keys(frdata)[count]][k].total - frdata[Object.keys(frdata)[count]][k].count;
-						ques_label = frdata[Object.keys(frdata)[count]][k].q_name;
-						
-						
-						flow_steps_data.push({"y" : frdata[Object.keys(frdata)[count]][k].count, "label" : ques_label});	
-						flow_steps_corrct_data.push({"y" : not_ans, "label" : ques_label});	
-						
-						}
-						count = count + 1;	
+							flow_steps_data = [];
+							flow_steps_corrct_data = [];
+							
+							if (frdata[j].ques_detail.length == 0){
+								for (q=0; q < frdata[j].ques_detail.length; q++){
+								
+								flow_steps_data.push({});	
+								flow_steps_corrct_data.push({});	
+								}
+								
+							}else{
+								for (q=0; q < frdata[j].ques_detail.length; q++){
+							
+								not_ans = frdata[j].ques_detail[q].total - frdata[j].ques_detail[q].ans_count;
+								ques_label = frdata[j].ques_detail[q].q_name;
+								
+								flow_steps_data.push({"y" : frdata[j].ques_detail[q].ans_count, "label" : ques_label});	
+								flow_steps_corrct_data.push({"y" : not_ans, "label" : ques_label});	
+								}
+							}
 						
 						flow_steps_final_data.push(flow_steps_data)
 						flow_steps_correct_final_data.push(flow_steps_corrct_data)
@@ -603,7 +654,7 @@
 		
    setTimeout(function () {	
 	   for (p=0; p < pie_data.length; p++){	
-		var chart = new CanvasJS.Chart("runnewContainer" + p,
+	var chart = new CanvasJS.Chart("runnewContainer" + p,
 		{
 		  title:{
 		  text: "Number of people who answered, not answered for the questions"

@@ -36,18 +36,6 @@ public class TextItUIDataImpl extends TextItUIData {
 	}
 
 	public String getLastWeek(String country) {
-//		Date today = new Date();
-//		Calendar c = Calendar.getInstance();
-//		c.setTime(today);
-//		int i = c.get(Calendar.DAY_OF_WEEK) - c.getFirstDayOfWeek();
-//		c.add(Calendar.DATE, -i - 7);
-//		Date start = c.getTime();
-//		c.add(Calendar.DATE, 6);
-//		Date before = c.getTime();
-//		String fromDate = sdfDate.format(before);
-//		String fromDate1 = sdfDate.format(start);
-//		return fromDate;
-
 
 		Calendar c = Calendar.getInstance();
 		if (country == "kenya") {
@@ -233,14 +221,17 @@ public class TextItUIDataImpl extends TextItUIData {
 		String str_output = output.getEntity().toString();
 
 		JSONArray allFlows = new JSONArray(str_output);
-		JSONObject result = new JSONObject();
+		JSONArray result_array = new JSONArray();
 
 		ClientResponse response = null;
 		for (int i = 0; i < allFlows.length(); i++) {
+			JSONObject result = new JSONObject();
+
 			JSONObject flowObject = allFlows.getJSONObject(i);
 			String flow_id = (String)flowObject.get("uuid");
+			String created_on = (String)flowObject.get("created_on");
 			int total = (Integer)flowObject.get("runs");
-			Map<String, JSONObject> qMap = new HashMap<String, JSONObject>();
+			Map<String, JSONObject> qMap = new TreeMap<String, JSONObject>();
 			JSONArray rulesets = (JSONArray) flowObject.get("rulesets");
 
 			for (int j = 0; j < rulesets.length(); j++) {
@@ -271,14 +262,46 @@ public class TextItUIDataImpl extends TextItUIData {
 				JSONObject qObject = qMap.get(node);
 				question_array.put(new JSONObject()
 						.put("q_name",qObject.getString("label"))
-						.put("count",qObject.getInt("count"))
+						.put("ans_count",qObject.getInt("count"))
 						.put("total", total));
 			}
-			result.put(flow_id, question_array);
+
+			result.put("created_on", created_on);
+			result.put("ques_detail", question_array);
+
+			result_array.put(result);
 
 		}
 
-		return Response.status(response.getStatus()).entity(result.toString()).cacheControl(control).build();
+		JSONArray sortedJsonArray = new JSONArray();
+		List<JSONObject> jsonList = new ArrayList<JSONObject>();
+		for (int i = 0; i < result_array.length(); i++) {
+			jsonList.add(result_array.getJSONObject(i));
+		}
+
+		Collections.sort( jsonList, new Comparator<JSONObject>() {
+
+			public int compare(JSONObject a, JSONObject b) {
+					Date dt = new Date();
+					Date dt2 = new Date();
+
+					try {
+						dt = sdfDate.parse((String) a.get("created_on"));
+						dt2 = sdfDate.parse((String) b.get("created_on"));
+					} catch (ParseException e) {
+						e.printStackTrace();
+					}
+					return dt2.compareTo(dt);
+				}
+		});
+
+
+		for (int i = 0; i < result_array.length(); i++) {
+			sortedJsonArray.put(jsonList.get(i));
+		}
+
+
+		return Response.status(response.getStatus()).entity(sortedJsonArray.toString()).cacheControl(control).build();
 
 	}
 
