@@ -38,13 +38,16 @@ public class TextItUIDataImpl extends TextItUIData {
 	public String getLastWeek(String country) {
 
 		Calendar c = Calendar.getInstance();
-		if (country == "kenya") {
+
+		if (country.equals("kenya")) {
 			c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-		}else if (country == "zambia"){
+			c.add(Calendar.DATE, -14);
+		}else if (country.equals("zambia")){
 			c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+			c.add(Calendar.DATE, -7);
 		}
-		Date last_country_day = c.getTime();
-		c.add(Calendar.DATE, -7);
+
+		Date last_country_day = Calendar.getInstance().getTime();
 		Date before = c.getTime();
 		String start = sdfDate.format(before);
 		String end = sdfDate.format(last_country_day);
@@ -266,6 +269,7 @@ public class TextItUIDataImpl extends TextItUIData {
 						.put("total", total));
 			}
 
+			result.put("flow_id", flow_id);
 			result.put("created_on", created_on);
 			result.put("ques_detail", question_array);
 
@@ -412,5 +416,87 @@ public class TextItUIDataImpl extends TextItUIData {
 		}
 
 		return Response.status(Response.Status.OK).entity(sortedJsonArray.toString()).cacheControl(control).build();
+	}
+
+	@GET
+	@Path("/{country}/flowanalytics")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getQuesDetailsForFlow(@PathParam("country") String country,
+										  @QueryParam("flowId") String flow_id) {
+
+		if(flow_id == null) {
+			//return Response
+		}
+		WebResource webResource = resource();
+
+		Map<String, JSONObject> qMap = new TreeMap<String, JSONObject>();
+
+		JSONArray result_array = new JSONArray();
+		JSONObject result = new JSONObject();
+		ClientResponse response = null;
+		response = webResource.path(country + "/runsofflow")
+				.queryParam("flowId", flow_id)
+				.accept("application/json")
+				.type("application/json")
+				.get(ClientResponse.class);
+
+		JSONArray runs_array = new JSONArray(response.getEntity(new GenericType<String>() {}));
+		int total = runs_array.length();
+		for(int k = 0 ; k < runs_array.length() ; k++ ){
+			JSONArray values_array = runs_array.getJSONObject(k).getJSONArray("values");
+			for(int l = 0 ; l < values_array.length() ; l++ ){
+
+				JSONObject value = values_array.getJSONObject(l);
+				JSONObject qObject;
+				if (qMap.get((String) value.get("node")) != null) {
+					qObject = qMap.get((String) value.get("node"));
+				}else {
+					qObject = new JSONObject().put("label", value.get("label")).put("count", 0).put("category", new JSONObject());
+				}
+
+				JSONObject cat_obj = qObject.getJSONObject("category");
+
+				int current_count = qObject.getInt("count");
+				qObject.put("count", ++current_count);
+
+				String cat_val = null;
+
+				if (value.getJSONObject("category").has("base")) {
+					cat_val = value.getJSONObject("category").getString("base");
+				} else if(value.getJSONObject("category").has("eng")){
+					cat_val = value.getJSONObject("category").getString("eng");
+				}
+
+				if (cat_val != null){
+					if (cat_obj.has(cat_val)){
+						int cat_new_val = cat_obj.getInt(cat_val);
+						cat_obj.put(cat_val, ++cat_new_val);
+					}else{
+						cat_obj.put(cat_val, 1);
+					}
+				}
+
+				qMap.put(value.getString("node"),qObject);
+			}
+		}
+
+		JSONArray question_array = new JSONArray();
+		for(String node : qMap.keySet()) {
+			JSONObject qObject = qMap.get(node);
+			question_array.put(new JSONObject()
+					.put("q_name",qObject.getString("label"))
+					.put("response_count",qObject.getInt("count"))
+					.put("no_response_count",total-qObject.getInt("count"))
+					.put("ans",qObject.get("category"))
+					.put("total", total));
+		}
+
+		result.put("flow_id", flow_id);
+		result.put("ques_detail", question_array);
+
+		result_array.put(result);
+
+		return Response.status(response.getStatus()).entity(result_array.toString()).cacheControl(control).build();
+
 	}
 }
