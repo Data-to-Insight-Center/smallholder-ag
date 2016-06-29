@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Admin Dashboard | Dashboard Data Monitor</title>
+
+    <!-- Bootstrap -->
+    <link href="media/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="media/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Custom Theme Style -->
+    <link href="media/css/custom.min.css" rel="stylesheet"> 
+    
+    <script src="media/js/jquery-min.js"></script>
+    
+    <style>
+	#flow_name_top h1{
+		font-size:25px !important;
+	}
+	</style>
+  </head>
+
+  <body class="nav-md">
+    <div class="container body">
+      <div class="main_container">
+        <div class="col-md-3 left_col">
+          <div class="left_col scroll-view">
+            <div class="navbar nav_title" style="border: 0;">
+              <a href="./" class="site_title"><i class="glyphicon glyphicon-stats"></i> <span>Admin Dashboard</span></a>
+            </div>
+
+            <div class="clearfix"></div>
+
+            <!-- menu profile quick info -->
+            <div class="profile">
+              <div class="profile_pic">
+                <img src="media/images/user.png" alt="..." class="img-circle profile_img">
+              </div>
+              <div class="profile_info">
+                <span>Welcome,</span>
+                <h4 style="color:#ffffff">Admin</h4>
+              </div>
+            </div>
+            <!-- /menu profile quick info -->
+
+            <br /><br /><br /><br /><br />
+
+            <!-- sidebar menu -->
+            <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+              <div class="menu_section">
+                <ul class="nav side-menu">
+                  <li><a><i class="fa fa-map-marker"></i> Kenya <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="kenya.html">Dashboard</a></li>
+                      <li><a href="ktable.html">Table</a></li>
+                      <li><a href="flow-analytics-kenya.html">Flow Analytics</a></li>
+                    </ul>
+                  </li>
+                  <li><a><i class="fa fa-map-marker"></i> Zambia <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="zambia.html">Dashboard</a></li>
+                      <li><a href="ztable.html">Table</a></li>
+                      <li><a href="flow-analytics-zambia.html">Flow Analytics</a></li>
+                    </ul>
+                  </li>                  
+                </ul>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- top navigation -->
+        <div class="top_nav">
+          <div class="nav_menu">
+            <nav class="" role="navigation">
+              <div class="nav toggle">
+                <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+              </div>
+					
+              <ul class="nav navbar-nav navbar-right">
+              <div style="text-align:left;float:left;font-size:30px;"><strong>Questions Analysis - Kenya</strong></div>
+                <li class="">
+                  <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <img src="media/images/user.png" alt="">Admin
+                    <span class=" fa fa-angle-down"></span>
+                  </a>
+                  <ul class="dropdown-menu dropdown-usermenu pull-right">
+                    <li><a href="login.html"><i class="fa fa-sign-out pull-right"></i> Log Out</a></li>
+                  </ul>
+                </li>                
+              </ul>
+            </nav>
+          </div>
+        </div>
+        <!-- /top navigation -->
+
+        <!-- page content -->
+        <div class="right_col" role="main">
+            <div class="row">
+            	<div class="x_panel">
+            	 <div class="x_content">
+                    <br />
+                    <!--<form class="form-horizontal form-label-left">-->
+                     <div class="form-horizontal form-label-left">
+                      <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12">Select Flow</label>
+                        <div class="col-md-9 col-sm-9 col-xs-12" id="flows_list">
+                          <select class="select2_single form-control" tabindex="-1" id="my_dropdown">
+                          </select>                          
+                          <input type="hidden" id="setMyTag" />
+                        </div>
+                      </div>
+                      
+                      <div class="form-group">
+                        <div class="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
+                          <button type="submit" class="btn btn-success" id="flow_submit">Submit</button>
+                        </div>
+                      </div>
+						<div class="ln_solid"></div>
+                        </div>
+                    <!--</form>-->
+                    
+                   <div id="flow_name_top"></div>  
+                   <div id="pie_chart"></div> 
+                  </div>
+                  
+                  
+                </div>
+            </div>        
+		</div>
+        
+        
+        <!-- /page content -->    
+      
+      <!-- footer content -->
+        <footer>
+          <div class="pull-right">
+           Dashboard Data Monitor - Admin Monitoring UI
+          </div>
+          <div class="clearfix"></div>
+        </footer>
+      <!-- /footer content -->
+    </div>
+   </div>
+
+    <!-- Bootstrap -->
+    <script src="media/js/bootstrap.min.js"></script>
+    <!-- bootstrap-daterangepicker -->
+    <script src="media/js/moment/moment.min.js"></script>
+    <!-- Custom Theme Scripts -->
+    <script src="media/js/custom.min.js"></script>
+    <script type="text/javascript" src="media/js/jquery.canvasjs.min.js"></script>
+    
+    <script type="text/javascript">
+      $(document).ready(function() {		
+	  
+		  CanvasJS.addColorSet("colorSet",
+					[//colorSet Array	
+					"#bae4bc",
+					"#fee0d2",
+					"#7bccc4",
+					"#2b8cbe"              
+					]);  
+			
+			var textit_prefix = "./api/kenya";
+			var flows_list = [];
+			$.ajax({
+				url: textit_prefix + "/flows",
+				success: function (data) {
+						var total_flows = data.length;
+						for (i in data) {					
+							flows_list.push({"name" : data[i].name, "flow_id" : data[i].uuid})						
+						}
+				}
+			});
+			
+			setTimeout(function () {
+				dropdown_output = '<select class="select2_single form-control" tabindex="-1" id="my_dropdown"><option>Select Any Flow</option>';
+				for (m=0; m < flows_list.length; m++){
+					dropdown_output += '<option value="' + flows_list[m].flow_id + '" name="' + flows_list[m].name + '">' + flows_list[m].name + '</option>';
+				}
+				dropdown_output += '</select>';
+				$("#flows_list").html(dropdown_output);
+							  
+			 }, 1000);
+			 
+			$("#flow_submit").click(function () {
+				flow_id = $("#my_dropdown option:selected").attr("value");
+				flow_name_top = "<h1>" + $("#my_dropdown option:selected").attr("name").charAt(0).toUpperCase() + $("#my_dropdown option:selected").attr("name").slice(1) + "</h1>";
+				
+				$("#flow_name_top").html(flow_name_top);			
+			
+				ques_detail = [];	
+				
+				selected_flow_id = flow_id;
+				$.ajax({
+					url: textit_prefix + "/flowanalytics?flowId=" + selected_flow_id ,
+					success: function (frdata) {
+						
+							var count = frdata.length;
+							for (j=0; j < frdata[0].ques_detail.length; j++){
+									
+									if (frdata[0].ques_detail.length == 0){
+										ques_detail.push({});
+										
+									}else{
+										ques_detail.push({ 
+										"response_count" : frdata[0].ques_detail[j].response_count ,
+										"total" : frdata[0].ques_detail[j].total,
+										"q_name" : frdata[0].ques_detail[j].q_name,
+										"no_response_count" : frdata[0].ques_detail[j].no_response_count,
+										"ans" : frdata[0].ques_detail[j].ans
+										});
+									}
+							}	
+				
+				
+				setTimeout(function () {	
+			   
+					pie_output = '';
+					for (m=0; m < ques_detail.length; m++){
+						
+						pie_output += '<div class="col-md-4 col-sm-4 col-xs-12" style="border:1px #848484 ridge;padding:10px;">' +
+						'<h2 style="text-align:left;">' + ques_detail[m].q_name.charAt(0).toUpperCase() + ques_detail[m].q_name.slice(1) + '<h2>' +
+					'<div class="x_panel tile fixed_height_320 overflow_hidden">' +
+					 '<div id="piechartContainer' + m + '"' + 'style="height: 310px; width: 100%;"></div>' +
+					'</div>' +
+					'</div>';
+						
+					}
+					$("#pie_chart").html(pie_output);
+														
+				 
+				   for (m=0; m < ques_detail.length; m++){
+					   var response_perc = Math.round((ques_detail[m].response_count/ques_detail[m].total)*100);
+					   var no_response_perc = Math.round((ques_detail[m].no_response_count/ques_detail[m].total)*100);
+					   pie_data_ans = [];	
+					   x=0;
+						for (var key in ques_detail[m].ans) {
+						  if (ques_detail[m].ans.hasOwnProperty(key)) {
+							var ans_perc = Math.round((ques_detail[m].ans[key]/ques_detail[m].total)*100);
+							pie_data_ans.push({"y": ques_detail[m].ans[key], "legendText": key, "label": key, "val": ques_detail[m].ans[key]});  
+						  }
+						  x=x+1;
+						}
+				   
+				   
+				   if(pie_data_ans.length ==1){
+					var chart = new CanvasJS.Chart("piechartContainer" + m,
+							{
+								title:{
+									text: "People who answered, not answered for the questions"
+								},
+								//colorSet: "colorSet",
+								exportFileName: "Doughnut Chart",
+								exportEnabled: true,
+										animationEnabled: true,
+								legend:{
+									verticalAlign: "bottom",
+									horizontalAlign: "center"
+								},
+								data: [
+								{       
+									type: "doughnut",
+									showInLegend: true,
+									toolTipContent: "{legendText}: <strong>{val}people , {y}%</strong>",
+									indexLabel: "{y}%",
+									dataPoints: [
+										{"y": ans_perc, "legendText": key, "label": key, "val": ques_detail[m].ans[key]},
+										{"y": no_response_perc, "legendText": "No response", "label": ques_detail[m].q_name, "val": ques_detail[m].no_response_count, "color": "#E85F5F"}
+									]
+							}
+							]
+							});
+							
+							chart.render();
+							
+							
+				   }else if(pie_data_ans.length ==2){
+					   
+					   var chart = new CanvasJS.Chart("piechartContainer" + m,
+							{
+								title:{
+									text: "People who answered, not answered for the questions"
+								},
+								//colorSet: "colorSet",
+								exportFileName: "Column Chart",
+								exportEnabled: true,
+										animationEnabled: true,
+								legend:{
+									verticalAlign: "bottom",
+									horizontalAlign: "center"
+								},
+								data: [
+								{       
+									type: "column",
+									//showInLegend: true,
+									toolTipContent: "{legendText}: <strong>{val}people</strong>",
+									indexLabel: "{y}",
+									dataPoints: [
+										pie_data_ans[0],
+										{"y": ques_detail[m].no_response_count, "legendText": "No response", "label": "No response", "val": ques_detail[m].no_response_count, "color": "#E85F5F"},
+										pie_data_ans[1]
+									]
+							}
+							]
+							});
+							
+							chart.render();
+							
+				   }else if(pie_data_ans.length ==3){
+					   
+					   var chart = new CanvasJS.Chart("piechartContainer" + m,
+							{
+								title:{
+									text: "People who answered, not answered for the questions"
+								},
+								//colorSet: "colorSet",
+								exportFileName: "Bar Chart",
+								exportEnabled: true,
+										animationEnabled: true,
+								legend:{
+									verticalAlign: "bottom",
+									horizontalAlign: "center"
+								},
+								data: [
+								{       
+									type: "bar",
+									//showInLegend: true,
+									toolTipContent: "{legendText}: <strong>{val}people</strong>",
+									indexLabel: "{y}",
+									dataPoints: [
+										pie_data_ans[0],
+										{"y": ques_detail[m].no_response_count, "legendText": "No response", "label": "No response", "val": ques_detail[m].no_response_count, "color": "#E85F5F"},
+										pie_data_ans[1],
+										pie_data_ans[2]
+									]
+							}
+							]
+							});
+							
+							chart.render();
+							
+				   }else{
+					   
+					   var chart = new CanvasJS.Chart("piechartContainer" + m,
+							{
+								title:{
+									text: "People who answered, not answered for the questions"
+								},
+								theme: "theme2",
+								//colorSet: "colorSet",
+								exportFileName: "Column Chart",
+								exportEnabled: true,
+										animationEnabled: true,
+								legend:{
+									verticalAlign: "bottom",
+									horizontalAlign: "center"
+								},
+								data: [
+								{       
+									type: "column",
+									//showInLegend: true,
+									toolTipContent: "{legendText}: <strong>{val}people</strong>",
+									indexLabel: "{y}",
+									dataPoints: [
+										pie_data_ans[0],
+										{"y": ques_detail[m].no_response_count, "legendText": "No response", "label": "No response", "val": ques_detail[m].no_response_count, "color": "#E85F5F"},
+										pie_data_ans[1],
+										pie_data_ans[2],
+										pie_data_ans[3]
+									]
+							}
+							]
+							});
+							
+							chart.render();					   
+					   }									  
+					 } 					 
+					 }, 1000);
+					}
+				});		  
+		  });
+		  
+	  });	
+    </script>
+  </body>
+</html>
