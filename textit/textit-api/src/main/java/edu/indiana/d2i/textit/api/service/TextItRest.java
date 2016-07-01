@@ -115,7 +115,7 @@ public class TextItRest {
         FindIterable<Document> iter = runsCollection.find(andQuery);
         iter.projection(new Document("runs", 1)
                 .append("flow_uuid", 1).append("flow", 1)
-                .append("contact", 1)
+                .append("contact", 1).append("run", 1)
                 .append("created_on", 1).append("modified_on", 1)
                 .append("completed", 1).append("expires_on", 1)
                 .append("steps", 1).append("values", 1)
@@ -389,7 +389,7 @@ public class TextItRest {
                 JSONObject new_list = new JSONObject();
 
                 new_list.put("contact_id", document.getString("contact"));
-                new_list.put("run_id", document.getString("flow_uuid"));
+                new_list.put("run_id", document.getInteger("run"));
                 new_list.put("status", document.getBoolean("completed"));
                 new_list.put("created_on", document.getString("created_on"));
                 new_list.put("contact_name", document1.getString("name"));
