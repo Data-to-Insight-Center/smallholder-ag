@@ -8,11 +8,5 @@ cd $home
 
 . "$bin"/env.sh
 
-if [[ "$4" == "d" ]]; then
-    $JAVA $JAVA_HEAP_MAX -classpath "$TEXTIT_DOWNLOADER_CLASSPATH" \
-        -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=7000 \
-        edu.indiana.d2i.textit.ingest.TextItIngestor $2 $3 & wait
-else
-    $JAVA $JAVA_HEAP_MAX -classpath "$TEXTIT_DOWNLOADER_CLASSPATH" \
-        edu.indiana.d2i.textit.ingest.TextItIngestor $2 $3 & wait
-fi
+$JAVA $JAVA_HEAP_MAX -classpath "$TEXTIT_DOWNLOADER_CLASSPATH" \
+    edu.indiana.d2i.textit.ingest.TextItIngestor $2 $3 $4 & wait

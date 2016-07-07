@@ -7,6 +7,7 @@ display_help() {
     echo "   -dw, --day     Day of the week the script should run on[0-6]"
     echo "   -d, --daily    Run the TextIt Ingest script daily"
     echo "   -hd, --hour    Hour of day the script should run on [0-23]"
+    echo "   -s, --start    Customized start date for data collection (ex: 2016-06-27)"
     echo
 }
 
@@ -23,6 +24,9 @@ do
                         shift
                         ;;
       -hd | --hour)     hour="$2"
+                        shift 2
+                        ;;
+      -s | --start)     start="$2"
                         shift 2
                         ;;
       -w | --weekly)    weekly="weekly"
@@ -93,6 +97,9 @@ fi
 if [ "$weekly" != "" ]; then
     echo "The script is scheduled to run weekly, on day "$day
 fi
+if [ "start" != "" ]; then
+    echo "Start date of data collection is "$start
+fi
 echo "Log file location is "$log_file""
 
 chmod +x $start_script
@@ -102,9 +109,9 @@ crontab -l > textitcron
 
 #echo new cron into cron file
 if [ "$daily" != "" ]; then
-    echo "0 "$hour" * * * "$start_script" "$HOME" "$config_file" "$daily" >> "$log_file" 2>&1" >> textitcron
+    echo "0 "$hour" * * * "$start_script" "$HOME" "$config_file" "$daily" "$start" >> "$log_file" 2>&1" >> textitcron
 else
-    echo "0 11 * * "$day" "$start_script" "$HOME" "$config_file" "$weekly" >> "$log_file" 2>&1" >> textitcron
+    echo "0 11 * * "$day" "$start_script" "$HOME" "$config_file" "$weekly" "$start" >> "$log_file" 2>&1" >> textitcron
 fi
 
 #install new cron file

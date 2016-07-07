@@ -7,6 +7,7 @@ import org.apache.log4j.PropertyConfigurator;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
@@ -16,19 +17,28 @@ public class TextItIngestor {
 	static TextItWebHook hook = null;
     private static Logger logger = Logger.getLogger(TextItIngestor.class);
     static DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-	
-	public static void main(String[] args) throws IOException {
+
+    public static void main(String[] args) throws IOException {
         PropertyConfigurator.configure("./conf/log4j.properties");
         df.setTimeZone(TimeZone.getTimeZone("timezone"));
 
-		if (args.length != 2 && args.length != 3) {
-			logger.error("Usage: [config_file] [weekly|daily] [port]");
+		if (args.length != 2 && args.length != 3 && args.length != 4) {
+			logger.error("Usage: [config_file] [weekly|daily] [start_date] [port]");
 			System.exit(-1);
 		}
 
         if(!args[1].equals("daily") && !args[1].equals("weekly")){
             logger.error("Error: Second argument to the TextItDownloader should be either 'daily' or 'weekly'");
             System.exit(-1);
+        }
+
+        if(args.length > 2 && args[2] != null && args[2] != "") {
+            try {
+                Date today = df.parse(args[2]);
+            } catch (ParseException e) {
+                logger.error("Error: Third argument to the TextItDownloader should be in yyyy-MM-dd format");
+                System.exit(-1);
+            }
         }
 
         logger.info("Starting TextItIngestor...");
@@ -62,10 +72,20 @@ public class TextItIngestor {
         } else {
             properties.put("download_no_of_days", "7");
         }
+
+        Date date = new Date();
+        if(args.length > 2 && args[2] != null && args[2] != "") {
+            try {
+                date =df.parse(args[2]);
+                properties.put("start_date", args[2]);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
         properties.load(stream);
         stream.close();
 
-        Date date = new Date();
         String output_dir = properties.getProperty("outputdir") + df.format(date);
 
         try {
@@ -80,7 +100,7 @@ public class TextItIngestor {
         }
 
         boolean downloaded = false;
-        if (args.length == 2) {
+        if (args.length == 2 || args.length == 3) {
             logger.info("Just download the runs.");
 			TextItClient client = TextItClient.createClient(properties);
             downloaded = client.downloadRuns();

@@ -30,6 +30,7 @@ public final class TextItClient {
 	private final URL GET_FLOWS_URL;
 	private final URL GET_RUNS_URL;
 	private final URL GET_CONTACTS_URL;
+	private final String START_DATE;
 
     public static final String FLOWS = "flows";
     public static final String RUNS = "runs";
@@ -38,7 +39,7 @@ public final class TextItClient {
 	/** utilities for parsing responses from TextIt */
 	private final TextItUtils utils;
 
-    DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+    private static DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
 	/** multi-threaded downloader */
 	class ThreadedDownloader {
@@ -120,15 +121,15 @@ public final class TextItClient {
 	}
 
 	private TextItClient(String token, String outputDir, String epr,
-			int workerNum, String timezone, int no_of_days) throws IOException {
+			int workerNum, String timezone, int no_of_days, String start_date) throws IOException {
         df.setTimeZone(TimeZone.getTimeZone("timezone"));
 
         TOKEN = token;
 		TIMEZONE = timezone;
 		NO_OF_DAYS = no_of_days;
+        START_DATE = start_date;
 
-		Date date = new Date();
-		String final_dir = outputDir + df.format(date);
+		String final_dir = outputDir + START_DATE;
 		OUTPUT_DIRECTORY = final_dir;
 
 		String textitEpr = epr;
@@ -162,12 +163,10 @@ public final class TextItClient {
 	protected List<String> getFlowIDs() throws IOException {
 		final List<String> res = new ArrayList<String>();
 
-		Date date = new Date();
         int no_of_days = NO_OF_DAYS + 7;
-
-		final String timestamp_prev = df.format(new DateTime(df.format(date))
+		final String timestamp_prev = df.format(new DateTime(START_DATE)
 				.minusDays(no_of_days).toDate());
-		final String timestamp_now = df.format(new DateTime(df.format(date))
+		final String timestamp_now = df.format(new DateTime(START_DATE)
 				.toDate());
 
 		logger.info("No of Days " + no_of_days);
@@ -208,11 +207,9 @@ public final class TextItClient {
 	protected List<String> getContactInfo() throws IOException {
 		final List<String> res = new ArrayList<String>();
 
-		Date date = new Date();
-
-		final String timestamp_prev = df.format(new DateTime(df.format(date))
+		final String timestamp_prev = df.format(new DateTime(START_DATE)
 				.minusDays(NO_OF_DAYS).toDate());
-		final String timestamp_now = df.format(new DateTime(df.format(date))
+		final String timestamp_now = df.format(new DateTime(START_DATE)
 				.toDate());
 		URL target = new URL(GET_CONTACTS_URL.toString() + "?after="
 				+ timestamp_prev + "T00:00:00.000" + "&&" + "before=" + timestamp_now
@@ -249,11 +246,9 @@ public final class TextItClient {
     protected List<String> getUpdatedRuns() throws IOException {
         final List<String> res = new ArrayList<String>();
 
-        Date date = new Date();
-
-        final String timestamp_prev = df.format(new DateTime(df.format(date))
+        final String timestamp_prev = df.format(new DateTime(START_DATE)
                 .minusDays(NO_OF_DAYS).toDate());
-        final String timestamp_now = df.format(new DateTime(df.format(date))
+        final String timestamp_now = df.format(new DateTime(START_DATE)
                 .toDate());
         URL target = new URL(GET_RUNS_URL.toString() + "?after="
                 + timestamp_prev + "T00:00:00.000" + "&&" + "before=" + timestamp_now
@@ -313,8 +308,13 @@ public final class TextItClient {
 		int workerNum = Integer.valueOf(properties.getProperty(
 				"workernum", "1"));
 
+        String start_date = df.format(new Date());
+        if (properties.getProperty("start_date") != null) {
+            start_date = properties.getProperty("start_date");
+        }
+
 		TextItClient instance = new TextItClient(token, outputDir, textitEpr,
-				workerNum, timezone, no_of_days);
+				workerNum, timezone, no_of_days, start_date);
 		return instance;
 	}
 
@@ -353,8 +353,9 @@ public final class TextItClient {
 		}
 
 		public TextItClient build() throws IOException {
+
 			return new TextItClient(token, outputDir, textitEpr, workerNum,
-					timezone, no_of_days);
+					timezone, no_of_days, df.format(new Date()));
 		}
 
 		public TextItClientBuilder setWorkerNum(int workerNum) {
