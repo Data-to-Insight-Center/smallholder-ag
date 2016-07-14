@@ -232,7 +232,8 @@ $(document).ready(function() {
 					for (p=0; p < data[i].rulesets.length; p++){	
 						rule_label_data.push(data[i].rulesets[p].label + "\n")
 					}
-					flow_data.push([data[i].uuid, data[i].name, data[i].archived, data[i].labels, data[i].created_on, 
+					var down_flow_uuid = "<a href='/textit-api/kenya/flows?flowId=" + data[i].uuid + "' style='color:#00BFFF'>" + data[i].uuid + "</a>"
+					flow_data.push([down_flow_uuid, data[i].name, data[i].archived, data[i].labels, data[i].created_on,
 					                data[i].expires, data[i].runs, data[i].completed_runs, rule_label_data])
 					}
 
@@ -257,7 +258,8 @@ $(document).ready(function() {
 							ans_data.push(data[j].steps[k].text + "\n")
 						}
 					}
-					run_data.push([data[j].flow_uuid, data[j].flow, data[j].contact, data[j].created_on, data[j].modified_on,
+					var down_run_flow_uuid = "<a href='/textit-api/kenya/runs?flowId=" + data[j].flow_uuid + "' style='color:#00BFFF'>" + data[j].flow_uuid + "</a>"
+					run_data.push([down_run_flow_uuid, data[j].flow, data[j].contact, data[j].created_on, data[j].modified_on,
 					               data[j].completed, data[j].expires_on, ques_data, ans_data])
 					}
 
@@ -273,7 +275,8 @@ $(document).ready(function() {
 		success: function (data) {
 				
 				for (c in data) {
-					contact_data.push([data[c].uuid, data[c].name, data[c].language, data[c].phone, data[c].group_uuids,
+				    var down_contact_uuid = "<a href='/textit-api/kenya/contacts?uuid=" + data[c].uuid + "' style='color:#00BFFF'>" + data[c].uuid + "</a>"
+					contact_data.push([down_contact_uuid, data[c].name, data[c].language, data[c].phone, data[c].group_uuids,
 					              		data[c].modified_on])
 					}
 
