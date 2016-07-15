@@ -453,17 +453,32 @@
 				pie_output = '';
 				for (p=0; p < pie_data.length; p++){
 					pie_output += '<div class="col-md-4 col-sm-4 col-xs-12" style="border:1px #848484 ridge;padding:10px;">' +
-					'<h2 style="text-align:left;">' + pie_data[p].label.charAt(0).toUpperCase() + pie_data[p].label.slice(1) + '<h2>' +
-              '<div class="x_panel tile fixed_height_320 overflow_hidden">' +
-                 '<div id="piechartContainer' + p + '"' + 'style="height: 280px; width: 100%;"></div>' +
-              '</div>' +
-			  '<div class="x_panel tile fixed_height_320 overflow_hidden">' +
-                 '<div id="quesContainer' + p + '"' + 'style="height: 310px; width: 100%;"></div>' +
-              '</div>' +
-			  '<div class="x_panel tile fixed_height_320 overflow_hidden">' +
-                 '<div id="runnewContainer' + p + '"' + 'style="height: 310px; width: 100%;"></div>' +
-              '</div>' +
-            '</div>';
+					'<h2 style="text-align:left;">' + pie_data[p].label.charAt(0).toUpperCase() + pie_data[p].label.slice(1) + '<h2>';
+
+					if (pie_data[p].val == 0){
+				  	pie_output += '<div class="x_panel tile fixed_height_320 overflow_hidden">' +
+					 '<div><p style="text-align:center;font-weight:600;font-size:18px;color:#585858">Completed, In-completed runs for flow</p><img src="media/images/no_data.png" alt="..." class="img-square profile_img" align="middle !important" style="position: absolute;top:15%;left:15%;"></div>' +
+				  '</div>';
+					}else{
+						pie_output += '<div class="x_panel tile fixed_height_320 overflow_hidden">' +
+					 '<div id="piechartContainer' + p + '"' + 'style="height: 280px; width: 100%;"></div>' +
+				  '</div>';
+					}
+
+				  pie_output += '<div class="x_panel tile fixed_height_320 overflow_hidden">' +
+					 '<div id="quesContainer' + p + '"' + 'style="height: 310px; width: 100%;"></div>' +
+				  '</div>';
+
+				  if (pie_data[p].val == 0){
+				  pie_output += '<div class="x_panel tile fixed_height_320 overflow_hidden">' +
+					 '<div><p style="text-align:center;font-weight:600;font-size:20px;color:#585858">Number of people who answered, not answered for the questions</p><img src="media/images/no_data.png" alt="..." class="img-square profile_img" align="middle !important" style="position: absolute;top:15%;left:15%;"></div>' +
+				  '</div>';
+					}else{
+						pie_output += '<div class="x_panel tile fixed_height_320 overflow_hidden">' +
+					 '<div id="runnewContainer' + p + '"' + 'style="height: 310px; width: 100%;"></div>' +
+				  '</div>';
+					}
+				pie_output += '</div>';
 				}
 				$("#pie_chart").html(pie_output);
 			
