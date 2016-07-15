@@ -64,7 +64,7 @@ public class TextItRest {
             andQuery.put("$and", obj);
         }
 
-        FindIterable<Document> iter = flowsCollection.find(andQuery);
+        FindIterable<Document> iter = flowsCollection.find(andQuery).sort(new Document("created_on",-1));;
         iter.projection(new Document("flows", 1)
                 .append("uuid", 1).append("name", 1)
                 .append("archived", 1).append("labels", 1)
