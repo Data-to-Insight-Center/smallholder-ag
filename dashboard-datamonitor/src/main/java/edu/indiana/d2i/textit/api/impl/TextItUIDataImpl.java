@@ -41,10 +41,10 @@ public class TextItUIDataImpl extends TextItUIData {
 
 		if (country.equals("kenya")) {
 			c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-			c.add(Calendar.DATE, -14);
+			c.add(Calendar.DATE, -16);
 		}else if (country.equals("zambia")){
 			c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-			c.add(Calendar.DATE, -7);
+			c.add(Calendar.DATE, -9);
 		}
 
 		Date last_country_day = Calendar.getInstance().getTime();
@@ -227,65 +227,69 @@ public class TextItUIDataImpl extends TextItUIData {
 		JSONArray result_array = new JSONArray();
 
 		ClientResponse response = null;
-		for (int i = 0; i < allFlows.length(); i++) {
-			JSONObject result = new JSONObject();
+		if (allFlows.length() == 0) {
+			return Response.status(Response.Status.OK).cacheControl(control).build();
+		}else {
+			for (int i = 0; i < allFlows.length(); i++) {
+				JSONObject result = new JSONObject();
 
-			JSONObject flowObject = allFlows.getJSONObject(i);
-			String flow_id = (String)flowObject.get("uuid");
-			String created_on = (String)flowObject.get("created_on");
-			int total = (Integer)flowObject.get("runs");
-			Map<String, JSONObject> qMap = new TreeMap<String, JSONObject>();
-			JSONArray rulesets = (JSONArray) flowObject.get("rulesets");
+				JSONObject flowObject = allFlows.getJSONObject(i);
+				String flow_id = (String) flowObject.get("uuid");
+				String created_on = (String) flowObject.get("created_on");
+				int total = (Integer) flowObject.get("runs");
+				Map<String, JSONObject> qMap = new TreeMap<String, JSONObject>();
+				JSONArray rulesets = (JSONArray) flowObject.get("rulesets");
 
-			for (int j = 0; j < rulesets.length(); j++) {
-				JSONObject rule = rulesets.getJSONObject(j);
-				qMap.put((String) rule.get("node"), new JSONObject().put("label", rule.get("label")).put("count", 0));
-			}
-
-			response = webResource.path(country + "/runsofflow")
-					.queryParam("flowId", flow_id)
-					.accept("application/json")
-					.type("application/json")
-					.get(ClientResponse.class);
-
-			JSONArray runs_array = new JSONArray(response.getEntity(new GenericType<String>() {}));
-
-			for(int k = 0 ; k < runs_array.length() ; k++ ){
-				JSONArray values_array = runs_array.getJSONObject(k).getJSONArray("values");
-				for(int l = 0 ; l < values_array.length() ; l++ ){
-					JSONObject value = values_array.getJSONObject(l);
-					String nodeId = value.getString("node");
-					int current_count = qMap.get(nodeId).getInt("count");
-					qMap.get(nodeId).put("count", ++current_count);
+				for (int j = 0; j < rulesets.length(); j++) {
+					JSONObject rule = rulesets.getJSONObject(j);
+					qMap.put((String) rule.get("node"), new JSONObject().put("label", rule.get("label")).put("count", 0));
 				}
+
+				response = webResource.path(country + "/runsofflow")
+						.queryParam("flowId", flow_id)
+						.accept("application/json")
+						.type("application/json")
+						.get(ClientResponse.class);
+
+				JSONArray runs_array = new JSONArray(response.getEntity(new GenericType<String>() {
+				}));
+
+				for (int k = 0; k < runs_array.length(); k++) {
+					JSONArray values_array = runs_array.getJSONObject(k).getJSONArray("values");
+					for (int l = 0; l < values_array.length(); l++) {
+						JSONObject value = values_array.getJSONObject(l);
+						String nodeId = value.getString("node");
+						int current_count = qMap.get(nodeId).getInt("count");
+						qMap.get(nodeId).put("count", ++current_count);
+					}
+				}
+
+				JSONArray question_array = new JSONArray();
+				for (String node : qMap.keySet()) {
+					JSONObject qObject = qMap.get(node);
+					question_array.put(new JSONObject()
+							.put("q_name", qObject.getString("label"))
+							.put("ans_count", qObject.getInt("count"))
+							.put("total", total));
+				}
+
+				result.put("flow_id", flow_id);
+				result.put("created_on", created_on);
+				result.put("ques_detail", question_array);
+
+				result_array.put(result);
+
 			}
 
-			JSONArray question_array = new JSONArray();
-			for( String node : qMap.keySet()) {
-				JSONObject qObject = qMap.get(node);
-				question_array.put(new JSONObject()
-						.put("q_name",qObject.getString("label"))
-						.put("ans_count",qObject.getInt("count"))
-						.put("total", total));
+			JSONArray sortedJsonArray = new JSONArray();
+			List<JSONObject> jsonList = new ArrayList<JSONObject>();
+			for (int i = 0; i < result_array.length(); i++) {
+				jsonList.add(result_array.getJSONObject(i));
 			}
 
-			result.put("flow_id", flow_id);
-			result.put("created_on", created_on);
-			result.put("ques_detail", question_array);
+			Collections.sort(jsonList, new Comparator<JSONObject>() {
 
-			result_array.put(result);
-
-		}
-
-		JSONArray sortedJsonArray = new JSONArray();
-		List<JSONObject> jsonList = new ArrayList<JSONObject>();
-		for (int i = 0; i < result_array.length(); i++) {
-			jsonList.add(result_array.getJSONObject(i));
-		}
-
-		Collections.sort( jsonList, new Comparator<JSONObject>() {
-
-			public int compare(JSONObject a, JSONObject b) {
+				public int compare(JSONObject a, JSONObject b) {
 					Date dt = new Date();
 					Date dt2 = new Date();
 
@@ -297,16 +301,15 @@ public class TextItUIDataImpl extends TextItUIData {
 					}
 					return dt2.compareTo(dt);
 				}
-		});
+			});
 
 
-		for (int i = 0; i < result_array.length(); i++) {
-			sortedJsonArray.put(jsonList.get(i));
+			for (int i = 0; i < result_array.length(); i++) {
+				sortedJsonArray.put(jsonList.get(i));
+			}
+
+			return Response.status(response.getStatus()).entity(sortedJsonArray.toString()).cacheControl(control).build();
 		}
-
-
-		return Response.status(response.getStatus()).entity(sortedJsonArray.toString()).cacheControl(control).build();
-
 	}
 
 	@GET
