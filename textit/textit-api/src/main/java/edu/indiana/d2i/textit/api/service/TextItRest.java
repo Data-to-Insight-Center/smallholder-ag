@@ -29,7 +29,9 @@ import java.util.*;
 public class TextItRest {
 
     private CacheControl control = new CacheControl();
-    private SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private SimpleDateFormat df_Z = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private SimpleDateFormat df_SSS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    private SimpleDateFormat df_dd = new SimpleDateFormat("yyyy-MM-dd");
     private static Logger logger = Logger.getLogger(TextItRest.class);
 
     static {
@@ -415,8 +417,6 @@ public class TextItRest {
         MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
         MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
         MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-        SimpleDateFormat dateFormat_day = new SimpleDateFormat("yyyy-MM-dd");
 
         control.setNoCache(true);
 
@@ -469,7 +469,7 @@ public class TextItRest {
                     ArrayList<Document> steps = (ArrayList<Document>) ques;
                     for (Document step : steps) {
                         try {
-                            dates.add(dateFormat.parse(step.getString("left_on").substring(0, 23)));
+                            dates.add(df_SSS.parse(step.getString("left_on").substring(0, 23)));
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
@@ -477,7 +477,7 @@ public class TextItRest {
                 }
                 Date created = null;
                 try {
-                    created = sdfDate.parse(runsDocument.getString("created_on"));
+                    created = df_Z.parse(runsDocument.getString("created_on"));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
@@ -500,7 +500,7 @@ public class TextItRest {
             new_flow.put("created_on", flowsDocument.getString("created_on"));
             try {
                 if(runsIter.first() != null)
-                    new_flow.put("deployed_on", dateFormat_day.format(sdfDate.parse(runsIter.first().getString("created_on"))));
+                    new_flow.put("deployed_on", df_dd.format(df_Z.parse(runsIter.first().getString("created_on"))));
                 else
                     new_flow.putOnce("deployed_on", JSONObject.NULL);
             } catch (ParseException e) {
@@ -574,19 +574,82 @@ public class TextItRest {
         FindIterable<Document> flowsIter = flowsCollection.find(Filters.and(andQuery, Filters.in("rulesets.label", qType)));
         MongoCursor<Document> flowsCursor = flowsIter.iterator();
 
+        long total_runs = 0;
+        long answered = 0;
+        long notAnswered = 0;
+        long notAsked = 0;
+        Map<String, Map<String, Integer>> qObject = new HashMap<String, Map<String, Integer>>();
+
         while (flowsCursor.hasNext()) {
             Document flowsDocument = flowsCursor.next();
             String flow_uuid = (String) flowsDocument.get("uuid");
 
+            String qUuid = "";
+            Object rulesets = flowsDocument.get("rulesets");
+            if (rulesets instanceof ArrayList) {
+                ArrayList<Document> rulesetsArray = (ArrayList<Document>) rulesets;
+                for (Document rule : rulesetsArray) {
+                    if(rule.getString("label").equals(qType)) {
+                        qUuid = rule.getString("node");
+                        break;
+                    }
+                }
+            }
+
             BasicDBObject runsQuery = new BasicDBObject();
             runsQuery.put("flow_uuid", flow_uuid);
-
-            FindIterable<Document> runsIter = runsCollection.find(runsQuery);
+            FindIterable<Document> runsIter = runsCollection.find(Filters.and(runsQuery, Filters.in("values.node", qUuid) ));
             MongoCursor<Document> runsCursor = runsIter.iterator();
-            array.put(flowsDocument);
+            //Map<String, Map<String, Integer>> qObject = new HashMap<String, Map<String, Integer>>();
 
+            answered += runsCollection.count(Filters.and(runsQuery, Filters.in("values.node", qUuid)));
+            notAnswered += runsCollection.count(Filters.and(runsQuery, Filters.nin("values.node", qUuid), Filters.in("steps.node", qUuid) ));
+            notAsked += runsCollection.count(Filters.and(runsQuery, Filters.nin("values.node", qUuid), Filters.nin("steps.node", qUuid) ));
+            total_runs += flowsDocument.getInteger("runs");
+
+            while (runsCursor.hasNext()) {
+                Document runsDocument = runsCursor.next();
+                Object values = runsDocument.get("values");
+                if (values instanceof ArrayList) {
+                    ArrayList<Document> valuesArray = (ArrayList<Document>) values;
+                    for (Document value : valuesArray) {
+                        if(value.getString("node").equals(qUuid)) {
+                            Document category = (Document) value.get("category");
+                            String date = null;
+                            try {
+                                date = df_dd.format(df_SSS.parse(value.getString("time").substring(0, 23)));
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+                            String qVal = category.get("base") != null ? category.getString("base") : category.getString("eng");
+                            if(qObject.get(date) != null) {
+                                Map<String, Integer> dateObject = qObject.get(date);
+                                if(dateObject.get(qVal) != null) {
+                                    dateObject.put(qVal, dateObject.get(qVal) + 1);
+                                } else {
+                                    dateObject.put(qVal, 1);
+                                }
+                            } else {
+                                Map<String, Integer> newObject = new HashMap<String, Integer>();
+                                newObject.put(qVal, 1);
+                                qObject.put(date, newObject);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
+        for (String key : qObject.keySet()) {
+            JSONObject arrayObject = new JSONObject();
+            arrayObject.put("day", key);
+            JSONArray matrix = new JSONArray();
+            for(String valKey : qObject.get(key).keySet()) {
+                matrix.put(new JSONObject().put("anw", valKey).put("count", qObject.get(key).get(valKey)));
+            }
+            arrayObject.put("matrix", matrix);
+            array.put(arrayObject);
+        }
         return Response.ok(array.toString()).cacheControl(control).build();
     }
 
