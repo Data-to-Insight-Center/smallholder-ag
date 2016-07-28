@@ -495,6 +495,8 @@ public class TextItRest {
                 }
             }
 
+            int total_runs = flowsDocument.getInteger("runs");
+
             new_flow.put("matrix", completedCount);
             new_flow.put("flow_name", flowsDocument.getString("name"));
             new_flow.put("created_on", flowsDocument.getString("created_on"));
@@ -507,32 +509,29 @@ public class TextItRest {
                 e.printStackTrace();
             }
             new_flow.put("uuid", flow_uuid);
-            new_flow.put("total_runs", flowsDocument.getInteger("runs"));
+            new_flow.put("total_runs", total_runs);
             new_flow.put("completed_runs", flowsDocument.getInteger("completed_runs"));
             new_flow.put("expires", flowsDocument.getInteger("expires"));
 
-            array.put(new_flow);
+            if(total_runs > 0) {
+                JSONArray perc_matrix = new JSONArray();
+                int completed = 0;
 
-        }
+                ArrayList<String> keyList = new ArrayList<String>();
+                keyList.addAll(completedCount.keySet());
+                Collections.sort(keyList, new stringToIntComp());
 
-        for( int i = 0 ; i < array.length() ; i ++ ) {
-            JSONObject flow = array.getJSONObject(i);
-            int total_runs = flow.getInt("total_runs");
-            if(total_runs <= 0)
-                continue;
-            JSONObject matrix = flow.getJSONObject("matrix");
-            JSONObject perc_matrix = new JSONObject();
-            int completed = 0;
-
-            ArrayList<String> keyList = new ArrayList<String>();
-            keyList.addAll(matrix.keySet());
-            Collections.sort(keyList, new stringToIntComp());
-
-            for(String key : keyList) {
-                completed += matrix.getInt(key);
-                perc_matrix.put(key, Math.round(completed*100.0/total_runs));
+                for(String key : keyList) {
+                    completed += completedCount.get(key);
+                    JSONObject matrix_object = new JSONObject();
+                    matrix_object.put("perc", Math.round(completed*100.0/total_runs));
+                    matrix_object.put("hour", Integer.parseInt(key));
+                    perc_matrix.put(matrix_object);
+                }
+                new_flow.put("matrix", perc_matrix);
             }
-            flow.put("matrix", perc_matrix);
+
+            array.put(new_flow);
         }
 
         return Response.ok(array.toString()).cacheControl(control).build();
