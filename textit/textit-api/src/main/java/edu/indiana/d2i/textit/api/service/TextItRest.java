@@ -5,6 +5,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import edu.indiana.d2i.textit.api.utils.MongoDB;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -451,7 +452,7 @@ public class TextItRest {
             FindIterable<Document> runsIter = runsCollection.find(runsQuery);
             MongoCursor<Document> runsCursor = runsIter.iterator();
 
-            Map<String, Integer> completedCount = new HashMap<String, Integer>();
+            Map<Integer, Integer> completedCount = new HashMap<Integer, Integer>();
             JSONObject new_flow = new JSONObject();
 
             while (runsCursor.hasNext()) {
@@ -482,22 +483,19 @@ public class TextItRest {
                 }
 
                 Collections.sort(dates);
-                Date last = dates.get(dates.size()-1);
+                Date last = dates.get(dates.size() - 1);
                 long diff = Math.abs(last.getTime() - created.getTime());
                 double diffHours = diff * 1.0 / ( 60 * 60 * 1000);
                 int hoursToComplete = (int)(Math.ceil(diffHours * 1.0 / 12))*12;
-                String hoursStr = "" + hoursToComplete;
-
-                if(completedCount.get(hoursStr) != null) {
-                    completedCount.put(hoursStr, completedCount.get(hoursStr) + 1);
+                if(completedCount.get(hoursToComplete) != null) {
+                    completedCount.put(hoursToComplete, completedCount.get(hoursToComplete) + 1);
                 } else {
-                    completedCount.put(hoursStr, 1);
+                    completedCount.put(hoursToComplete, 1);
                 }
             }
 
             int total_runs = flowsDocument.getInteger("runs");
 
-            new_flow.put("matrix", completedCount);
             new_flow.put("flow_name", flowsDocument.getString("name"));
             new_flow.put("created_on", flowsDocument.getString("created_on"));
             try {
@@ -517,21 +515,76 @@ public class TextItRest {
                 JSONArray perc_matrix = new JSONArray();
                 int completed = 0;
 
-                ArrayList<String> keyList = new ArrayList<String>();
+                ArrayList<Integer> keyList = new ArrayList<Integer>();
                 keyList.addAll(completedCount.keySet());
-                Collections.sort(keyList, new stringToIntComp());
+                Collections.sort(keyList);
 
-                for(String key : keyList) {
-                    completed += completedCount.get(key);
+                for(int i = 12 ; i <= keyList.get(keyList.size() -1) ; i = i + 12) {
+                    if(completedCount.get(i) != null) {
+                        completed += completedCount.get(i);
+                    }
                     JSONObject matrix_object = new JSONObject();
                     matrix_object.put("perc", Math.round(completed*100.0/total_runs));
-                    matrix_object.put("hour", Integer.parseInt(key));
+                    matrix_object.put("hour", i);
                     perc_matrix.put(matrix_object);
                 }
+
+
                 new_flow.put("matrix", perc_matrix);
             }
 
             array.put(new_flow);
+        }
+
+        return Response.ok(array.toString()).cacheControl(control).build();
+    }
+
+    @GET
+    @Path("/{country}/questionanalysis")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getQuestionAnalysis(@PathParam("country") String country,
+                                              @QueryParam("type") String qType,
+                                              @QueryParam("from") String fromDate,
+                                              @QueryParam("to") String toDate) {
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
+        MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+        SimpleDateFormat dateFormat_day = new SimpleDateFormat("yyyy-MM-dd");
+
+        control.setNoCache(true);
+
+        JSONArray array = new JSONArray();
+
+        BasicDBObject andQuery = new BasicDBObject();
+        List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
+        if (fromDate != null) {
+            fromDate = fromDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$gte", fromDate)));
+        }
+        if (toDate != null) {
+            toDate = toDate.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
+        }
+        if (obj.size() != 0) {
+            andQuery.put("$and", obj);
+        }
+
+        FindIterable<Document> flowsIter = flowsCollection.find(Filters.and(andQuery, Filters.in("rulesets.label", qType)));
+        MongoCursor<Document> flowsCursor = flowsIter.iterator();
+
+        while (flowsCursor.hasNext()) {
+            Document flowsDocument = flowsCursor.next();
+            String flow_uuid = (String) flowsDocument.get("uuid");
+
+            BasicDBObject runsQuery = new BasicDBObject();
+            runsQuery.put("flow_uuid", flow_uuid);
+
+            FindIterable<Document> runsIter = runsCollection.find(runsQuery);
+            MongoCursor<Document> runsCursor = runsIter.iterator();
+            array.put(flowsDocument);
+
         }
 
         return Response.ok(array.toString()).cacheControl(control).build();
