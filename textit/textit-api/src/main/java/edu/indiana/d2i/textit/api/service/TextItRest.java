@@ -419,27 +419,18 @@ public class TextItRest {
         MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
         MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
         MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
-
         control.setNoCache(true);
-
         JSONArray array = new JSONArray();
 
-        BasicDBObject andQuery = new BasicDBObject();
-        List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
-        if (fromDate != null)
-            obj.add(new BasicDBObject("created_on", new BasicDBObject("$gte", fromDate)));
-        if (toDate != null)
-            obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
-        if (flowId != null)
-            obj.add(new BasicDBObject("uuid", flowId));
-        if (obj.size() != 0)
-            andQuery.put("$and", obj);
+        Bson filter = flowId != null ? Filters.eq("uuid", flowId) : null;
+        ArrayList<Document> flowsIter = null;
+        try {
+            flowsIter = getFlowsByDeploymentDate(flowsCollection, runsCollection, filter, fromDate, toDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
-        FindIterable<Document> flowsIter = flowsCollection.find(andQuery);
-        MongoCursor<Document> flowsCursor = flowsIter.iterator();
-
-        while (flowsCursor.hasNext()) {
-            Document flowsDocument = flowsCursor.next();
+        for (Document flowsDocument : flowsIter) {
             String flow_uuid = (String) flowsDocument.get("uuid");
 
             BasicDBObject runsQuery = new BasicDBObject();
@@ -542,23 +533,25 @@ public class TextItRest {
                                               @QueryParam("type") String qType,
                                               @QueryParam("from") String fromDate,
                                               @QueryParam("to") String toDate) {
+
+        if(qType == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "'type' is a mandatory query parameter").toString())
+                    .cacheControl(control).build();
+        }
+
         MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
         MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
         MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
         control.setNoCache(true);
-
         JSONArray array = new JSONArray();
-        BasicDBObject andQuery = new BasicDBObject();
-        List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
-        if (fromDate != null)
-            obj.add(new BasicDBObject("created_on", new BasicDBObject("$gte", fromDate)));
-        if (toDate != null)
-            obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
-        if (obj.size() != 0)
-            andQuery.put("$and", obj);
 
-        FindIterable<Document> flowsIter = flowsCollection.find(Filters.and(andQuery, Filters.in("rulesets.label", qType)));
-        MongoCursor<Document> flowsCursor = flowsIter.iterator();
+        ArrayList<Document> flowsIter = null;
+        try {
+            flowsIter = getFlowsByDeploymentDate(flowsCollection, runsCollection, Filters.in("rulesets.label", qType), fromDate, toDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
         long total_runs = 0;
         long answered = 0;
@@ -566,8 +559,7 @@ public class TextItRest {
         long notAsked = 0;
         Map<String, Map<String, Integer>> qObject = new HashMap<String, Map<String, Integer>>();
 
-        while (flowsCursor.hasNext()) {
-            Document flowsDocument = flowsCursor.next();
+        for (Document flowsDocument : flowsIter) {
             String flow_uuid = (String) flowsDocument.get("uuid");
 
             String qUuid = "";
@@ -710,20 +702,6 @@ public class TextItRest {
                 }
             }
 
-            BasicDBObject andQuery = new BasicDBObject();
-            List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
-            if (fromDate != null) {
-                fromDate = fromDate.replace("+00:00", "Z");
-                obj.add(new BasicDBObject("modified_on", new BasicDBObject("$gte", fromDate)));
-            }
-            if (toDate != null) {
-                toDate = toDate.replace("+00:00", "Z");
-                obj.add(new BasicDBObject("modified_on", new BasicDBObject("$lte", toDate)));
-            }
-            if (obj.size() != 0) {
-                andQuery.put("$and", obj);
-            }
-
             FindIterable<Document> contactsIter = contactsCollection.find(Filters.and(
                     Filters.gte("modified_on", prevDateStr),
                     Filters.lte("modified_on",currentDateStr)) );
@@ -777,8 +755,8 @@ public class TextItRest {
         else
             flowsIter = flowsCollection.find(andQuery);
 
-        MongoCursor<Document> flowsCursor = flowsIter.iterator();
         flowsIter.projection(new Document("_id", 0));
+        MongoCursor<Document> flowsCursor = flowsIter.iterator();
 
         while (flowsCursor.hasNext()) {
             boolean include = true;
