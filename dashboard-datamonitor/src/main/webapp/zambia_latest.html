@@ -651,7 +651,6 @@ chart.render();
 		
 		yes_array = [];
 		no_array = [];
-		no_response_array = [];
 		other_array = [];
 		
 			for (q in quesdata){	
@@ -663,8 +662,6 @@ chart.render();
 						yes_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "yes"});				
 					}else if (quesdata[q].matrix[i].anw == "Other"){
 						other_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "other_response"});
-					}else if (quesdata[q].matrix[i].anw == "No Response"){
-						no_response_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "no_response"});
 					}
 				}
 			}
@@ -701,13 +698,6 @@ var chart = new CanvasJS.Chart("chartContainer2",
 				legendText: "No",
 				showInLegend: true,
 				dataPoints: no_array
-			},
-			{
-				type: "column",	
-				name: "No Response",
-				legendText: "No Response",
-				showInLegend: true,
-				dataPoints: no_response_array
 			},
 			{
 				type: "column",	
@@ -1819,7 +1809,6 @@ chart.render();
 		
 		yes_array = [];
 		no_array = [];
-		no_response_array = [];
 		other_array = [];
 		
 			for (q in quesdata){	
@@ -1831,8 +1820,6 @@ chart.render();
 						yes_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "yes"});				
 					}else if (quesdata[q].matrix[i].anw == "Other"){
 						other_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "other_response"});
-					}else if (quesdata[q].matrix[i].anw == "No Response"){
-						no_response_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "no_response"});
 					}
 				}
 			}
@@ -1868,14 +1855,7 @@ var chart = new CanvasJS.Chart("chartContainer2",
 				legendText: "No",
 				showInLegend: true,
 				dataPoints: no_array
-			},
-			{
-				type: "column",	
-				name: "No Response",
-				legendText: "No Response",
-				showInLegend: true,
-				dataPoints: no_response_array
-			},
+			},			
 			{
 				type: "column",	
 				name: "Other Response",
