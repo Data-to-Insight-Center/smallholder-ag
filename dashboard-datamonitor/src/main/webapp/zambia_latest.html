@@ -60,7 +60,7 @@
             <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
               <div class="menu_section">
                 <ul class="nav side-menu">
-                  <li><a><i class="fa fa-map-marker"></i> Kenya <span class="fa fa-chevron-down"></span></a>
+                  <!--<li><a><i class="fa fa-map-marker"></i> Kenya <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
                       <li><a href="kenya.html">Dashboard</a></li>
                       <li><a href="ktable.html">Table</a></li>
@@ -68,14 +68,15 @@
                       <li><a href="contact-analytics-kenya.html">Contact Analysis</a></li>
                       <li><a href="kenya_map.html">Map</a></li>
                     </ul>
-                  </li>
+                  </li>-->
                   <li><a><i class="fa fa-map-marker"></i> Zambia <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
-                      <li><a href="zambia.html">Dashboard</a></li>
+                      <li><a href="zambia_latest.html">Dashboard</a></li>
+                      <!--<li><a href="zambia.html">Dashboard</a></li>
                       <li><a href="ztable.html">Table</a></li>
                       <li><a href="flow-analytics-zambia.html">Flow Analytics</a></li>
                       <li><a href="contact-analytics-zambia.html">Contact Analytics</a></li>
-                      <li><a href="zambia_map.html">Map</a></li>
+                      <li><a href="zambia_map.html">Map</a></li>-->
                     </ul>
                   </li>                  
                 </ul>
@@ -94,7 +95,7 @@
               </div>
 					
               <ul class="nav navbar-nav navbar-right">
-              <div style="text-align:left;float:left;font-size:30px;"><strong>Questions Analysis - Zambia</strong></div>
+              <div style="text-align:left;float:left;font-size:30px;"><strong>Dashboard DataMonitor - Zambia</strong></div>
                 <li class="">
                   <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                     <img src="media/images/user.png" alt="">Admin
@@ -156,15 +157,10 @@
                             <option>1 week</option>
                             <option>2 weeks</option>
                             <option>3 weeks</option>
-                            <option>4 weeks</option>
-                            <option>5 week</option>
+                            <option selected="selected">4 weeks</option>
+                            <option>5 weeks</option>
                             <option>6 weeks</option>
                             <option>7 weeks</option>
-                            <option>8 weeks</option>
-                            <option>9 week</option>
-                            <option>10 weeks</option>
-                            <option>11 weeks</option>
-                            <option>12 weeks</option>
                           </select>
                       </div>
                     </div>
@@ -247,19 +243,24 @@
 			var now = new Date();
 			var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 			var lastMonday = new Date(today.setDate(today.getDate()-(today.getDay()-1)%7));
+			var last_monday = new Date(lastMonday.setHours(lastMonday.getHours()+12));
 			var beforeMonday = new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate()-7);
+			var before_monday = new Date(beforeMonday.setHours(beforeMonday.getHours()+12));
 			var lastbeforeMonday = new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate()-14);
 			var lasttwobeforeMonday = new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate()-21);
 			var lastthreebeforeMonday = new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate()-28);
 			
-			var to_date = moment(lastMonday).format("YYYY-MM-DD'T'HH:mm:ss.SSS");
-			var from_date = moment(beforeMonday).format("YYYY-MM-DD'T'HH:mm:ss.SSS");
+			var to_date = moment(last_monday).format("YYYY-MM-DDTHH:mm:ss.SSS");
+			var from_date = moment(before_monday).format("YYYY-MM-DDTHH:mm:ss.SSS");
+			var new_from_date = from_date + "Z";
+			var new_to_date = to_date + "Z";
+			
+			//alert(last_monday);
 
-
-/* New code for first graph */		
+			/* New code for first graph */		
 		
 			$.ajax({
-				url: textit_prefix + "/flowcompletion?from=" + from_date + "&to=" + to_date,
+				url: textit_prefix + "/flowcompletion?from=" + new_from_date + "&to=" + new_to_date,
 				success: function (frdata) {				
 				
 				flow_steps_correct_final_data = [];
@@ -521,7 +522,7 @@
 	  /*  ##### */
 
 	/* 2nd graph */
-	var week_count = 4;
+	var week_count = "4";
 	$.ajax({
 		url: textit_prefix + "/filesize?count=" + week_count,
 		success: function (sdata) {	
@@ -530,33 +531,52 @@
 		flow_size_flows_array = [];
 		flow_size_contacts_array = [];	
 	
-	for (f in sdata){
-		week_label = new Date(sdata[f].week);
-		new_week_label = moment(week_label).format('YYYY MMM DD');
-		if (sdata[f].matrix[0].type == "runs"){
-			flow_size_runs_array.push({"label" : new_week_label, "y" : sdata[f].matrix[0].count});
-		}else if (sdata[f].matrix[0].type == "flows"){
-			flow_size_flows_array.push({"label" : new_week_label, "y" : sdata[f].matrix[0].count});	
-		}else if ((sdata[f].matrix[0].type == "contacts"){
-			flow_size_contacts_array.push({"label" : new_week_label, "y" : sdata[f].matrix[0].count});
-		}
-		}
+		for (f in sdata){
+			week_label = sdata[f].week;
+			
+			flow_size_flows_array.push({"label" : week_label, "y" : Math.round(sdata[f].matrix[0].count/1000), "cat_name" : "flows"});		
+			
+			flow_size_runs_array.push({"label" : week_label, "y" : Math.round(sdata[f].matrix[1].count/1000), "cat_name" : "runs"});				
+	
+			flow_size_contacts_array.push({"label" : week_label, "y" : Math.round(sdata[f].matrix[2].count/1000), "cat_name" : "contacts"});
+			
+			}
 
 		}
 	});
 	
-	
-	var chart = new CanvasJS.Chart("chartContainer1",
+	setTimeout(function () {
+ 
+ 
+ var chart = new CanvasJS.Chart("chartContainer1",
 		{
 			title:{
 				text: "File sizes by type"
 			},
-			toolTip: {
-				shared: true
-			},			
-			axisY: {
-				title: "size of file(in kb)"
-			},
+			toolTip:{
+				shared: true,
+         contentFormatter: function ( e ) {
+                 var content =  e.entries[0].dataPoint.label;
+                 for(var i = 0; i< e.entries.length; i++){
+                   content += "</br>"+e.entries[i].dataPoint.cat_name + " : ";
+                   content +=  CanvasJS.formatNumber(Math.round(Math.pow(10,e.entries[i].dataPoint.y)));
+                 }
+                 return content;
+     		 } 
+       },			
+			axisY:{
+         title: "size of file in (kb)",
+         labelFormatter: function ( e ) {
+               var lable = Math.pow(10 ,e.value);
+               if(lable>=1000)
+               		lable = CanvasJS.formatNumber(lable/1000) +"k";
+               else
+               		lable =  CanvasJS.formatNumber(lable);
+               return lable;
+         },
+         interval : 1,
+         includeZero :false
+       },
 			axisX: {
 				title: "Time (in weeks)",
 				interval: 1,
@@ -569,21 +589,21 @@
 				name: "Runs",
 				legendText: "Runs",
 				showInLegend: true, 
-				dataPoints:flow_size_runs_array
+				dataPoints:flow_size_runs_array.reverse()
 			},
 			{
 				type: "column",	
 				name: "Flows",
 				legendText: "Flows",
 				showInLegend: true,
-				dataPoints:flow_size_flows_array
+				dataPoints:flow_size_flows_array.reverse()
 			},
 			{
 				type: "column",	
 				name: "Contacts",
 				legendText: "Contacts",
 				showInLegend: true,
-				dataPoints:flow_size_contacts_array
+				dataPoints:flow_size_contacts_array.reverse()
 			}
 			
 			],
@@ -600,48 +620,61 @@
             }
           },
         });
-
+convertToLog(chart.options.data);
 chart.render();
+
+}, 2000);
+
+
+ function convertToLog(data){
+    var dataPoints;
+    for(var j= 0; j<data.length;j++){
+        dataPoints = data[j].dataPoints;
+        for(var i = 0; i< dataPoints.length; i++){
+          dataPoints[i].y = Math.log10(dataPoints[i].y);
+        }
+     }
+ }
 
 /* ############ */
 
 
 
 /* 3rd graph */
-ques_type = "rain"
-$.ajax({
-				url: textit_prefix + "/questionanalysis?type=" + ques_type + "&from=" + from_date + "&to=" + to_date,
-				success: function (frdata) {				
-				
-				flow_steps_correct_final_data = [];
-				flow_name_array = [];
-				
+	ques_type = "rain";
+	stat_date = "2016-06-27T12:00:00.000Z";
+	
+	
+	$.ajax({
+		url: textit_prefix + "/questionanalysis?type=" + ques_type + "&from=" + stat_date + "&to=" + new_to_date,
+		success: function (quesdata) {				
 		
-					for (j in frdata){
-							flow_steps_corrct_data = [];
-							
-							if (frdata[j].flow_name.indexOf("harvest") >= 0 || frdata[j].flow_name.indexOf("growing") >= 0 || frdata[j].flow_name.indexOf("inter-season") >= 0 || frdata[j].flow_name.indexOf("planting") >= 0) {
-								if (frdata[j].hasOwnProperty("matrix")){									
-									flow_name_array.push(frdata[j].flow_name);
-									for (q=0; q < frdata[j].matrix.length; q++){
-								
-									not_ans = frdata[j].matrix[q].perc;
-									ques_label = frdata[j].matrix[q].hour;
-									
-									flow_steps_corrct_data.push({"x" : ques_label, "y" : not_ans});	
-									}
-								}
-								flow_steps_correct_final_data.push(flow_steps_corrct_data)						
-							}
-						
+		yes_array = [];
+		no_array = [];
+		no_response_array = [];
+		other_array = [];
+		
+			for (q in quesdata){	
+				week_label = quesdata[q].day;
+				for(i=0; i < quesdata[q].matrix.length; i++){							
+					if (quesdata[q].matrix[i].anw == "No"){
+						no_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "no"});		
+					}else if (quesdata[q].matrix[i].anw == "Yes"){
+						yes_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "yes"});				
+					}else if (quesdata[q].matrix[i].anw == "Other"){
+						other_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "other_response"});
+					}else if (quesdata[q].matrix[i].anw == "No Response"){
+						no_response_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "no_response"});
 					}
-		
 				}
-		});
+			}
+
+		}
+});
 
 /* ######## */
 
-
+setTimeout(function () {
 var chart = new CanvasJS.Chart("chartContainer2",
 		{
 			title:{
@@ -660,40 +693,28 @@ var chart = new CanvasJS.Chart("chartContainer2",
 				name: "Yes",
 				legendText: "Yes",
 				showInLegend: true, 
-				dataPoints:[
-				{label: "Jan", y: 262},
-				{label: "Feb", y: 211},
-				{label: "Mar", y: 175},
-				{label: "Apr", y: 137},
-				{label: "May", y: 115},
-				{label: "June", y: 104},
-				{label: "Jul", y: 97},
-				{label: "Aug", y: 60},
-				{label: "Sep", y: 23},
-				{label: "Oct", y: 20}
-
-
-				]
+				dataPoints: yes_array
 			},
 			{
 				type: "column",	
 				name: "No",
 				legendText: "No",
 				showInLegend: true,
-				dataPoints:[
-				{label: "Jan", y: 111},
-				{label: "Feb", y: 25},
-				{label: "Mar", y: 36},
-				{label: "Apr", y: 42},
-				{label: "May", y: 26},
-				{label: "June", y: 27},
-				{label: "Jul", y: 31},
-				{label: "Aug", y: 102},
-				{label: "Sep", y: 103},
-				{label: "Oct", y: 43}
-
-
-				]
+				dataPoints: no_array
+			},
+			{
+				type: "column",	
+				name: "No Response",
+				legendText: "No Response",
+				showInLegend: true,
+				dataPoints: no_response_array
+			},
+			{
+				type: "column",	
+				name: "Other Response",
+				legendText: "Other Response",
+				showInLegend: true,
+				dataPoints: other_array
 			}
 			
 			],
@@ -713,7 +734,7 @@ var chart = new CanvasJS.Chart("chartContainer2",
 
 chart.render();
 	
-	
+	}, 2000);
 	
 	
 	
@@ -767,13 +788,26 @@ chart.render();
     $('#reportrange span').html(moment(beforeMonday).format('D MMMM YYYY') + ' - ' + moment(lastMonday).format('D MMMM YYYY'));
 
     $('#saveBtn').click(function(){
-        console.log(startDate.format('D MMMM YYYY') + ' - ' + endDate.format('D MMMM YYYY'));
-		alert(startDate.format('D MMMM YYYY') + ' - ' + endDate.format('D MMMM YYYY'));
-		from_date = startDate.format("YYYY-MM-DD'T'HH:mm:ss.SSS");
-		to_date = endDate.format("YYYY-MM-DD'T'HH:mm:ss.SSS")
+        //console.log(startDate.format('D MMMM YYYY') + ' - ' + endDate.format('D MMMM YYYY'));
+		//alert(startDate.format('D MMMM YYYY') + ' - ' + endDate.format('D MMMM YYYY'));
+		from_date = startDate.format("YYYY-MM-DDTHH:mm:ss.SSS");
+		to_date = endDate.format("YYYY-MM-DDTHH:mm:ss.SSS");
+		
+		new_end_date = new Date(endDate);
+		new_end_date_sr = new Date(new_end_date.setHours(new_end_date.getHours()-12))
+		new_end_date_sr_lk = moment(new_end_date_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
+		
+		new_start_date = new Date(startDate);
+		new_start_date_sr = new Date(new_start_date.setHours(new_start_date.getHours()+12))
+		new_start_date_sr_lk = moment(new_start_date_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
+				
+		var new_from_date = new_start_date_sr_lk + "Z";
+		var new_to_date = new_end_date_sr_lk + "Z";
+		
+		//alert(new_from_date);
 		
 		$.ajax({
-				url: textit_prefix + "/flowcompletion?from=" + from_date + "&to=" + to_date,
+				url: textit_prefix + "/flowcompletion?from=" + new_from_date + "&to=" + new_to_date,
 				success: function (frdata) {				
 				
 				response_final_data = [];
@@ -1586,81 +1620,84 @@ chart.render();
 	
 	
 	$('#saveBtn1').click(function(){
-        alert($('#sel1 :selected').text());
+        alert($('#sel1 :selected').text().split(" ")[0]);	
 		
 		
-		var chart = new CanvasJS.Chart("chartContainer1",
+	var week_count_click = $('#sel1 :selected').text().split(" ")[0];
+	$.ajax({
+		url: textit_prefix + "/filesize?count=" + week_count_click,
+		success: function (clsdata) {	
+	
+		click_flow_size_runs_array = [];
+		click_flow_size_flows_array = [];
+		click_flow_size_contacts_array = [];	
+	
+		for (f in clsdata){
+			week_label = clsdata[f].week;
+			
+			click_flow_size_flows_array.push({"label" : week_label, "y" : Math.round(clsdata[f].matrix[0].count/1000), "cat_name" : "flows"});		
+			
+			click_flow_size_runs_array.push({"label" : week_label, "y" : Math.round(clsdata[f].matrix[1].count/1000), "cat_name" : "runs"});				
+	
+			click_flow_size_contacts_array.push({"label" : week_label, "y" : Math.round(clsdata[f].matrix[2].count/1000), "cat_name" : "contacts"});
+			
+			}
+
+		}
+	});
+	
+	setTimeout(function () {
+	var chart = new CanvasJS.Chart("chartContainer1",
 		{
 			title:{
-				text: "File sizes by type per week",
-				fontSize: 30
+				text: "File sizes by type"
 			},
-			toolTip: {
-				shared: true
-			},			
-			axisY: {
-				title: "size of file in kb"
-			},			
+			toolTip:{
+				shared: true,
+         contentFormatter: function ( e ) {
+                 var content =  e.entries[0].dataPoint.label;
+                 for(var i = 0; i< e.entries.length; i++){
+                   content += "</br>"+e.entries[i].dataPoint.cat_name + " : ";
+                   content +=  CanvasJS.formatNumber(Math.round(Math.pow(10,e.entries[i].dataPoint.y)));
+                 }
+                 return content;
+     		 } 
+       },			
+			axisY:{
+         title: "size of file in (kb)",
+         labelFormatter: function ( e ) {
+               var lable = Math.pow(10 ,e.value);
+               if(lable>=1000)
+               		lable = CanvasJS.formatNumber(lable/1000) +"k";
+               else
+               		lable =  CanvasJS.formatNumber(lable);
+               return lable;
+         },
+         interval : 1,
+         includeZero :false
+       },
+			exportEnabled: true,				
 			data: [ 
 			{
 				type: "column",	
 				name: "Runs",
 				legendText: "Runs",
 				showInLegend: true, 
-				dataPoints:[
-				{label: "week1", y: 262},
-				{label: "week2", y: 211},
-				{label: "week3", y: 175},
-				{label: "week4", y: 137},
-				{label: "week5", y: 115},
-				{label: "week6", y: 104},
-				{label: "week7", y: 97.8},
-				{label: "week8", y: 60},
-				{label: "week9", y: 23.3},
-				{label: "week10", y: 20.4}
-
-
-				]
+				dataPoints:click_flow_size_runs_array.reverse()
 			},
 			{
 				type: "column",	
 				name: "Flows",
 				legendText: "Flows",
 				showInLegend: true,
-				dataPoints:[
-				{label: "week1", y: 111.5},
-				{label: "week2", y: 211},
-				{label: "week3", y: 175},
-				{label: "week4", y: 137},
-				{label: "week5", y: 115},
-				{label: "week6", y: 104},
-				{label: "week7", y: 97.8},
-				{label: "week8", y: 60},
-				{label: "week9", y: 23.3},
-				{label: "week10", y: 20.4}
-
-
-				]
+				dataPoints:click_flow_size_flows_array.reverse()
 			},
 			{
 				type: "column",	
 				name: "Contacts",
 				legendText: "Contacts",
 				showInLegend: true,
-				dataPoints:[
-				{label: "week1", y: 115.5},
-				{label: "week2", y: 211},
-				{label: "week3", y: 175},
-				{label: "week4", y: 137},
-				{label: "week5", y: 115},
-				{label: "week6", y: 104},
-				{label: "week7", y: 97.8},
-				{label: "week8", y: 60},
-				{label: "week9", y: 23.3},
-				{label: "week10", y: 20.4}
-
-
-				]
+				dataPoints:click_flow_size_contacts_array.reverse()
 			}
 			
 			],
@@ -1677,8 +1714,23 @@ chart.render();
             }
           },
         });
-
+		convertToLog(chart.options.data);
 chart.render();
+
+}, 2000);
+
+
+ function convertToLog(data){
+    var dataPoints;
+    for(var j= 0; j<data.length;j++){
+        dataPoints = data[j].dataPoints;
+        for(var i = 0; i< dataPoints.length; i++){
+          dataPoints[i].y = Math.log10(dataPoints[i].y);
+        }
+     }
+ }
+		
+		
 
     });
 	
@@ -1693,8 +1745,8 @@ chart.render();
 	
 	$('#reportrange2').daterangepicker(
        {
-          startDate: moment().subtract('days', 29),
-          endDate: moment(),
+          startDate: beforeMonday,
+          endDate: lastMonday,
           minDate: '01/01/2012',
           maxDate: FromEndDate,
           dateLimit: { days: 60 },
@@ -1704,10 +1756,12 @@ chart.render();
           timePickerIncrement: 1,
           timePicker12Hour: true,
           ranges: {
-             'Today': [moment(), moment()],
-             'Yesterday': [moment().subtract('days', 1), moment().subtract('days', 1)],
-             'Last 7 Days': [moment().subtract('days', 6), moment()],
-             'Last 30 Days': [moment().subtract('days', 29), moment()],
+             //'Today': [moment(), moment()],
+             //'Yesterday': [moment().subtract('days', 1), moment().subtract('days', 1)],
+             'Last Week': [moment(beforeMonday), moment(lastMonday)],
+			 'Last 2 Weeks' : [moment(lastbeforeMonday), moment(lastMonday)],
+             'Last 3 Weeks': [moment(lasttwobeforeMonday), moment(lastMonday)],
+			 'Last 4 Weeks': [moment(lastthreebeforeMonday), moment(lastMonday)],
              'This Month': [moment().startOf('month'), moment().endOf('month')],
              'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
           },
@@ -1736,15 +1790,59 @@ chart.render();
        }
     );
     //Set the initial state of the picker label
-    $('#reportrange2 span').html(moment().subtract('days', 29).format('D MMMM YYYY') + ' - ' + moment().format('D MMMM YYYY'));
+    $('#reportrange2 span').html(moment(beforeMonday).format('D MMMM YYYY') + ' - ' + moment(lastMonday).format('D MMMM YYYY'));
 	
 	
 	$('#saveBtn2').click(function(){
         console.log(startDate.format('D MMMM YYYY') + ' - ' + endDate.format('D MMMM YYYY'));
 		alert(startDate.format('D MMMM YYYY') + ' - ' + endDate.format('D MMMM YYYY'));
+		
+		
+		from_date = startDate.format("YYYY-MM-DDTHH:mm:ss.SSS");
+		to_date = endDate.format("YYYY-MM-DDTHH:mm:ss.SSS");
+		
+		new_end_date = new Date(endDate);
+		new_end_date_sr = new Date(new_end_date.setHours(new_end_date.getHours()-12))
+		new_end_date_sr_lk = moment(new_end_date_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
+		
+		new_start_date = new Date(startDate);
+		new_start_date_sr = new Date(new_start_date.setHours(new_start_date.getHours()+12))
+		new_start_date_sr_lk = moment(new_start_date_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
+				
+		var new_from_date = new_start_date_sr_lk + "Z";
+		var new_to_date = new_end_date_sr_lk + "Z";
 	
 	
-	var chart = new CanvasJS.Chart("chartContainer2",
+	$.ajax({
+		url: textit_prefix + "/questionanalysis?type=" + ques_type + "&from=" + new_from_date + "&to=" + new_to_date,
+		success: function (quesdata) {				
+		
+		yes_array = [];
+		no_array = [];
+		no_response_array = [];
+		other_array = [];
+		
+			for (q in quesdata){	
+				week_label = quesdata[q].day;
+				for(i=0; i < quesdata[q].matrix.length; i++){							
+					if (quesdata[q].matrix[i].anw == "No"){
+						no_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "no"});		
+					}else if (quesdata[q].matrix[i].anw == "Yes"){
+						yes_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "yes"});				
+					}else if (quesdata[q].matrix[i].anw == "Other"){
+						other_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "other_response"});
+					}else if (quesdata[q].matrix[i].anw == "No Response"){
+						no_response_array.push({"label" : week_label, "y" : quesdata[q].matrix[i].count, "cat_name" : "no_response"});
+					}
+				}
+			}
+
+		}
+});
+	
+	
+	setTimeout(function () {
+var chart = new CanvasJS.Chart("chartContainer2",
 		{
 			title:{
 				text: "Number of farmers indicated yes/no to the “Did it rain…” question",
@@ -1762,40 +1860,28 @@ chart.render();
 				name: "Yes",
 				legendText: "Yes",
 				showInLegend: true, 
-				dataPoints:[
-				{label: "Jan", y: 262},
-				{label: "Feb", y: 211},
-				{label: "Mar", y: 175},
-				{label: "Apr", y: 137},
-				{label: "May", y: 115},
-				{label: "June", y: 104},
-				{label: "Jul", y: 97},
-				{label: "Aug", y: 60},
-				{label: "Sep", y: 23},
-				{label: "Oct", y: 20}
-
-
-				]
+				dataPoints: yes_array
 			},
 			{
 				type: "column",	
 				name: "No",
 				legendText: "No",
 				showInLegend: true,
-				dataPoints:[
-				{label: "Jan", y: 111},
-				{label: "Feb", y: 25},
-				{label: "Mar", y: 36},
-				{label: "Apr", y: 42},
-				{label: "May", y: 26},
-				{label: "June", y: 27},
-				{label: "Jul", y: 31},
-				{label: "Aug", y: 102},
-				{label: "Sep", y: 103},
-				{label: "Oct", y: 43}
-
-
-				]
+				dataPoints: no_array
+			},
+			{
+				type: "column",	
+				name: "No Response",
+				legendText: "No Response",
+				showInLegend: true,
+				dataPoints: no_response_array
+			},
+			{
+				type: "column",	
+				name: "Other Response",
+				legendText: "Other Response",
+				showInLegend: true,
+				dataPoints: other_array
 			}
 			
 			],
@@ -1815,6 +1901,7 @@ chart.render();
 
 chart.render();
 	
+	}, 2000);
 
 	});
 	
