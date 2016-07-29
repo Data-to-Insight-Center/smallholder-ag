@@ -10,6 +10,7 @@ import edu.indiana.d2i.textit.api.utils.MongoDB;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -33,6 +34,7 @@ public class TextItRest {
     private SimpleDateFormat df_SSS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private SimpleDateFormat df_dd = new SimpleDateFormat("yyyy-MM-dd");
     private static Logger logger = Logger.getLogger(TextItRest.class);
+    private static int daysBeforeFlowDeployment = 14;
 
     static {
         PropertyConfigurator.configure(TextItRest.class.getResource("./../log4j.properties"));
@@ -424,20 +426,14 @@ public class TextItRest {
 
         BasicDBObject andQuery = new BasicDBObject();
         List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
-        if (fromDate != null) {
-            fromDate = fromDate.replace("+00:00", "Z");
+        if (fromDate != null)
             obj.add(new BasicDBObject("created_on", new BasicDBObject("$gte", fromDate)));
-        }
-        if (toDate != null) {
-            toDate = toDate.replace("+00:00", "Z");
+        if (toDate != null)
             obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
-        }
-        if (flowId != null) {
+        if (flowId != null)
             obj.add(new BasicDBObject("uuid", flowId));
-        }
-        if (obj.size() != 0) {
+        if (obj.size() != 0)
             andQuery.put("$and", obj);
-        }
 
         FindIterable<Document> flowsIter = flowsCollection.find(andQuery);
         MongoCursor<Document> flowsCursor = flowsIter.iterator();
@@ -546,30 +542,20 @@ public class TextItRest {
                                               @QueryParam("type") String qType,
                                               @QueryParam("from") String fromDate,
                                               @QueryParam("to") String toDate) {
-
         MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
         MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
         MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-        SimpleDateFormat dateFormat_day = new SimpleDateFormat("yyyy-MM-dd");
-
         control.setNoCache(true);
 
         JSONArray array = new JSONArray();
-
         BasicDBObject andQuery = new BasicDBObject();
         List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
-        if (fromDate != null) {
-            fromDate = fromDate.replace("+00:00", "Z");
+        if (fromDate != null)
             obj.add(new BasicDBObject("created_on", new BasicDBObject("$gte", fromDate)));
-        }
-        if (toDate != null) {
-            toDate = toDate.replace("+00:00", "Z");
+        if (toDate != null)
             obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
-        }
-        if (obj.size() != 0) {
+        if (obj.size() != 0)
             andQuery.put("$and", obj);
-        }
 
         FindIterable<Document> flowsIter = flowsCollection.find(Filters.and(andQuery, Filters.in("rulesets.label", qType)));
         MongoCursor<Document> flowsCursor = flowsIter.iterator();
@@ -651,6 +637,179 @@ public class TextItRest {
             array.put(arrayObject);
         }
         return Response.ok(array.toString()).cacheControl(control).build();
+    }
+
+    @GET
+    @Path("/{country}/filesize")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFileSizes(@PathParam("country") String country,
+                                        @QueryParam("flowId") String flowId,
+                                        @QueryParam("from") String fromDate,
+                                        @QueryParam("to") String toDate,
+                                        @QueryParam("count") int count) {
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
+        MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
+        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollectionName);
+
+        control.setNoCache(true);
+        JSONArray array = new JSONArray();
+
+        Bson filter = flowId != null ? Filters.eq("uuid", flowId) : null;
+
+        Calendar c = Calendar.getInstance();
+        if(country.equals("zambia")) {
+            c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+            c.set(Calendar.HOUR_OF_DAY, 12);
+        } else if (country.equals("kenya")) {
+            //TODO
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "invalid country").toString())
+                    .cacheControl(control).build();
+        }
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+
+        for(int i = 0 ; i < count ; i ++) {
+
+            c.add(Calendar.MILLISECOND, -1);
+            Date currentDate = c.getTime();
+            String currentDateStr = df_Z.format(c.getTime());
+            c.add(Calendar.DATE, -7);
+            c.add(Calendar.MILLISECOND, 1);
+            Date prevDate = c.getTime();
+            String prevDateStr = df_Z.format(c.getTime());
+
+            ArrayList<Document> flowsIter = null;
+            try {
+                flowsIter = getFlowsByDeploymentDate(flowsCollection, runsCollection, filter, prevDateStr, currentDateStr);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            double flowSize = 0;
+            double runsSize = 0;
+            double contactSize = 0;
+
+            for (Document flowsDocument : flowsIter) {
+                String flow_uuid = (String) flowsDocument.get("uuid");
+                flowSize += flowsDocument.toJson().length();
+
+                BasicDBObject runsQuery = new BasicDBObject();
+                runsQuery.put("flow_uuid", flow_uuid);
+                FindIterable<Document> runsIter = runsCollection.find(runsQuery);
+                runsIter.projection(new Document("_id", 0));
+                MongoCursor<Document> runsCursor = runsIter.iterator();
+
+                while (runsCursor.hasNext()) {
+                    Document runsDocument = runsCursor.next();
+                    runsSize += runsDocument.toJson().length();
+                }
+            }
+
+            BasicDBObject andQuery = new BasicDBObject();
+            List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
+            if (fromDate != null) {
+                fromDate = fromDate.replace("+00:00", "Z");
+                obj.add(new BasicDBObject("modified_on", new BasicDBObject("$gte", fromDate)));
+            }
+            if (toDate != null) {
+                toDate = toDate.replace("+00:00", "Z");
+                obj.add(new BasicDBObject("modified_on", new BasicDBObject("$lte", toDate)));
+            }
+            if (obj.size() != 0) {
+                andQuery.put("$and", obj);
+            }
+
+            FindIterable<Document> contactsIter = contactsCollection.find(Filters.and(
+                    Filters.gte("modified_on", prevDateStr),
+                    Filters.lte("modified_on",currentDateStr)) );
+            contactsIter.projection(new Document("_id", 0));
+            MongoCursor<Document> contactsCursor = contactsIter.iterator();
+            while (contactsCursor.hasNext()) {
+                Document contactDocument = contactsCursor.next();
+                contactSize += contactDocument.toJson().length();
+            }
+
+            array.put(new JSONObject()
+                    .put("week", df_dd.format(prevDate) + "-" + df_dd.format(currentDate))
+                    .put("matrix",
+                            new JSONArray()
+                                    .put(new JSONObject().put("type", "flows").put("count", flowSize))
+                                    .put(new JSONObject().put("type", "runs").put("count", runsSize))
+                                    .put(new JSONObject().put("type", "contacts").put("count", contactSize))));
+        }
+
+        return Response.ok(array.toString()).cacheControl(control).build();
+    }
+
+    public ArrayList<Document> getFlowsByDeploymentDate(MongoCollection<Document> flowsCollection,
+                                                        MongoCollection<Document> runsCollection,
+                                                        Bson filter,  String fromDate, String toDate) throws ParseException {
+
+        ArrayList<Document> flows = new ArrayList<Document>();
+        Date fromDay = null;
+        Date toDay = null;
+
+        BasicDBObject andQuery = new BasicDBObject();
+        List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
+        if (fromDate != null) {
+            fromDay = df_Z.parse(fromDate);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(df_Z.parse(fromDate));
+            cal.add(Calendar.DATE, -daysBeforeFlowDeployment);
+            String dateBefore = df_Z.format(cal.getTime());
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$gte", dateBefore)));
+        }
+        if (toDate != null) {
+            toDay = df_Z.parse(toDate);
+            obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
+        }
+        if (obj.size() != 0)
+            andQuery.put("$and", obj);
+
+        FindIterable<Document> flowsIter;
+        if(filter != null)
+            flowsIter = flowsCollection.find(Filters.and(andQuery, filter));
+        else
+            flowsIter = flowsCollection.find(andQuery);
+
+        MongoCursor<Document> flowsCursor = flowsIter.iterator();
+        flowsIter.projection(new Document("_id", 0));
+
+        while (flowsCursor.hasNext()) {
+            boolean include = true;
+            Document flowsDocument = flowsCursor.next();
+
+            if(fromDate != null || toDate != null) {
+                include = false;
+                String flow_uuid = (String) flowsDocument.get("uuid");
+
+                BasicDBObject runsQuery = new BasicDBObject();
+                runsQuery.put("flow_uuid", flow_uuid);
+                FindIterable<Document> runsIter = runsCollection.find(runsQuery);
+                flowsIter.projection(new Document("created_on", 1).append("_id", 0));
+                MongoCursor<Document> runsCursor = runsIter.iterator();
+                int count = 0;
+                while (runsCursor.hasNext() && include == false && count < 10) {
+                    count++;
+                    Document runsDocument = runsCursor.next();
+                    Date runDay = df_Z.parse(runsDocument.getString("created_on"));
+                    if ((fromDate == null || (fromDate != null && runDay.after(fromDay)))
+                            && (toDate == null || (toDate != null && runDay.before(toDay)))) {
+                        include = true;
+                    }
+                }
+            }
+
+            if(include)
+                flows.add(flowsDocument);
+        }
+
+        return flows;
     }
 
     class stringToIntComp implements Comparator<String> {
