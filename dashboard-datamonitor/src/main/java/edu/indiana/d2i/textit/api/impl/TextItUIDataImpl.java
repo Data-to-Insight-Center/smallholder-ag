@@ -502,4 +502,61 @@ public class TextItUIDataImpl extends TextItUIData {
 		return Response.status(response.getStatus()).entity(result_array.toString()).cacheControl(control).build();
 
 	}
+
+	@GET
+	@Path("/{country}/flowcompletion")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getFlowCompletionAnalysis(@PathParam("country") String country,
+											  @QueryParam("from") String fromDate,
+											  @QueryParam("to") String toDate) {
+		WebResource webResource = resource();
+
+		ClientResponse response = webResource.path(country + "/flowcompletion")
+				.queryParam("from", fromDate)
+				.queryParam("to", toDate)
+				.accept("application/json")
+				.type("application/json")
+				.get(ClientResponse.class);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
+
+	@GET
+	@Path("/{country}/filesize")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getFileSizes(@PathParam("country") String country,
+								 @QueryParam("count") String count) {
+		WebResource webResource = resource();
+
+		ClientResponse response = webResource.path(country + "/filesize")
+				.queryParam("count", count)
+				.accept("application/json")
+				.type("application/json")
+				.get(ClientResponse.class);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
+
+	@GET
+	@Path("/{country}/questionanalysis")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getQuestionAnalysis(@PathParam("country") String country,
+										@QueryParam("type") String qType,
+										@QueryParam("from") String fromDate,
+										@QueryParam("to") String toDate) {
+		WebResource webResource = resource();
+
+		ClientResponse response = webResource.path(country + "/questionanalysis")
+				.queryParam("type", qType)
+				.queryParam("from", fromDate)
+				.queryParam("to", toDate)
+				.accept("application/json")
+				.type("application/json")
+				.get(ClientResponse.class);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
 }
