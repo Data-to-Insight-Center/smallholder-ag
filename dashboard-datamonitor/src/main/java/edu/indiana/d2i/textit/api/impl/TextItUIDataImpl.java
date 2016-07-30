@@ -23,7 +23,15 @@ public class TextItUIDataImpl extends TextItUIData {
     private WebResource resource;
     private String serviceUrl;
     private CacheControl control = new CacheControl();
-	private SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	private SimpleDateFormat df_Z = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private SimpleDateFormat df_SSS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    private SimpleDateFormat df_dd = new SimpleDateFormat("yyyy-MM-dd");
+    private SimpleDateFormat df_dm = new SimpleDateFormat("dd MMM yyyy");
+
+    private static final String DAILY = "daily";
+    private static final String WEEKLY = "weekly";
+    private static final String MONTHLY = "montly";
+    private static final String YEARLY = "yearly";
 
     private WebResource resource(){
         return resource;
@@ -49,8 +57,8 @@ public class TextItUIDataImpl extends TextItUIData {
 
 		Date last_country_day = Calendar.getInstance().getTime();
 		Date before = c.getTime();
-		String start = sdfDate.format(before);
-		String end = sdfDate.format(last_country_day);
+		String start = df_Z.format(before);
+		String end = df_Z.format(last_country_day);
 		return start;
 	}
 
@@ -294,8 +302,8 @@ public class TextItUIDataImpl extends TextItUIData {
 					Date dt2 = new Date();
 
 					try {
-						dt = sdfDate.parse((String) a.get("created_on"));
-						dt2 = sdfDate.parse((String) b.get("created_on"));
+						dt = df_Z.parse((String) a.get("created_on"));
+						dt2 = df_Z.parse((String) b.get("created_on"));
 					} catch (ParseException e) {
 						e.printStackTrace();
 					}
@@ -398,8 +406,8 @@ public class TextItUIDataImpl extends TextItUIData {
 					Date dt2 = new Date();
 
 					try {
-						dt = sdfDate.parse((String) a.get("created_on"));
-						dt2 = sdfDate.parse((String) b.get("created_on"));
+						dt = df_Z.parse((String) a.get("created_on"));
+						dt2 = df_Z.parse((String) b.get("created_on"));
 					} catch (ParseException e) {
 						e.printStackTrace();
 					}
@@ -556,7 +564,204 @@ public class TextItUIDataImpl extends TextItUIData {
 				.type("application/json")
 				.get(ClientResponse.class);
 
-		return Response.status(response.getStatus()).entity(response
-				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+        List<JSONObject> array = new ArrayList<JSONObject>();
+        Map<String, Map<String, Integer>> qObject = new HashMap<String, Map<String, Integer>>();
+
+        JSONArray responseArray = new JSONArray(response.getEntity(new GenericType<String>() {}));
+        Map<String, JSONArray> responseMap= new  HashMap<String, JSONArray>();
+
+        if(responseArray.length() < 2) {
+            return Response.status(response.getStatus()).entity(responseArray.toString()).cacheControl(control).build();
+        }
+        ArrayList<Date> datesList = new ArrayList<Date>();
+        ArrayList<String> answers = new ArrayList<String>();
+        for(int i = 0 ; i < responseArray.length() ; i++ ) {
+            JSONObject responseObj = responseArray.getJSONObject(i);
+            try {
+                datesList.add(df_dd.parse(responseObj.getString("day")));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            JSONArray answerArry = responseObj.getJSONArray("matrix");
+            for(int j = 0 ; j < answerArry.length() ; j ++) {
+                String answr = answerArry.getJSONObject(j).getString("anw");
+                if(!answers.contains(answr)) {
+                    answers.add(answr);
+                }
+            }
+            responseMap.put(responseObj.getString("day"), answerArry);
+        }
+
+        Collections.sort(datesList);
+        Date first = datesList.get(0);
+        Calendar cFirst = Calendar.getInstance();
+        cFirst.setTime(first);
+        cFirst.add(Calendar.DATE, -1);
+        first = cFirst.getTime();
+        Date last = datesList.get(datesList.size() - 1);
+        int duration = (int) ((last.getTime() - first.getTime())/(1000*60*60*24));
+
+        String interval = "";
+        if(duration <= 10)
+            interval = DAILY;
+        else if(duration > 10 && duration <= 70)
+            interval = WEEKLY;
+        else if (duration > 70 && duration <= 366)
+            interval = MONTHLY;
+        else
+            interval = YEARLY;
+
+        Calendar c = Calendar.getInstance();
+        c.setTime(last);
+        Date currEnd = c.getTime();
+        Date currBeg = null;
+
+        while(currEnd.getTime() > first.getTime()) {
+            if(interval.equals(DAILY)) {
+                c.add(Calendar.DATE, -1);
+                currBeg = c.getTime();
+            } else if (interval.equals(WEEKLY)) {
+                Calendar cTemp = Calendar.getInstance();
+                cTemp.setTime(currEnd);
+                cTemp.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+                cTemp.set(Calendar.HOUR_OF_DAY, 00);
+                cTemp.set(Calendar.MINUTE, 0);
+                cTemp.set(Calendar.SECOND, 0);
+                cTemp.set(Calendar.MILLISECOND, 0);
+                if (currEnd.equals(cTemp.getTime())) {
+                    cTemp.add(Calendar.DATE, -7);
+                    currBeg = cTemp.getTime();
+                }
+                else
+                    currBeg = cTemp.getTime();
+            }  else if (interval.equals(MONTHLY)) {
+                Calendar cTemp = Calendar.getInstance();
+                cTemp.setTime(currEnd);
+                cTemp.set(Calendar.DAY_OF_MONTH, 01);
+                cTemp.set(Calendar.HOUR_OF_DAY, 00);
+                cTemp.set(Calendar.MINUTE, 0);
+                cTemp.set(Calendar.SECOND, 0);
+                cTemp.set(Calendar.MILLISECOND, 0);
+                if (currEnd.equals(cTemp.getTime())) {
+                    cTemp.add(Calendar.DATE, -30);
+                    currBeg = cTemp.getTime();
+                }
+                else
+                    currBeg = cTemp.getTime();
+            } else if (interval.equals(YEARLY)) {
+                Calendar cTemp = Calendar.getInstance();
+                cTemp.setTime(currEnd);
+                cTemp.set(cTemp.get(Calendar.YEAR), Calendar.JANUARY, 01);
+                cTemp.set(Calendar.DAY_OF_MONTH, 01);
+                cTemp.set(Calendar.HOUR_OF_DAY, 00);
+                cTemp.set(Calendar.MINUTE, 0);
+                cTemp.set(Calendar.SECOND, 0);
+                cTemp.set(Calendar.MILLISECOND, 0);
+                if (currEnd.equals(cTemp.getTime())) {
+                    cTemp.add(Calendar.DATE, -30);
+                    currBeg = cTemp.getTime();
+                }
+                else
+                    currBeg = cTemp.getTime();
+            }
+
+            Date tempEnd = currEnd;
+            Date tempBeg = null;
+
+            String label = "";
+            Calendar cBeg = Calendar.getInstance();
+            cBeg.setTime(currBeg);
+            cBeg.add(Calendar.DATE, 1);
+            if(cBeg.getTime().equals(currEnd))
+                label = df_dm.format(cBeg.getTime());
+            else
+                label = df_dm.format(cBeg.getTime()) + " - " + df_dm.format(currEnd);
+
+            //System.out.println(currBeg + " - " + currEnd + " : " + label);
+            while(tempEnd.getTime() > currBeg.getTime()) {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(tempEnd);
+                cal.add(Calendar.DATE ,  -1);
+                tempBeg = cal.getTime();
+                String qLabel = df_dd.format(tempEnd);
+
+                if (qObject.get(label) == null) {
+                    Map<String, Integer> newObject = new HashMap<String, Integer>();
+                    for (String answ : answers)
+                        newObject.put(answ, 0);
+                    qObject.put(label, newObject);
+                }
+
+                JSONArray matrix = responseMap.get(qLabel);
+                if(matrix == null) {
+                    tempEnd = tempBeg;
+                    continue;
+                }
+
+                Map<String, Integer> dateObject = qObject.get(label);
+                for(int k = 0; k < matrix.length() ; k++ ){
+                    String qVal = ((JSONObject)matrix.get(k)).getString("anw");
+                    Integer qCount = ((JSONObject)matrix.get(k)).getInt("count");
+                    if (dateObject.get(qVal) != null) {
+                        dateObject.put(qVal, dateObject.get(qVal) + qCount);
+                    } else {
+                        dateObject.put(qVal, qCount);
+                    }
+                }
+
+                //System.out.println("\t" + df_dd.format(tempBeg) + " - " + df_dd.format(tempEnd));
+                tempEnd = tempBeg;
+            }
+
+            currEnd = currBeg;
+        }
+
+        for (String key : qObject.keySet()) {
+            JSONObject arrayObject = new JSONObject();
+            arrayObject.put("day", key);
+            JSONArray matrix = new JSONArray();
+            for(String valKey : qObject.get(key).keySet()) {
+                matrix.put(new JSONObject().put("anw", valKey).put("count", qObject.get(key).get(valKey)));
+            }
+            arrayObject.put("matrix", matrix);
+            array.add(arrayObject);
+        }
+        Collections.sort(array, new jsonArrayToDate());
+
+        return Response.status(response.getStatus()).entity(array.toString()).cacheControl(control).build();
 	}
+
+    class jsonArrayToDate implements Comparator<JSONObject> {
+        @Override
+        public int compare(JSONObject o1, JSONObject o2) {
+            Date date1 = null;
+            Date date2 = null;
+            try {
+                date1 = df_dm.parse(o1.getString("day"));
+                date2 = df_dm.parse(o2.getString("day"));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            return date1.compareTo(date2);
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
