@@ -33,6 +33,8 @@ public class TextItRest {
     private SimpleDateFormat df_Z = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private SimpleDateFormat df_SSS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private SimpleDateFormat df_dd = new SimpleDateFormat("yyyy-MM-dd");
+    private SimpleDateFormat df_dmy = new SimpleDateFormat("dd MMMMM yyyy");
+
     private static Logger logger = Logger.getLogger(TextItRest.class);
     private static int daysBeforeFlowDeployment = 14;
 
@@ -731,6 +733,7 @@ public class TextItRest {
         ArrayList<Document> flows = new ArrayList<Document>();
         Date fromDay = null;
         Date toDay = null;
+        String toDateStr = "";
 
         BasicDBObject andQuery = new BasicDBObject();
         List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
@@ -744,6 +747,7 @@ public class TextItRest {
         }
         if (toDate != null) {
             toDay = df_Z.parse(toDate);
+            toDateStr = df_dmy.format(toDay);
             obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
         }
         if (obj.size() != 0)
@@ -782,6 +786,9 @@ public class TextItRest {
                     }
                 }
             }
+
+            if(toDate != null && include == true && flowsDocument.getString("name").contains(toDateStr))
+                include = false;
 
             if(include)
                 flows.add(flowsDocument);
