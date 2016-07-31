@@ -5,6 +5,7 @@ display_help() {
     echo "   -c, --config   Config file path. ex: conf/global_zambia.properties"
     echo "   -w, --weekly   Run the TextIt Ingest script weekly"
     echo "   -dw, --day     Day of the week the script should run on[0-6]"
+    echo "   -hdw, --hDayW  Hour of the Day of the week the script should run on[0-23]"
     echo "   -d, --daily    Run the TextIt Ingest script daily"
     echo "   -hd, --hour    Hour of day the script should run on [0-23]"
     echo "   -s, --start    Customized start date for data collection (ex: 2016-06-27)"
@@ -33,6 +34,9 @@ do
                         shift
                         ;;
       -dw | --day)      day="$2"
+                        shift 2
+                        ;;
+      -hdw | --hDayW)   hDayW="$2"
                         shift 2
                         ;;
       -*)               echo "Error: Unknown option: $1" >&2
@@ -81,6 +85,16 @@ else
     day="0"
 fi
 
+if [ "$hDayW" != "" ]; then
+    if [[ ! "$hDayW" =~ ^[0-9]+$ ]] || [ "$hDayW" -gt 23 ]; then
+        echo "Error: 'hDayW' should be between 0-23"
+        display_help
+        exit 1
+    fi
+else
+    hDayW="0"
+fi
+
 this=$0
 bin=`dirname "$this"`
 bin=`cd "$bin"; pwd`
@@ -95,7 +109,7 @@ if [ "$daily" != "" ]; then
     echo "The script is scheduled to run daily, at hour "$hour
 fi
 if [ "$weekly" != "" ]; then
-    echo "The script is scheduled to run weekly, on day "$day
+    echo "The script is scheduled to run weekly, on day "$day" at hour "$hDayW
 fi
 if [ "start" != "" ]; then
     echo "Start date of data collection is "$start
@@ -111,8 +125,10 @@ crontab -l > textitcron
 if [ "$daily" != "" ]; then
     echo "0 "$hour" * * * "$start_script" "$HOME" "$config_file" "$daily" "$start" >> "$log_file" 2>&1" >> textitcron
 else
-    echo "0 11 * * "$day" "$start_script" "$HOME" "$config_file" "$weekly" "$start" >> "$log_file" 2>&1" >> textitcron
+    echo "0 "$hDayW" * * "$day" "$start_script" "$HOME" "$config_file" "$weekly" "$start" >> "$log_file" 2>&1" >> textitcron
 fi
+
+#echo "*/1 * * * * "$start_script" "$HOME" "$config_file" "$weekly$daily" "$start" >> "$log_file" 2>&1" >> textitcron
 
 #install new cron file
 crontab textitcron
