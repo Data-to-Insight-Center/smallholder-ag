@@ -38,7 +38,7 @@ Script parameters:</br>
 -c    : configuration file path</br>
 -w/-d : a flag to indiacate whether the script is going to run weekly or daily</br>
 -dw   : if script runs weekly, which day the script should run on ( 0-6 : Sunday-Saturday)</br>
--hdw  : if script runs weekly, which hour of the day of the week the script should run on[0-23]
+-hdw  : if script runs weekly, which hour of the day of the week the script should run on[0-23]</br>
 -hd   : if the script runs daily, which hour the script should run on ( 0 - 23)</br>
 -s    : customized start date for data collection (ex: 2016-06-27)
 -h    : help
