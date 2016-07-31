@@ -623,7 +623,7 @@ public class TextItUIDataImpl extends TextItUIData {
             } else if (interval.equals(WEEKLY)) {
                 Calendar cTemp = Calendar.getInstance();
                 cTemp.setTime(currEnd);
-                cTemp.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+                cTemp.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY); // TODO change for kenya
                 cTemp.set(Calendar.HOUR_OF_DAY, 00);
                 cTemp.set(Calendar.MINUTE, 0);
                 cTemp.set(Calendar.SECOND, 0);

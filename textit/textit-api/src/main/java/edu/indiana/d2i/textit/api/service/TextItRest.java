@@ -548,6 +548,35 @@ public class TextItRest {
         control.setNoCache(true);
         JSONArray array = new JSONArray();
 
+        Date fromDay = null;
+        Date toDay = null;
+        if (fromDate != null) {
+            try {
+                fromDay = df_Z.parse(fromDate);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        if (toDate != null) {
+            try {
+                toDay = df_Z.parse(toDate);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(fromDate != null) {
+            Calendar c = Calendar.getInstance();
+            try {
+                c.setTime(df_Z.parse(fromDate));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            c.add(Calendar.DATE, -8); // people will answer questions 7/8 days after the flow deployment
+            fromDate = df_Z.format(c.getTime());
+
+        }
+
         ArrayList<Document> flowsIter = null;
         try {
             flowsIter = getFlowsByDeploymentDate(flowsCollection, runsCollection, Filters.in("rulesets.label", qType), fromDate, toDate);
@@ -579,6 +608,7 @@ public class TextItRest {
             BasicDBObject runsQuery = new BasicDBObject();
             runsQuery.put("flow_uuid", flow_uuid);
             FindIterable<Document> runsIter = runsCollection.find(Filters.and(runsQuery, Filters.in("values.node", qUuid) ));
+            //TODO add time filter to this place - to and from dates
             MongoCursor<Document> runsCursor = runsIter.iterator();
             //Map<String, Map<String, Integer>> qObject = new HashMap<String, Map<String, Integer>>();
 
@@ -596,12 +626,20 @@ public class TextItRest {
                         if(value.getString("node").equals(qUuid)) {
                             Document category = (Document) value.get("category");
                             String date = null;
+                            Date dateZ = null;
                             try {
                                 date = df_dd.format(df_SSS.parse(value.getString("time").substring(0, 23)));
+                                dateZ = df_SSS.parse(value.getString("time").substring(0, 23));
                             } catch (ParseException e) {
                                 e.printStackTrace();
                             }
                             String qVal = category.get("base") != null ? category.getString("base") : category.getString("eng");
+
+                            //TODO remove time filter from this place - to and from dates
+                            if ( (fromDate != null && dateZ.before(fromDay)) || (toDate != null && dateZ.after(toDay)) ) {
+                                continue;
+                            }
+
                             if(qObject.get(date) != null) {
                                 Map<String, Integer> dateObject = qObject.get(date);
                                 if(dateObject.get(qVal) != null) {
@@ -715,7 +753,7 @@ public class TextItRest {
             }
 
             array.put(new JSONObject()
-                    .put("week", df_dd.format(prevDate) + "-" + df_dd.format(currentDate))
+                    .put("week", df_dmy.format(prevDate) + " - " + df_dmy.format(currentDate))
                     .put("matrix",
                             new JSONArray()
                                     .put(new JSONObject().put("type", "flows").put("count", flowSize))
@@ -787,6 +825,8 @@ public class TextItRest {
                 }
             }
 
+            // this filter will exclude runs that have been created for the next week
+            // if queried toDate is exactly on the flow deployment date
             if(toDate != null && include == true && flowsDocument.getString("name").contains(toDateStr))
                 include = false;
 
