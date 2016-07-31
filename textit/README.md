@@ -29,16 +29,18 @@ Steps to setup the textit data collecting cronjob:
 
 3. Schedule the Cron Jobs</br>
 Run the bin/textit-schedular.sh script in bin/ folder as follows;</br>
-<code>sh bin/textit-schedular.sh -c conf/global_zambia.properties -w -dw 1</code></br>
-<code>sh bin/textit-schedular.sh -c conf/global_kenya.properties -w -dw 6</code>
+<code>sh bin/textit-schedular.sh -c conf/global_zambia.properties -w -dw 1 -hdw 8</code></br>
+<code>sh bin/textit-schedular.sh -c conf/global_kenya.properties -w -dw 6 -hdw 11</code>
 
-This will create two cron jobs. Textit ingestor will run weekly on Monday to collect data in Zambia and on Saturday to collect data in Kenya.
+This will create two cron jobs. Textit ingestor will run weekly on Monday(at 8am) to collect data in Zambia and on Saturday(at 11am) to collect data in Kenya.
 
 Script parameters:</br>
 -c    : configuration file path</br>
 -w/-d : a flag to indiacate whether the script is going to run weekly or daily</br>
 -dw   : if script runs weekly, which day the script should run on ( 0-6 : Sunday-Saturday)</br>
+-hdw  : if script runs weekly, which hour of the day of the week the script should run on[0-23]
 -hd   : if the script runs daily, which hour the script should run on ( 0 - 23)</br>
+-s    : customized start date for data collection (ex: 2016-06-27)
 -h    : help
 
 Steps to deploy the tesxtit-ingest-api in tomcat:
