@@ -34,7 +34,7 @@ public class TextItRest {
     private SimpleDateFormat df_SSS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private SimpleDateFormat df_dd = new SimpleDateFormat("yyyy-MM-dd");
     private SimpleDateFormat df_dmmy = new SimpleDateFormat("d MMMMM yyyy");
-    private SimpleDateFormat df_dmy = new SimpleDateFormat("d MMMMM yyyy");
+    private SimpleDateFormat df_dmy = new SimpleDateFormat("d MMM yyyy");
 
     private static Logger logger = Logger.getLogger(TextItRest.class);
     private static int daysBeforeFlowDeployment = 14;
