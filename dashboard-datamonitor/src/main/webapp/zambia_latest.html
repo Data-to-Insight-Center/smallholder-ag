@@ -299,7 +299,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -344,7 +345,9 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
+				
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -397,7 +400,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -456,7 +460,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -597,16 +602,16 @@
 			},
 			toolTip:{shared: true,
          	contentFormatter: function ( e ) {
-                 var content =  e.entries[0].dataPoint.label;
+                 var content =  "<strong>" + e.entries[0].dataPoint.label + "</strong>";
                  for(var i = 0; i< e.entries.length; i++){
                    content += "</br>"+e.entries[i].dataPoint.cat_name + " : ";
-                   content +=  CanvasJS.formatNumber(Math.round(Math.pow(10,e.entries[i].dataPoint.y)));
+                   content +=  CanvasJS.formatNumber(Math.round(Math.pow(10,e.entries[i].dataPoint.y))) + " kB";
                  }
                  return content;
      		 } 
        },			
 			axisY:{
-         	title: "size of file in (kb)",
+         	title: "size of file in (kB)",
          	labelFormatter: function ( e ) {
                var lable = Math.pow(10 ,e.value);
                if(lable>=1000)
@@ -878,7 +883,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -923,7 +929,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -976,7 +983,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -1035,7 +1043,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -1101,7 +1110,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -1173,7 +1183,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -1252,7 +1263,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -1338,7 +1350,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -1431,7 +1444,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -1531,7 +1545,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -1638,7 +1653,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -1752,7 +1768,8 @@
 				title: "In Percentage(%)",							
 			},
 			toolTip: {
-				shared: true
+				shared: true,
+				content: "<span style='\"'color: {color};'\"'>{name}:</span> {y}%"
 			},	
 		  exportEnabled: true,
 		  data: [ 
@@ -1952,16 +1969,16 @@
 		toolTip:{
 			shared: true,
          contentFormatter: function ( e ) {
-                 var content =  e.entries[0].dataPoint.label;
+                 var content =  "<strong>" + e.entries[0].dataPoint.label + "</strong>";
                  for(var i = 0; i< e.entries.length; i++){
                    content += "</br>"+e.entries[i].dataPoint.cat_name + " : ";
-                   content +=  CanvasJS.formatNumber(Math.round(Math.pow(10,e.entries[i].dataPoint.y)));
+                   content +=  CanvasJS.formatNumber(Math.round(Math.pow(10,e.entries[i].dataPoint.y))) + " kB";
                  }
                  return content;
      		 } 
        },			
 		 axisY:{
-         title: "size of file in (kb)",
+         title: "size of file in (kB)",
          labelFormatter: function ( e ) {
                var lable = Math.pow(10 ,e.value);
                if(lable>=1000)
