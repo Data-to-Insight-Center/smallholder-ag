@@ -18,11 +18,11 @@
     <link href="media/css/custom.min.css" rel="stylesheet"> 
     
     <script type="text/javascript" src="//cdn.jsdelivr.net/jquery/2.1.3/jquery.min.js"></script>
-<script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/2.9.0/moment.min.js"></script>
+	<script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/2.9.0/moment.min.js"></script>
  
-<!-- Include date range picker plugin -->
-<script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker.js"></script>
-<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker-bs3.css" />
+	<!-- Include date range picker plugin -->
+	<script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker.js"></script>
+	<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker-bs3.css" />
     
     <style>
 	#flow_name_top h1{
@@ -139,9 +139,7 @@
                   <div class="clearfix"></div>
                 </div>
               </div>
-            </div>  
-            
-            
+            </div> 
             
             <div class="row">
               <div class="col-md-12 col-sm-12 col-xs-12">
@@ -160,7 +158,6 @@
                             <option selected="selected">4 weeks</option>
                             <option>5 weeks</option>
                             <option>6 weeks</option>
-                            <option>7 weeks</option>
                           </select>
                       </div>
                     </div>
@@ -177,9 +174,7 @@
                   <div class="clearfix"></div>
                 </div>
               </div>
-            </div>  
-            
-            
+            </div> 
             
             <div class="row">
               <div class="col-md-12 col-sm-12 col-xs-12">
@@ -208,8 +203,7 @@
                 </div>
               </div>
             </div>   
-		</div>
-        
+		</div>        
         
         <!-- /page content -->    
       
@@ -229,8 +223,7 @@
     <!-- Custom Theme Scripts -->
     <script src="media/js/custom.min.js"></script>
     <script type="text/javascript" src="media/js/jquery.canvasjs.min.js"></script>
-    <script type="text/javascript">
-	
+    <script type="text/javascript">	
 		var startDate;
 		var endDate;
 
@@ -249,23 +242,22 @@
 			var lastbeforeMonday = new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate()-14);
 			var lasttwobeforeMonday = new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate()-21);
 			var lastthreebeforeMonday = new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate()-28);
+			var lastfourbeforeMonday = new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate()-35);
+			var last_four_before_monday = new Date(lastfourbeforeMonday.setHours(lastfourbeforeMonday.getHours()+12));
 			
 			var to_date = moment(last_monday).format("YYYY-MM-DDTHH:mm:ss.SSS");
 			var from_date = moment(before_monday).format("YYYY-MM-DDTHH:mm:ss.SSS");
 			var new_from_date = from_date + "Z";
 			var new_to_date = to_date + "Z";
-			
-			//alert(last_monday);
 
-			/* New code for first graph */		
+			/* New code for first graph - Farmers Response Rate - over time */		
 		
 			$.ajax({
 				url: textit_prefix + "/flowcompletion?from=" + new_from_date + "&to=" + new_to_date,
 				success: function (frdata) {				
 				
 				flow_steps_correct_final_data = [];
-				flow_name_array = [];
-				
+				flow_name_array = [];				
 		
 					for (j in frdata){
 							flow_steps_corrct_data = [];
@@ -291,8 +283,7 @@
 		
 		setTimeout(function () {
 		
-		if (flow_steps_correct_final_data.length == 1){
-		
+		if (flow_steps_correct_final_data.length == 1){		
 		
 		var chart = new CanvasJS.Chart("chartContainer" ,
 		{
@@ -515,13 +506,65 @@
 	
 		chart.render();			
 			
+		}else{
+			var chart = new CanvasJS.Chart("chartContainer" ,
+			{
+		  	title:{
+				text: "No valid data available within this date range",
+				fontColor: "#2f4f4f",
+				fontSize: 30,
+				padding: 10,
+				margin: 15,
+				backgroundColor: "#FFFFE0",
+				borderThickness: 1,
+				cornerRadius: 5,
+				fontWeight: "bold",
+				verticalAlign: "center"
+			},
+			axisX:{
+				interval: 12,
+				title: "Time(in hours)",							
+			},
+			axisY:{
+				interval: 10,
+				title: "In Percentage(%)",							
+			},
+			toolTip: {
+				shared: true
+			},	
+		    exportEnabled: true,
+		    data: [ 
+		    {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: null,
+			dataPoints: null
+		  }
+		  ],
+		  legend:{
+			cursor:"pointer",
+			itemclick: function(e) {
+			  if (typeof (e.dataSeries.visible) ===  "undefined" || e.dataSeries.visible) {
+				  e.dataSeries.visible = false;
+			  }
+			  else
+			  {
+				e.dataSeries.visible = true;
+			  }
+			  chart.render();
+			}
+		  }
+		});
+	
+		chart.render();		
 		}
 	  
 	  }, 1500);
 	  
 	  /*  ##### */
 
-	/* 2nd graph */
+	/* 2nd graph - File sizes by type per week - over time */
 	var week_count = "4";
 	$.ajax({
 		url: textit_prefix + "/filesize?count=" + week_count,
@@ -547,15 +590,13 @@
 	
 	setTimeout(function () {
  
- 
- var chart = new CanvasJS.Chart("chartContainer1",
+ 	var chart = new CanvasJS.Chart("chartContainer1",
 		{
 			title:{
 				text: "File sizes by type"
 			},
-			toolTip:{
-				shared: true,
-         contentFormatter: function ( e ) {
+			toolTip:{shared: true,
+         	contentFormatter: function ( e ) {
                  var content =  e.entries[0].dataPoint.label;
                  for(var i = 0; i< e.entries.length; i++){
                    content += "</br>"+e.entries[i].dataPoint.cat_name + " : ";
@@ -565,17 +606,17 @@
      		 } 
        },			
 			axisY:{
-         title: "size of file in (kb)",
-         labelFormatter: function ( e ) {
+         	title: "size of file in (kb)",
+         	labelFormatter: function ( e ) {
                var lable = Math.pow(10 ,e.value);
                if(lable>=1000)
                		lable = CanvasJS.formatNumber(lable/1000) +"k";
                else
                		lable =  CanvasJS.formatNumber(lable);
                return lable;
-         },
-         interval : 1,
-         includeZero :false
+			 },
+			 interval : 1,
+			 includeZero :false
        },
 			axisX: {
 				title: "Time (in weeks)",
@@ -620,33 +661,30 @@
             }
           },
         });
-convertToLog(chart.options.data);
-chart.render();
+	convertToLog(chart.options.data);
+	chart.render();
 
-}, 2000);
+	}, 2000);
 
-
- function convertToLog(data){
-    var dataPoints;
-    for(var j= 0; j<data.length;j++){
-        dataPoints = data[j].dataPoints;
-        for(var i = 0; i< dataPoints.length; i++){
-          dataPoints[i].y = Math.log10(dataPoints[i].y);
-        }
-     }
- }
+	 function convertToLog(data){
+		var dataPoints;
+		for(var j= 0; j<data.length;j++){
+			dataPoints = data[j].dataPoints;
+			for(var i = 0; i< dataPoints.length; i++){
+			  dataPoints[i].y = Math.log10(dataPoints[i].y);
+			}
+		 }
+	 }
 
 /* ############ */
 
-
-
-/* 3rd graph */
+/* 3rd graph - Number of farmers indicated yes/no to the “Did it rain…” question - over time */
 	ques_type = "rain";
-	stat_date = "2016-06-27T12:00:00.000Z";
-	
+	var stat_date = moment(last_four_before_monday).format("YYYY-MM-DDTHH:mm:ss.SSS");
+	var new_stat_date = stat_date + "Z";	
 	
 	$.ajax({
-		url: textit_prefix + "/questionanalysis?type=" + ques_type + "&from=" + stat_date + "&to=" + new_to_date,
+		url: textit_prefix + "/questionanalysis?type=" + ques_type + "&from=" + new_stat_date + "&to=" + new_to_date,
 		success: function (quesdata) {				
 		
 		yes_array = [];
@@ -667,74 +705,74 @@ chart.render();
 			}
 
 		}
-});
+	});
 
-/* ######## */
-
-setTimeout(function () {
-var chart = new CanvasJS.Chart("chartContainer2",
-		{
-			title:{
-				text: "Number of farmers indicated yes/no to the “Did it rain…” question",
-				fontSize: 30
-			},
-			toolTip: {
-				shared: true
-			},			
-			axisY: {
-				title: "Number of farmers"
-			},		
-			data: [ 
+	setTimeout(function () {
+	var chart = new CanvasJS.Chart("chartContainer2",
 			{
-				type: "column",	
-				name: "Yes",
-				legendText: "Yes",
-				showInLegend: true, 
-				dataPoints: yes_array
-			},
-			{
-				type: "column",	
-				name: "No",
-				legendText: "No",
-				showInLegend: true,
-				dataPoints: no_array
-			},
-			{
-				type: "column",	
-				name: "Other Response",
-				legendText: "Other Response",
-				showInLegend: true,
-				dataPoints: other_array
-			}
-			
-			],
-          legend:{
-            cursor:"pointer",
-            itemclick: function(e){
-              if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
-              	e.dataSeries.visible = false;
-              }
-              else {
-                e.dataSeries.visible = true;
-              }
-            	chart.render();
-            }
-          },
-        });
-
-chart.render();
+				title:{
+					text: "Number of farmers indicated yes/no to the “Did it rain…” question"
+				},
+				toolTip: {
+					shared: true
+				},			
+				axisY: {
+					title: "Number of farmers"
+				},
+				exportEnabled: true,			
+				data: [ 
+				{
+					type: "column",	
+					name: "Yes",
+					legendText: "Yes",
+					showInLegend: true, 
+					dataPoints: yes_array
+				},
+				{
+					type: "column",	
+					name: "No",
+					legendText: "No",
+					showInLegend: true,
+					dataPoints: no_array
+				},
+				{
+					type: "column",	
+					name: "Other Response",
+					legendText: "Other Response",
+					showInLegend: true,
+					dataPoints: other_array
+				}
+				
+				],
+			  legend:{
+				cursor:"pointer",
+				itemclick: function(e){
+				  if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+					e.dataSeries.visible = false;
+				  }
+				  else {
+					e.dataSeries.visible = true;
+				  }
+					chart.render();
+				}
+			  },
+			});
 	
-	}, 2000);
+	chart.render();
+		
+		}, 2000);
 	
+	/* ######## */
 	
-	
+	/* code for after choose date or dropdown option and then click the submit function */
+	/* For first graph */
     $('#reportrange').daterangepicker(
        {
           startDate: beforeMonday,
           endDate: lastMonday,
-          minDate: '01/01/2012',
+          minDate: '20/06/2016',
           maxDate: FromEndDate,
-          dateLimit: { days: 60 },
+          //dateLimit: { days: 60 },
           showDropdowns: true,
           showWeekNumbers: true,
           timePicker: false,
@@ -770,7 +808,7 @@ chart.render();
         console.log("Callback has been called!");
         $('#reportrange span').html(start.format('D MMMM YYYY') + ' - ' + end.format('D MMMM YYYY'));
         startDate = start;
-         endDate = end;    
+        endDate = end;    
 
        }
     );
@@ -778,8 +816,6 @@ chart.render();
     $('#reportrange span').html(moment(beforeMonday).format('D MMMM YYYY') + ' - ' + moment(lastMonday).format('D MMMM YYYY'));
 
     $('#saveBtn').click(function(){
-        //console.log(startDate.format('D MMMM YYYY') + ' - ' + endDate.format('D MMMM YYYY'));
-		//alert(startDate.format('D MMMM YYYY') + ' - ' + endDate.format('D MMMM YYYY'));
 		from_date = startDate.format("YYYY-MM-DDTHH:mm:ss.SSS");
 		to_date = endDate.format("YYYY-MM-DDTHH:mm:ss.SSS");
 		
@@ -794,21 +830,16 @@ chart.render();
 		var new_from_date = new_start_date_sr_lk + "Z";
 		var new_to_date = new_end_date_sr_lk + "Z";
 		
-		//alert(new_from_date);
-		
 		$.ajax({
 				url: textit_prefix + "/flowcompletion?from=" + new_from_date + "&to=" + new_to_date,
 				success: function (frdata) {				
 				
 				response_final_data = [];
-				flow_name_array = [];
-				
+				flow_name_array = [];				
 		
-					for (j in frdata){
+					for (j in frdata){						
 							
-							
-							if (frdata[j].flow_name.indexOf("harvest") >= 0 || frdata[j].flow_name.indexOf("growing") >= 0 || frdata[j].flow_name.indexOf("inter-season") >= 0 || frdata[j].flow_name.indexOf("planting") >= 0) {
-								
+							if (frdata[j].flow_name.indexOf("harvest") >= 0 || frdata[j].flow_name.indexOf("growing") >= 0 || frdata[j].flow_name.indexOf("inter-season") >= 0 || frdata[j].flow_name.indexOf("planting") >= 0) {								
 								
 								if (frdata[j].hasOwnProperty("matrix")){
 									flow_steps_data = [];
@@ -822,20 +853,16 @@ chart.render();
 										flow_steps_corrct_data.push({"x" : ques_label, "y" : not_ans});	
 									}
 									response_final_data.push(flow_steps_corrct_data)	
-								}	
-												
-							}
-						
-					}
-		
+								}													
+							}						
+					}		
 				}
 		});
 		
 		
 		setTimeout(function () {
 		
-		if (response_final_data.length == 1){
-		
+		if (response_final_data.length == 1){		
 		
 		var chart = new CanvasJS.Chart("chartContainer" ,
 		{
@@ -1056,8 +1083,7 @@ chart.render();
 		  }
 		});
 	
-		chart.render();
-			
+		chart.render();			
 			
 		}else if (response_final_data.length == 5){
 			
@@ -1597,21 +1623,302 @@ chart.render();
 	
 		chart.render();
 			
+		}else if(response_final_data.length == 11){
+				var chart = new CanvasJS.Chart("chartContainer" ,
+		{
+		  title:{
+				text: "Farmers Response Rate"
+			},
+			axisX:{
+				interval: 12,
+				title: "Time(in hours)",							
+			},
+			axisY:{
+				interval: 10,
+				title: "In Percentage(%)",							
+			},
+			toolTip: {
+				shared: true
+			},	
+		  exportEnabled: true,
+		  data: [ 
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[0],
+			dataPoints: response_final_data[0]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true", 
+			name: flow_name_array[1],
+			dataPoints: response_final_data[1]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true", 
+			name: flow_name_array[2],
+			dataPoints: response_final_data[2]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[3],
+			dataPoints: response_final_data[3]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[4],
+			dataPoints: response_final_data[4]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[5],
+			dataPoints: response_final_data[5]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[6],
+			dataPoints: response_final_data[6]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[7],
+			dataPoints: response_final_data[7]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[8],
+			dataPoints: response_final_data[8]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[9],
+			dataPoints: response_final_data[9]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[10],
+			dataPoints: response_final_data[10]
+		  }
+		  ],
+		  legend:{
+			cursor:"pointer",
+			itemclick: function(e) {
+			  if (typeof (e.dataSeries.visible) ===  "undefined" || e.dataSeries.visible) {
+				  e.dataSeries.visible = false;
+			  }
+			  else
+			  {
+				e.dataSeries.visible = true;
+			  }
+			  chart.render();
+			}
+		  }
+		});
+	
+		chart.render();
+			
+		}else if(response_final_data.length == 12){
+				var chart = new CanvasJS.Chart("chartContainer" ,
+		{
+		  title:{
+				text: "Farmers Response Rate"
+			},
+			axisX:{
+				interval: 12,
+				title: "Time(in hours)",							
+			},
+			axisY:{
+				interval: 10,
+				title: "In Percentage(%)",							
+			},
+			toolTip: {
+				shared: true
+			},	
+		  exportEnabled: true,
+		  data: [ 
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[0],
+			dataPoints: response_final_data[0]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true", 
+			name: flow_name_array[1],
+			dataPoints: response_final_data[1]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true", 
+			name: flow_name_array[2],
+			dataPoints: response_final_data[2]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[3],
+			dataPoints: response_final_data[3]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[4],
+			dataPoints: response_final_data[4]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[5],
+			dataPoints: response_final_data[5]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[6],
+			dataPoints: response_final_data[6]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[7],
+			dataPoints: response_final_data[7]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[8],
+			dataPoints: response_final_data[8]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[9],
+			dataPoints: response_final_data[9]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[10],
+			dataPoints: response_final_data[10]
+		  },
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: flow_name_array[11],
+			dataPoints: response_final_data[11]
+		  }
+		  ],
+		  legend:{
+			cursor:"pointer",
+			itemclick: function(e) {
+			  if (typeof (e.dataSeries.visible) ===  "undefined" || e.dataSeries.visible) {
+				  e.dataSeries.visible = false;
+			  }
+			  else
+			  {
+				e.dataSeries.visible = true;
+			  }
+			  chart.render();
+			}
+		  }
+		});
+	
+		chart.render();
+			
+		}else{
+			var chart = new CanvasJS.Chart("chartContainer" ,
+		{
+		  title:{
+				text: "No valid data available within this date range",
+				fontColor: "#2f4f4f",
+				fontSize: 30,
+				padding: 10,
+				margin: 15,
+				backgroundColor: "#FFFFE0",
+				borderThickness: 1,
+				cornerRadius: 5,
+				fontWeight: "bold",
+				verticalAlign: "center"
+			},
+			axisX:{
+				interval: 12,
+				title: "Time(in hours)",							
+			},
+			axisY:{
+				interval: 10,
+				title: "In Percentage(%)",							
+			},
+			toolTip: {
+				shared: true
+			},	
+		  exportEnabled: true,
+		  data: [ 
+		  {        
+			type: "line",
+			lineThickness:3,
+			showInLegend: "true",
+			name: "",
+			dataPoints: null
+		  }
+		  ],
+		  legend:{
+			cursor:"pointer",
+			itemclick: function(e) {
+			  if (typeof (e.dataSeries.visible) ===  "undefined" || e.dataSeries.visible) {
+				  e.dataSeries.visible = false;
+			  }
+			  else
+			  {
+				e.dataSeries.visible = true;
+			  }
+			  chart.render();
+			}
+		  }
+		});
+	
+		chart.render();		
 		}
 	  
-	  }, 1000);
-		
+	  }, 1000);		
 
     });
+	/* ########## */
 	
-	
-	
-	
-	
-	
+	/* 2nd graph */
 	$('#saveBtn1').click(function(){
-        alert($('#sel1 :selected').text().split(" ")[0]);	
-		
 		
 	var week_count_click = $('#sel1 :selected').text().split(" ")[0];
 	$.ajax({
@@ -1639,11 +1946,11 @@ chart.render();
 	setTimeout(function () {
 	var chart = new CanvasJS.Chart("chartContainer1",
 		{
-			title:{
-				text: "File sizes by type"
-			},
-			toolTip:{
-				shared: true,
+		title:{
+			text: "File sizes by type"
+		},
+		toolTip:{
+			shared: true,
          contentFormatter: function ( e ) {
                  var content =  e.entries[0].dataPoint.label;
                  for(var i = 0; i< e.entries.length; i++){
@@ -1653,7 +1960,7 @@ chart.render();
                  return content;
      		 } 
        },			
-			axisY:{
+		 axisY:{
          title: "size of file in (kb)",
          labelFormatter: function ( e ) {
                var lable = Math.pow(10 ,e.value);
@@ -1666,80 +1973,71 @@ chart.render();
          interval : 1,
          includeZero :false
        },
-			exportEnabled: true,				
-			data: [ 
-			{
-				type: "column",	
-				name: "Runs",
-				legendText: "Runs",
-				showInLegend: true, 
-				dataPoints:click_flow_size_runs_array.reverse()
-			},
-			{
-				type: "column",	
-				name: "Flows",
-				legendText: "Flows",
-				showInLegend: true,
-				dataPoints:click_flow_size_flows_array.reverse()
-			},
-			{
-				type: "column",	
-				name: "Contacts",
-				legendText: "Contacts",
-				showInLegend: true,
-				dataPoints:click_flow_size_contacts_array.reverse()
+		exportEnabled: true,				
+		data: [ 
+		{
+			type: "column",	
+			name: "Runs",
+			legendText: "Runs",
+			showInLegend: true, 
+			dataPoints:click_flow_size_runs_array.reverse()
+		},
+		{
+			type: "column",	
+			name: "Flows",
+			legendText: "Flows",
+			showInLegend: true,
+			dataPoints:click_flow_size_flows_array.reverse()
+		},
+		{
+			type: "column",	
+			name: "Contacts",
+			legendText: "Contacts",
+			showInLegend: true,
+			dataPoints:click_flow_size_contacts_array.reverse()
+		}
+		
+		],
+	  legend:{
+		cursor:"pointer",
+		itemclick: function(e){
+		  if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+			e.dataSeries.visible = false;
+		  }
+		  else {
+			e.dataSeries.visible = true;
+		  }
+			chart.render();
+		}
+	  },
+	});
+	convertToLog(chart.options.data);
+	chart.render();
+
+	}, 2000);
+
+	 function convertToLog(data){
+		var dataPoints;
+		for(var j= 0; j<data.length;j++){
+			dataPoints = data[j].dataPoints;
+			for(var i = 0; i< dataPoints.length; i++){
+			  dataPoints[i].y = Math.log10(dataPoints[i].y);
 			}
-			
-			],
-          legend:{
-            cursor:"pointer",
-            itemclick: function(e){
-              if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
-              	e.dataSeries.visible = false;
-              }
-              else {
-                e.dataSeries.visible = true;
-              }
-            	chart.render();
-            }
-          },
-        });
-		convertToLog(chart.options.data);
-chart.render();
-
-}, 2000);
-
-
- function convertToLog(data){
-    var dataPoints;
-    for(var j= 0; j<data.length;j++){
-        dataPoints = data[j].dataPoints;
-        for(var i = 0; i< dataPoints.length; i++){
-          dataPoints[i].y = Math.log10(dataPoints[i].y);
-        }
-     }
- }
-		
-		
+		 }
+	 }
 
     });
 	
+	/* ################# */
 	
-	
-	
-	
-	
-	
-	
-	
-	
+	/* 3rd graph */
 	$('#reportrange2').daterangepicker(
        {
-          startDate: beforeMonday,
+          startDate: lastfourbeforeMonday,
           endDate: lastMonday,
-          minDate: '01/01/2012',
+          minDate: '20/06/2016',
           maxDate: FromEndDate,
-          dateLimit: { days: 60 },
+          //dateLimit: { days: 60 },
           showDropdowns: true,
           showWeekNumbers: true,
           timePicker: false,
@@ -1775,18 +2073,14 @@ chart.render();
         console.log("Callback has been called!");
         $('#reportrange2 span').html(start.format('D MMMM YYYY') + ' - ' + end.format('D MMMM YYYY'));
         startDate = start;
-         endDate = end;    
+        endDate = end;    
 
        }
     );
     //Set the initial state of the picker label
-    $('#reportrange2 span').html(moment(beforeMonday).format('D MMMM YYYY') + ' - ' + moment(lastMonday).format('D MMMM YYYY'));
-	
+    $('#reportrange2 span').html(moment(lastfourbeforeMonday).format('D MMMM YYYY') + ' - ' + moment(lastMonday).format('D MMMM YYYY'));	
 	
 	$('#saveBtn2').click(function(){
-        console.log(startDate.format('D MMMM YYYY') + ' - ' + endDate.format('D MMMM YYYY'));
-		alert(startDate.format('D MMMM YYYY') + ' - ' + endDate.format('D MMMM YYYY'));
-		
 		
 		from_date = startDate.format("YYYY-MM-DDTHH:mm:ss.SSS");
 		to_date = endDate.format("YYYY-MM-DDTHH:mm:ss.SSS");
@@ -1825,11 +2119,10 @@ chart.render();
 			}
 
 		}
-});
-	
+	});	
 	
 	setTimeout(function () {
-var chart = new CanvasJS.Chart("chartContainer2",
+	var chart = new CanvasJS.Chart("chartContainer2",
 		{
 			title:{
 				text: "Number of farmers indicated yes/no to the “Did it rain…” question",
@@ -1840,7 +2133,8 @@ var chart = new CanvasJS.Chart("chartContainer2",
 			},			
 			axisY: {
 				title: "Number of farmers"
-			},		
+			},	
+			exportEnabled: true,		
 			data: [ 
 			{
 				type: "column",	
@@ -1879,13 +2173,15 @@ var chart = new CanvasJS.Chart("chartContainer2",
           },
         });
 
-chart.render();
+	chart.render();
 	
 	}, 2000);
 
 	});
 	
+	/* ############### */
+	
  });
 </script>
-  </body>
+</body>
 </html>
