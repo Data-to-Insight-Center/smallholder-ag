@@ -33,7 +33,8 @@ public class TextItRest {
     private SimpleDateFormat df_Z = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private SimpleDateFormat df_SSS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private SimpleDateFormat df_dd = new SimpleDateFormat("yyyy-MM-dd");
-    private SimpleDateFormat df_dmy = new SimpleDateFormat("dd MMMMM yyyy");
+    private SimpleDateFormat df_dmmy = new SimpleDateFormat("d MMMMM yyyy");
+    private SimpleDateFormat df_dmy = new SimpleDateFormat("d MMMMM yyyy");
 
     private static Logger logger = Logger.getLogger(TextItRest.class);
     private static int daysBeforeFlowDeployment = 14;
@@ -771,12 +772,17 @@ public class TextItRest {
         ArrayList<Document> flows = new ArrayList<Document>();
         Date fromDay = null;
         Date toDay = null;
-        String toDateStr = "";
+        String toDateStrMm = "";
+        String toDateStrM = "";
+        String fromDateStrMm = "";
+        String fromDateStrM = "";
 
         BasicDBObject andQuery = new BasicDBObject();
         List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
         if (fromDate != null) {
             fromDay = df_Z.parse(fromDate);
+            fromDateStrMm = df_dmmy.format(fromDay);
+            fromDateStrM = df_dmy.format(fromDay);
             Calendar cal = Calendar.getInstance();
             cal.setTime(df_Z.parse(fromDate));
             cal.add(Calendar.DATE, -daysBeforeFlowDeployment);
@@ -785,7 +791,8 @@ public class TextItRest {
         }
         if (toDate != null) {
             toDay = df_Z.parse(toDate);
-            toDateStr = df_dmy.format(toDay);
+            toDateStrMm = df_dmmy.format(toDay);
+            toDateStrM = df_dmy.format(toDay);
             obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
         }
         if (obj.size() != 0)
@@ -825,10 +832,17 @@ public class TextItRest {
                 }
             }
 
-            // this filter will exclude runs that have been created for the next week
+            // this filter will exclude flows that have been created for the next week
             // if queried toDate is exactly on the flow deployment date
-            if(toDate != null && include == true && flowsDocument.getString("name").contains(toDateStr))
+            if(toDate != null && include == true
+                    && (flowsDocument.getString("name").contains(toDateStrMm) || flowsDocument.getString("name").contains(toDateStrM)))
                 include = false;
+
+            // this filter will include flows that have been created for this week
+            // if queried fromDate is exactly on the flow deployment date
+            if(fromDate != null && include == false
+                    && (flowsDocument.getString("name").contains(fromDateStrM) || flowsDocument.getString("name").contains(fromDateStrMm)))
+                include = true;
 
             if(include)
                 flows.add(flowsDocument);
