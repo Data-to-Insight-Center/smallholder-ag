@@ -571,7 +571,7 @@ public class TextItUIDataImpl extends TextItUIData {
         JSONArray responseArray = new JSONArray(response.getEntity(new GenericType<String>() {}));
         Map<String, JSONArray> responseMap= new  HashMap<String, JSONArray>();
 
-        if(responseArray.length() < 2) {
+        if(responseArray.length() < 1) {
             return Response.status(response.getStatus()).entity(responseArray.toString()).cacheControl(control).build();
         }
         ArrayList<Date> datesList = new ArrayList<Date>();
