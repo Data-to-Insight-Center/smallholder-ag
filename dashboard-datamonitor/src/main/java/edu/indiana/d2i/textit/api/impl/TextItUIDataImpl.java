@@ -27,6 +27,7 @@ public class TextItUIDataImpl extends TextItUIData {
     private SimpleDateFormat df_SSS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private SimpleDateFormat df_dd = new SimpleDateFormat("yyyy-MM-dd");
     private SimpleDateFormat df_dm = new SimpleDateFormat("dd MMM yyyy");
+    private SimpleDateFormat df_w = new SimpleDateFormat("w");
 
     private static final String DAILY = "daily";
     private static final String WEEKLY = "weekly";
@@ -602,9 +603,10 @@ public class TextItUIDataImpl extends TextItUIData {
         int duration = (int) ((last.getTime() - first.getTime())/(1000*60*60*24));
 
         String interval = "";
-        if(duration <= 10)
-            interval = DAILY;
-        else if(duration > 10 && duration <= 70)
+        //if(duration <= 10)
+            //interval = DAILY;
+        //else if(duration > 10 && duration <= 70)
+        if(duration <= 70)
             interval = WEEKLY;
         else if (duration > 70 && duration <= 366)
             interval = MONTHLY;
@@ -727,6 +729,17 @@ public class TextItUIDataImpl extends TextItUIData {
             array.add(arrayObject);
         }
         Collections.sort(array, new jsonArrayToDate());
+
+        for(JSONObject arryObj : array) {
+            String dateStr = arryObj.getString("day");
+            Date date = null;
+            try {
+                date = df_dm.parse(dateStr);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            arryObj.put("day", "Week " + df_w.format(date) + " : " + dateStr);
+        }
 
         return Response.status(response.getStatus()).entity(array.toString()).cacheControl(control).build();
 	}
