@@ -1,4 +1,5 @@
 package edu.indiana.d2i.textit.ingest;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.indiana.d2i.textit.ingest.utils.MongoDB;
 import edu.indiana.d2i.textit.ingest.utils.TextItUtils;
@@ -6,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -35,6 +37,7 @@ public final class TextItClient {
     public static final String FLOWS = "flows";
     public static final String RUNS = "runs";
     public static final String CONTACTS = "contacts";
+    public static final String STATS = "stats";
 
 	/** utilities for parsing responses from TextIt */
 	private final TextItUtils utils;
@@ -236,8 +239,38 @@ public final class TextItClient {
 										timestamp_final, pageNum)).toFile(),
 						data);
 
+                if (pageNum == 1) {
+                    ObjectMapper objectMapper2 = new ObjectMapper();
+                    File statFile = Paths.get(OUTPUT_DIRECTORY + "/" + CONTACTS,
+                            String.format("%s-" + STATS + ".json", timestamp_final)).toFile();
+                    Map<String, Object> exsistingVals = new HashMap<String, Object>();
+                    if(statFile.exists()) {
+                        exsistingVals = objectMapper2.readValue(statFile, Map.class);
+                    }
+                    exsistingVals.put("updated", data.get("count"));
+                    exsistingVals.put("fromDate", timestamp_prev);
+                    exsistingVals.put("toDate", timestamp_now);
+                    objectMapper2.writeValue(statFile, exsistingVals);
+                }
 			}
 		});
+
+
+        utils.processDataOnce(new URL(GET_CONTACTS_URL.toString()), new TextItUtils.IJsonProcessor() {
+            @Override
+            public void process(Map<String, Object> data, int pageNum)
+                    throws IOException {
+                ObjectMapper objectMapper = new ObjectMapper();
+                File statFile = Paths.get(OUTPUT_DIRECTORY + "/" + CONTACTS,
+                        String.format("%s-" + STATS + ".json", timestamp_final)).toFile();
+                Map<String, Object> exsistingVals = new HashMap<String, Object>();
+                if(statFile.exists()) {
+                    exsistingVals = objectMapper.readValue(statFile, Map.class);
+                }
+                exsistingVals.put("total", data.get("count"));
+                objectMapper.writeValue(statFile, exsistingVals);
+            }
+        });
 
 		return res;
 	}

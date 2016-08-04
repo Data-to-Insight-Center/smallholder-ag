@@ -5,7 +5,10 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DateFormat;
@@ -22,6 +25,7 @@ public class DBHandler {
     public static final String FLOWS = "flows";
     public static final String RUNS = "runs";
     public static final String CONTACTS = "contacts";
+    public static final String STATS = "stats";
 
     private static Logger logger = Logger.getLogger(DBHandler.class);
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
@@ -120,7 +124,7 @@ public class DBHandler {
         File dir = new File(out_dir);
         File[] directoryListing = dir.listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".json");
+                return name.toLowerCase().endsWith(CONTACTS + ".json");
             }
         });
         if (directoryListing != null) {
@@ -134,6 +138,20 @@ public class DBHandler {
                 }
             }
         }
+
+        directoryListing = dir.listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(STATS + ".json");
+            }
+        });
+        if (directoryListing != null) {
+            for (File child : directoryListing) {
+                String fileString = new String(Files.readAllBytes(Paths.get(out_dir + "/" + child.getName())));
+                JSONObject contacts = new JSONObject(fileString);
+                MongoDB.addContactStat(contacts.toString());
+            }
+        }
+
         return true;
     }
 }

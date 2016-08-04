@@ -6,6 +6,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.sun.jersey.api.client.ClientResponse;
 import edu.indiana.d2i.textit.api.utils.MongoDB;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -172,6 +173,47 @@ public class TextItRest {
                 .append("group_uuids", 1).append("latitude", 1)
                 .append("longitude", 1).append("camp", 1)
                 .append("modified_on", 1).append("_id", 0));
+        MongoCursor<Document> cursor = iter.iterator();
+        JSONArray array = new JSONArray();
+        while (cursor.hasNext()) {
+            array.put(new JSONObject(cursor.next().toJson()));
+        }
+        return Response.ok(array.toString()).cacheControl(control).build();
+    }
+
+    @GET
+    @Path("/{country}/contactstats")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getContactStats(@PathParam("country") String country,
+                                   @QueryParam("from") String fromDate,
+                                   @QueryParam("to") String toDate) {
+        control.setNoCache(true);
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> contactsStatCollection = db.getCollection(MongoDB.contactsStatCollectionName);
+
+        BasicDBObject andQuery = new BasicDBObject();
+        List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
+        try {
+            if (fromDate != null) {
+                fromDate = fromDate.replace("+00:00", "Z");
+                obj.add(new BasicDBObject("fromDate", new BasicDBObject("$gte", df_dd.format(df_Z.parse(fromDate)))));
+            }
+            if (toDate != null) {
+                toDate = toDate.replace("+00:00", "Z");
+                obj.add(new BasicDBObject("toDate", new BasicDBObject("$lte", df_dd.format(df_Z.parse(toDate)))));
+            }
+        } catch (ParseException e) {
+            return Response.status(ClientResponse.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "Couldn't parse the 'from'/'to' date(s)").toString())
+                    .cacheControl(control).build();
+        }
+        if (obj.size() != 0) {
+            andQuery.put("$and", obj);
+        }
+
+        FindIterable<Document> iter = contactsStatCollection.find(andQuery);
+        iter.projection(new Document("_id", 0));
         MongoCursor<Document> cursor = iter.iterator();
         JSONArray array = new JSONArray();
         while (cursor.hasNext()) {

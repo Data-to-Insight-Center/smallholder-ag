@@ -13,6 +13,7 @@ public class MongoDB {
     public static String flowsCollectionName = "flows";
     public static String runsCollectionName = "runs";
     public static String contactsCollectionName = "contacts";
+    public static String contactsStatCollectionName = "contactsStats";
     public static String statusCollectionName = "status";
     private static Logger logger = Logger.getLogger(MongoDB.class);
 

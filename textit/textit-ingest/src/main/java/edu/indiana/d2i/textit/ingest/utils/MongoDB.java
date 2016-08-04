@@ -23,6 +23,7 @@ public class MongoDB {
     public static String FLOWS_COLLECTION_NAME = "flows";
     public static String RUNS_COLLECTION_NAME = "runs";
     public static String CONTACTS_COLLECTION_NAME = "contacts";
+    public static String CONTACTS_STAT_COLLECTION_NAME = "contactsStats";
     public static String STATUS_COLLECTION_NAME = "status";
     public static String RAW_RUNS_COLLECTION_NAME = "raw_runs";
 
@@ -41,6 +42,7 @@ public class MongoDB {
     private static DB rawDatabase = null;
     private static MongoCollection<Document> flowsCollection = null;
     private static MongoCollection<Document> contactsCollection = null;
+    private static MongoCollection<Document> contactsStatCollection = null;
     private static MongoCollection<Document> runsCollection = null;
     private static MongoCollection<Document> statusCollection = null;
     private static GridFS rawRunsCollection = null;
@@ -101,6 +103,13 @@ public class MongoDB {
         }
         contactsCollection.replaceOne(new Document("uuid", uuid), Document.parse(contacts),
                 (new UpdateOptions()).upsert(true));
+    }
+
+    public static void addContactStat(String contacts) {
+        if(contactsStatCollection == null) {
+            contactsStatCollection = database.getCollection(CONTACTS_STAT_COLLECTION_NAME);
+        }
+        contactsStatCollection.insertOne(Document.parse(contacts));
     }
 
     public static void addRun(String flow_uuid, String contact, String runs) {

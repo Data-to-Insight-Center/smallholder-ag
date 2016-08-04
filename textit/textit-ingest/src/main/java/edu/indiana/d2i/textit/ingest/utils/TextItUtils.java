@@ -91,6 +91,44 @@ public final class TextItUtils {
 		} while (next != null);
 	}
 
+    public void processDataOnce(URL startPointer, IJsonProcessor processor) throws IOException {
+        HttpGet request = new HttpGet(startPointer.toString());
+        request.addHeader("Authorization", "Token " + TOKEN);
+        logger.info("Request URL : "
+                + request.getURI().toString() + " for " + TIMEZONE);
+
+        CloseableHttpResponse response = httpclient.execute(request);
+        try {
+            StatusLine statusLine = response.getStatusLine();
+            HttpEntity entity = response.getEntity();
+            if (statusLine.getStatusCode() >= 300) {
+                logger.error("Error is " + new HttpResponseException(statusLine.getStatusCode(),
+                        statusLine.getReasonPhrase()));
+                throw new HttpResponseException(statusLine.getStatusCode(),
+                        statusLine.getReasonPhrase());
+            }
+            if (entity == null) {
+                logger.error(new ClientProtocolException(
+                        "Response contains no content"));
+                throw new ClientProtocolException(
+                        "Response contains no content");
+            }
+
+            InputStream stream = entity.getContent();
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS,
+                    true);
+            Map<String, Object> data = mapper.readValue(stream, Map.class);
+
+            if (data.get("results") != null) {
+                processor.process(data, 0);
+            }
+            stream.close();
+        } finally {
+            response.close();
+        }
+    }
+
 	public void close() throws IOException {
 		httpclient.close();
 	}
