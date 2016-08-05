@@ -556,6 +556,7 @@ public class TextItRest {
                         completed += completedCount.get(i);
                     }
                     JSONObject matrix_object = new JSONObject();
+                    matrix_object.put("abs", completed);
                     matrix_object.put("perc", Math.round(completed*100.0/total_runs));
                     matrix_object.put("hour", i);
                     perc_matrix.put(matrix_object);
@@ -564,6 +565,143 @@ public class TextItRest {
 
                 new_flow.put("matrix", perc_matrix);
             }
+
+            array.put(new_flow);
+        }
+
+        return Response.ok(array.toString()).cacheControl(control).build();
+    }
+
+    @GET
+    @Path("/{country}/flowresponse")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFlowRespondAnalysis(@PathParam("country") String country,
+                                              @QueryParam("flowId") String flowId,
+                                              @QueryParam("qCount") String noOfQsStr,
+                                              @QueryParam("from") String fromDate,
+                                              @QueryParam("to") String toDate) {
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
+        MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
+        control.setNoCache(true);
+
+
+        int noOfQs = 0;
+        if (noOfQsStr != null) {
+            try {
+                noOfQs = Integer.parseInt(noOfQsStr);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JSONObject().put("error", "'qCount' should be an integer").toString())
+                        .cacheControl(control).build();
+            }
+        }
+        if (noOfQs < 1) {
+            noOfQs = 1;
+        }
+
+        JSONArray array = new JSONArray();
+
+        Bson filter = flowId != null ? Filters.eq("uuid", flowId) : null;
+        ArrayList<Document> flowsIter = null;
+        try {
+            flowsIter = getFlowsByDeploymentDate(flowsCollection, runsCollection, filter, fromDate, toDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        for (Document flowsDocument : flowsIter) {
+            String flow_uuid = (String) flowsDocument.get("uuid");
+
+            BasicDBObject runsQuery = new BasicDBObject();
+            runsQuery.put("flow_uuid", flow_uuid);
+
+            FindIterable<Document> runsIter = runsCollection.find(runsQuery);
+            MongoCursor<Document> runsCursor = runsIter.iterator();
+
+            Map<Integer, Integer> respondedCount = new HashMap<Integer, Integer>();
+            JSONObject new_flow = new JSONObject();
+
+            while (runsCursor.hasNext()) {
+                Document runsDocument = runsCursor.next();
+
+                Object values = runsDocument.get("values");
+                ArrayList<Date> dates = new ArrayList<Date>();
+                if (values instanceof ArrayList) {
+                    ArrayList<Document> steps = (ArrayList<Document>) values;
+                    for (Document step : steps) {
+                        try {
+                            dates.add(df_SSS.parse(step.getString("time").substring(0, 23)));
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                if(dates.size() < noOfQs)
+                    continue;
+
+                Date created = null;
+                try {
+                    created = df_Z.parse(runsDocument.getString("created_on"));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+                Collections.sort(dates);
+                Date last = dates.get(noOfQs - 1);
+                long diff = Math.abs(last.getTime() - created.getTime());
+                double diffHours = diff * 1.0 / ( 60 * 60 * 1000);
+                int hoursToRespond = (int)(Math.ceil(diffHours * 1.0 / 12))*12;
+                if(respondedCount.get(hoursToRespond) != null) {
+                    respondedCount.put(hoursToRespond, respondedCount.get(hoursToRespond) + 1);
+                } else {
+                    respondedCount.put(hoursToRespond, 1);
+                }
+            }
+
+            int total_runs = flowsDocument.getInteger("runs");
+
+            new_flow.put("flow_name", flowsDocument.getString("name"));
+            new_flow.put("created_on", flowsDocument.getString("created_on"));
+            try {
+                if(runsIter.first() != null)
+                    new_flow.put("deployed_on", df_dd.format(df_Z.parse(runsIter.first().getString("created_on"))));
+                else
+                    new_flow.putOnce("deployed_on", JSONObject.NULL);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            new_flow.put("uuid", flow_uuid);
+            new_flow.put("total_runs", total_runs);
+            new_flow.put("completed_runs", flowsDocument.getInteger("completed_runs"));
+            new_flow.put("expires", flowsDocument.getInteger("expires"));
+
+            int responded = 0;
+            if(total_runs > 0) {
+                JSONArray perc_matrix = new JSONArray();
+                ArrayList<Integer> keyList = new ArrayList<Integer>();
+                keyList.addAll(respondedCount.keySet());
+                Collections.sort(keyList);
+
+                for(int i = 12 ; i <= keyList.get(keyList.size() -1) ; i = i + 12) {
+                    if(respondedCount.get(i) != null) {
+                        responded += respondedCount.get(i);
+                    }
+                    JSONObject matrix_object = new JSONObject();
+                    matrix_object.put("abs", responded);
+                    matrix_object.put("perc", Math.round(responded*100.0/total_runs));
+                    matrix_object.put("hour", i);
+                    perc_matrix.put(matrix_object);
+                }
+
+
+                new_flow.put("matrix", perc_matrix);
+            }
+            new_flow.put("responded", responded);
+
 
             array.put(new_flow);
         }
