@@ -680,7 +680,7 @@ public class TextItRest {
             new_flow.put("expires", flowsDocument.getInteger("expires"));
 
             int responded = 0;
-            if(total_runs > 0) {
+            if(total_runs > 0 && respondedCount.size() > 0) {
                 JSONArray perc_matrix = new JSONArray();
                 ArrayList<Integer> keyList = new ArrayList<Integer>();
                 keyList.addAll(respondedCount.keySet());
