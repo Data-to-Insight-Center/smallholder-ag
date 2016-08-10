@@ -16,6 +16,8 @@
 
     <!-- Custom Theme Style -->
     <link href="media/css/custom.min.css" rel="stylesheet">
+    
+    <link href="https://cdn.datatables.net/buttons/1.2.2/css/buttons.dataTables.min.css" rel="stylesheet">
     <!-- load jquery -->
     <script src="media/js/jquery-min.js"></script>
     <!-- load datatables js library -->
@@ -23,6 +25,14 @@
     <script type="text/javascript" src="media/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="media/js/dataTables.bootstrap.min.js"></script>
     <script type="text/javascript" src="media/js/json2.js"></script>
+    
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.2.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.2.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
+    <script type="text/javascript" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.2.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="media/js/moment/moment.min.js"></script>
+
   </head>
 
   <body class="nav-md">
@@ -52,13 +62,15 @@
 
             <!-- sidebar menu -->
             <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
-              <div class="menu_section">
+             <div class="menu_section">
                 <ul class="nav side-menu">
                   <li><a><i class="fa fa-map-marker"></i> Kenya <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
                       <li><a href="kenya.html">Dashboard</a></li>
                       <li><a href="ktable.html">Table</a></li>
                       <li><a href="flow-analytics-kenya.html">Flow Analytics</a></li>
+                      <li><a href="contact-analytics-kenya.html">Contact Analysis</a></li>
+                      <li><a href="kenya_map.html">Map</a></li>
                     </ul>
                   </li>
                   <li><a><i class="fa fa-map-marker"></i> Zambia <span class="fa fa-chevron-down"></span></a>
@@ -66,6 +78,8 @@
                       <li><a href="zambia.html">Dashboard</a></li>
                       <li><a href="ztable.html">Table</a></li>
                       <li><a href="flow-analytics-zambia.html">Flow Analytics</a></li>
+                      <li><a href="contact-analytics-zambia.html">Contact Analytics</a></li>
+                      <li><a href="zambia_map.html">Map</a></li>
                     </ul>
                   </li>                  
                 </ul>
@@ -125,6 +139,9 @@
                                 </li>
                                 <li>
                                     <a href="#tab-table3" data-toggle="tab">Contact Table</a>
+                                </li>
+                                <li>
+                                    <a href="#tab-table4" data-toggle="tab">Question Table</a>
                                 </li>
                             </ul>
                     
@@ -189,6 +206,22 @@
                                     
                                     <div style="margin-top:50px;"></div>
                                 </div>
+                                
+                                <div class="tab-pane" id="tab-table4">
+                                    <h3 style="text-align:center;">Question Table(Did it rain on your fields this week?)</h3>
+                                    <table id="questionTable" class="table table-striped table-bordered" width="100%" cellspacing="0">
+                                        <thead>
+                                        <tr>
+                                            <th>nth week : week interval</th>
+                                            <th># of farmers respond "Yes"</th>
+                                            <th># of farmers respond "No"</th>
+                                            <th># of farmers respond "Other"</th>
+                                        </tr>
+                                        </thead>
+                                    </table>
+                                    
+                                    <div style="margin-top:50px;"></div>
+                                </div>
                             </div>
                         </div>
                       
@@ -233,12 +266,16 @@ $(document).ready(function() {
 						rule_label_data.push(data[i].rulesets[p].label + "\n")
 					}
 					var down_flow_uuid = "<a href='/textit-api/zambia/flows?flowId=" + data[i].uuid + "' style='color:#00BFFF'>" + data[i].uuid + "</a>"
-					flow_data.push([down_flow_uuid, data[i].name, data[i].archived, data[i].labels, data[i].created_on,
+					flow_data.push([down_flow_uuid, data[i].name, data[i].archived, data[i].labels, data[i].created_on, 
 					                data[i].expires, data[i].runs, data[i].completed_runs, rule_label_data])
 					}
 
 		$("#flowTable").dataTable({
-			"aaData": flow_data
+			"aaData": flow_data,
+			dom: 'Bfrtip',
+        	buttons: [
+            	'csv', 'excel'
+        	]
 		})
 		}
 	});
@@ -264,7 +301,11 @@ $(document).ready(function() {
 					}
 
 		$("#runTable").dataTable({
-			"aaData": run_data
+			"aaData": run_data,
+			dom: 'Bfrtip',
+        	buttons: [
+            	'csv', 'excel'
+        	]
 		})
 		}
 	});
@@ -281,7 +322,55 @@ $(document).ready(function() {
 					}
 
 		$("#contactTable").dataTable({
-			"aaData": contact_data
+			"aaData": contact_data,
+			dom: 'Bfrtip',
+        	buttons: [
+            	'csv', 'excel'
+        	]
+		})
+		}
+	});
+	
+	ques_data = [];
+	ques_type = "rain";
+	
+	var fr_date = new Date("10/01/2015");
+	var fro_date = moment(new Date(fr_date.setHours(fr_date.getHours()+12))).format("YYYY-MM-DDTHH:mm:ss.SSS");
+	var from_date = fro_date + "Z";
+	
+	var t_date = new Date();
+	var tt_date = moment(new Date(t_date.setHours(t_date.getHours()+12))).format("YYYY-MM-DDTHH:mm:ss.SSS");
+	var to_date = tt_date + "Z";
+	
+	var textit_prefix = "./api/zambia";
+	$.ajax({
+		url: textit_prefix + "/questionanalysis?type=" + ques_type + "&from=" + from_date + "&to=" + to_date,
+		success: function (qdata) {
+				for (i in qdata) {
+					var yes_array = [];
+					var no_array = [];
+					var other_array = [];
+					for (p=0; p < qdata[i].matrix.length; p++){						
+					
+						if (qdata[i].matrix[p].anw == "No"){
+							no_array.push(qdata[i].matrix[p].count);		
+						}else if (qdata[i].matrix[p].anw == "Yes"){
+							yes_array.push(qdata[i].matrix[p].count);				
+						}else if (qdata[i].matrix[p].anw == "Other"){
+							other_array.push(qdata[i].matrix[p].count);
+						}
+					}
+					
+					var week_name = qdata[i].day;
+					ques_data.push([week_name,  yes_array, no_array, other_array])
+					}
+
+		$("#questionTable").dataTable({
+			"aaData": ques_data,
+			dom: 'Bfrtip',
+        	buttons: [
+            	'csv', 'excel'
+        	]
 		})
 		}
 	});
