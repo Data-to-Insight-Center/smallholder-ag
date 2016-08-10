@@ -27,7 +27,8 @@ public class TextItUIDataImpl extends TextItUIData {
     private SimpleDateFormat df_SSS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private SimpleDateFormat df_dd = new SimpleDateFormat("yyyy-MM-dd");
     private SimpleDateFormat df_dm = new SimpleDateFormat("dd MMM yyyy");
-    private SimpleDateFormat df_w = new SimpleDateFormat("w");
+    //private SimpleDateFormat df_w = new SimpleDateFormat("ww");
+    //private SimpleDateFormat df_y = new SimpleDateFormat("yyyy");
 
     private static final String DAILY = "daily";
     private static final String WEEKLY = "weekly";
@@ -606,12 +607,12 @@ public class TextItUIDataImpl extends TextItUIData {
         //if(duration <= 10)
             //interval = DAILY;
         //else if(duration > 10 && duration <= 70)
-        if(duration <= 70)
+        //if(duration <= 70)
             interval = WEEKLY;
-        else if (duration > 70 && duration <= 366)
-            interval = MONTHLY;
-        else
-            interval = YEARLY;
+        //else if (duration > 70 && duration <= 366)
+            //interval = MONTHLY;
+        //else
+            //interval = YEARLY;
 
         Calendar c = Calendar.getInstance();
         c.setTime(last);
@@ -738,7 +739,11 @@ public class TextItUIDataImpl extends TextItUIData {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            arryObj.put("day", "Week " + df_w.format(date) + " : " + dateStr);
+            Calendar cWeek = Calendar.getInstance();
+            cWeek.setMinimalDaysInFirstWeek(7);
+            cWeek.setTime(date);
+            cWeek.get( Calendar.WEEK_OF_YEAR ) ;
+            arryObj.put("day", cWeek.get(Calendar.YEAR) + " Week-" + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR)) + " : " + dateStr);
         }
 
         return Response.status(response.getStatus()).entity(array.toString()).cacheControl(control).build();
