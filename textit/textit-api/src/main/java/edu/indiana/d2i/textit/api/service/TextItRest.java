@@ -36,6 +36,7 @@ public class TextItRest {
     private SimpleDateFormat df_dd = new SimpleDateFormat("yyyy-MM-dd");
     private SimpleDateFormat df_dmmy = new SimpleDateFormat("d MMMMM yyyy");
     private SimpleDateFormat df_dmy = new SimpleDateFormat("d MMM yyyy");
+    private SimpleDateFormat df_dm = new SimpleDateFormat("d MMM");
 
     private static Logger logger = Logger.getLogger(TextItRest.class);
     private static int daysBeforeFlowDeployment = 14;
@@ -1020,11 +1021,11 @@ public class TextItRest {
             Calendar cWeek = Calendar.getInstance();
             cWeek.setMinimalDaysInFirstWeek(7);
             cWeek.setTime(currBeg);
-            String label = cWeek.get(Calendar.YEAR) + " " + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR));
+            String label = cWeek.get(Calendar.YEAR) + " W" + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR))
+                    + " : " + df_dm.format(currBeg) + " - " + df_dm.format(currEnd);
             cWeek.setTime(currEnd);
-            String nextLabel = cWeek.get(Calendar.YEAR) + " " + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR));
-            System.out.println(df_SSS.format(currBeg) + " - " + df_SSS.format(currEnd) + " : " + label + " ; " + nextLabel);
-
+            String nextLabel = cWeek.get(Calendar.YEAR) + " W" + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR))
+                    + " : " + df_dm.format(currBeg) + " - " + df_dm.format(currEnd);
 
             ArrayList<Document> flowsIter = null;
             try {
