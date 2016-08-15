@@ -1109,10 +1109,10 @@ public class TextItRest {
             FindIterable<Document> contactsIter = contactsCollection.find(Filters.eq("uuid", contact));
             Document contactDoc = contactsIter.first();
             JSONObject contactObj = new JSONObject();
-            if(contactDoc.containsKey("name")) {
+            if(contactDoc!= null && contactDoc.containsKey("name")) {
                 contactObj.put("name", contactDoc.get("name"));
             }
-            if(contactDoc.containsKey("phone")) {
+            if(contactDoc!= null && contactDoc.containsKey("phone")) {
                 contactObj.put("phone", contactDoc.get("phone"));
             }
             contactObj.put("uuid", contact);
