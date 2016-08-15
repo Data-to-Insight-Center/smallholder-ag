@@ -945,6 +945,184 @@ public class TextItRest {
         return Response.ok(array.toString()).cacheControl(control).build();
     }
 
+
+    @GET
+    @Path("/{country}/questioninfo")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getQeutstionInfo(@PathParam("country") String country,
+                                 @QueryParam("from") String fromDate,
+                                 @QueryParam("to") String toDate) {
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
+        MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
+        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollectionName);
+
+        control.setNoCache(true);
+        JSONArray array = new JSONArray();
+        Map<String, HashMap<String, HashMap<String, ArrayList<String>>>> qMap = new HashMap<String, HashMap<String, HashMap<String, ArrayList<String>>>>();
+
+        int countryCode = 0;
+        if(country.equals("zambia")) {
+            countryCode = Calendar.MONDAY;
+        } else if (country.equals("kenya")) {
+            countryCode = Calendar.SATURDAY;
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "invalid country").toString())
+                    .cacheControl(control).build();
+        }
+
+        Date first = null;
+        Date last = null;
+        try {
+            if(fromDate != null) {
+                first = df_Z.parse(fromDate);
+            } else {
+                FindIterable<Document> iter = flowsCollection.find().sort(new Document("created_on",1)).limit(1);;
+                iter.projection(new Document("created_on", 1).append("_id", 0));
+                first = df_Z.parse((String) iter.first().get("created_on"));
+            }
+            if(toDate != null) {
+                last = df_Z.parse(toDate);
+            } else {
+                last = new Date();
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Calendar c = Calendar.getInstance();
+        c.setTime(last);
+        Date currEnd = c.getTime();
+        Date currBeg = null;
+
+        while(currEnd.getTime() > first.getTime()) {
+
+            Calendar cTemp = Calendar.getInstance();
+            cTemp.setTime(currEnd);
+            cTemp.set(Calendar.DAY_OF_WEEK, countryCode);
+            cTemp.set(Calendar.HOUR_OF_DAY, 12);
+            cTemp.set(Calendar.MINUTE, 0);
+            cTemp.set(Calendar.SECOND, 0);
+            cTemp.set(Calendar.MILLISECOND, 0);
+            if (currEnd.equals(cTemp.getTime())) {
+                cTemp.add(Calendar.DATE, -7);
+                currBeg = cTemp.getTime();
+            } else
+                currBeg = cTemp.getTime();
+
+            if(first.after(cTemp.getTime())) {
+                currBeg = first;
+            }
+
+            currEnd = new Date(currEnd.getTime() -1);
+
+            Calendar cWeek = Calendar.getInstance();
+            cWeek.setMinimalDaysInFirstWeek(7);
+            cWeek.setTime(currBeg);
+            String label = cWeek.get(Calendar.YEAR) + " " + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR));
+            cWeek.setTime(currEnd);
+            String nextLabel = cWeek.get(Calendar.YEAR) + " " + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR));
+            System.out.println(df_SSS.format(currBeg) + " - " + df_SSS.format(currEnd) + " : " + label + " ; " + nextLabel);
+
+
+            ArrayList<Document> flowsIter = null;
+            try {
+                flowsIter = getFlowsByDeploymentDate(flowsCollection, runsCollection, null, df_Z.format(currBeg),  df_Z.format(currEnd));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            for (Document flowsDocument : flowsIter) {
+                String flow_uuid = (String) flowsDocument.get("uuid");
+
+                BasicDBObject runsQuery = new BasicDBObject();
+                runsQuery.put("flow_uuid", flow_uuid);
+                FindIterable<Document> runsIter = runsCollection.find(runsQuery);
+                runsIter.projection(new Document("_id", 0));
+                MongoCursor<Document> runsCursor = runsIter.iterator();
+
+                while (runsCursor.hasNext()) {
+                    Document runsDocument = runsCursor.next();
+                    Object values = runsDocument.get("values");
+                    String contact = (String) runsDocument.get("contact");
+                    if (values instanceof ArrayList) {
+                        ArrayList<Document> valuesArray = (ArrayList<Document>) values;
+                        for (Document value : valuesArray) {
+                            Document category = (Document) value.get("category");
+                            String date = null;
+                            Date dateZ = null;
+                            try {
+                                date = df_dd.format(df_SSS.parse(value.getString("time").substring(0, 23)));
+                                dateZ = df_SSS.parse(value.getString("time").substring(0, 23));
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+                            String qVal = category.get("base") != null ? category.getString("base") : category.getString("eng");
+                            if(qVal.equals("numeric") && value.get("value") != null) {
+                                qVal = "" + value.get("value");
+                            }
+                            String qLabel = (String) value.get("label");
+
+
+                            String week = label;
+                            if (dateZ.after(currEnd)) {
+                                week = nextLabel;
+                            }
+
+                            if(qMap.get(contact) != null) {
+                                Map<String, HashMap<String, ArrayList<String>>> qObject = qMap.get(contact);
+                                if (qObject.get(week) != null) {
+                                    Map<String, ArrayList<String>> dateObject = qObject.get(week);
+                                    if (dateObject.get(qLabel) != null) {
+                                        dateObject.get(qLabel).add(qVal);
+                                    } else {
+                                        ArrayList<String> answerArray = new ArrayList<String>();
+                                        answerArray.add(qVal);
+                                        dateObject.put(qLabel, answerArray);
+                                    }
+                                } else {
+                                    HashMap<String, ArrayList<String>> dateObject = new HashMap<String, ArrayList<String>>();
+                                    ArrayList<String> answerArray = new ArrayList<String>();
+                                    answerArray.add(qVal);
+                                    dateObject.put(qLabel, answerArray);
+                                    qObject.put(week, dateObject);
+                                }
+                            } else {
+                                HashMap<String, HashMap<String, ArrayList<String>>> qObject = new HashMap<String, HashMap<String, ArrayList<String>>>();
+                                HashMap<String, ArrayList<String>> dateObject = new HashMap<String, ArrayList<String>>();
+                                ArrayList<String> answerArray = new ArrayList<String>();
+                                answerArray.add(qVal);
+                                dateObject.put(qLabel, answerArray);
+                                qObject.put(week, dateObject);
+                                qMap.put(contact, qObject);
+                            }
+                        }
+                    }
+                }
+            }
+            currEnd = currBeg;
+        }
+
+
+        for(String contact : qMap.keySet()) {
+            FindIterable<Document> contactsIter = contactsCollection.find(Filters.eq("uuid", contact));
+            Document contactDoc = contactsIter.first();
+            JSONObject contactObj = new JSONObject();
+            //if(contactDoc.get("name") != null) {
+            //    contactObj.put("name", contactDoc.get("name"));
+            //}
+            //if(contactDoc.get("phone") != null) {
+             //   contactObj.put("phone", contactDoc.get("phone"));
+            //}
+            contactObj.put("uuid", contact);
+            contactObj.put("results", new JSONObject(qMap.get(contact)));
+            array.put(contactObj);
+        }
+
+        return Response.ok(array.toString()).cacheControl(control).build();
+    }
+
     public ArrayList<Document> getFlowsByDeploymentDate(MongoCollection<Document> flowsCollection,
                                                         MongoCollection<Document> runsCollection,
                                                         Bson filter,  String fromDate, String toDate) throws ParseException {
