@@ -1059,7 +1059,7 @@ public class TextItRest {
                                 e.printStackTrace();
                             }
                             String qVal = category.get("base") != null ? category.getString("base") : category.getString("eng");
-                            if(qVal.equals("numeric") && value.get("value") != null) {
+                            if(qVal.equals("numeric") && value.containsKey("value")) {
                                 qVal = "" + value.get("value");
                             }
                             String qLabel = (String) value.get("label");
@@ -1109,12 +1109,12 @@ public class TextItRest {
             FindIterable<Document> contactsIter = contactsCollection.find(Filters.eq("uuid", contact));
             Document contactDoc = contactsIter.first();
             JSONObject contactObj = new JSONObject();
-            //if(contactDoc.get("name") != null) {
-            //    contactObj.put("name", contactDoc.get("name"));
-            //}
-            //if(contactDoc.get("phone") != null) {
-             //   contactObj.put("phone", contactDoc.get("phone"));
-            //}
+            if(contactDoc.containsKey("name")) {
+                contactObj.put("name", contactDoc.get("name"));
+            }
+            if(contactDoc.containsKey("phone")) {
+                contactObj.put("phone", contactDoc.get("phone"));
+            }
             contactObj.put("uuid", contact);
             contactObj.put("results", new JSONObject(qMap.get(contact)));
             array.put(contactObj);
