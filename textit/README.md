@@ -29,10 +29,12 @@ Steps to setup the textit data collecting cronjob:
 
 3. Schedule the Cron Jobs</br>
 Run the bin/textit-schedular.sh script in bin/ folder as follows;</br>
-<code>sh bin/textit-schedular.sh -c conf/global_zambia.properties -w -dw 1 -hdw 8</code></br>
-<code>sh bin/textit-schedular.sh -c conf/global_kenya.properties -w -dw 6 -hdw 11</code>
+<code>sh bin/textit-schedular.sh -c conf/global_zambia.properties -w -dw 1 -hdw 7</code></br>
+<code>sh bin/textit-schedular.sh -c conf/global_kenya.properties -w -dw 6 -hdw 2</code></br>
 
-This will create two cron jobs. Textit ingestor will run weekly on Monday(at 8am) to collect data in Zambia and on Saturday(at 11am) to collect data in Kenya.
+This will create two cron jobs.</br>
+In Zambia the runs are created after 1pm Zambia time(11am GMT) on every Monday. Therefore the first cron job will run the script weekly on Monday at 7am local time(11am GMT) in local servers to collect data in Zambia.</br>
+In Kenya the runs are created after 9am Zambia time(6am GMT) on every Saturday. Therefore the second cron job will run the script weekly on Saturday at 2am local time(6am GMT) in local servers to collect data in Kenya.</br>
 
 Script parameters:</br>
 -c    : configuration file path</br>
