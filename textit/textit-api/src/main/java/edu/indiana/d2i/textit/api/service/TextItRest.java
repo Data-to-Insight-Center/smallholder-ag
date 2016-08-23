@@ -1129,6 +1129,144 @@ public class TextItRest {
         return Response.ok(array.toString()).cacheControl(control).build();
     }
 
+    @GET
+    @Path("/{country}/delayedruns")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getRunsDelayedResponses(@PathParam("country") String country,
+                                     @QueryParam("from") String fromDate,
+                                     @QueryParam("to") String toDate) {
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
+        MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
+        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollectionName);
+
+        control.setNoCache(true);
+        JSONArray array = new JSONArray();
+        Map<String, HashMap<String, HashMap<String, ArrayList<String>>>> qMap = new HashMap<String, HashMap<String, HashMap<String, ArrayList<String>>>>();
+
+        int countryCode = 0;
+        int countryHour = 0;
+        if(country.equals("zambia")) {
+            countryCode = Calendar.MONDAY;
+            countryHour = Constants.zambiaTime;
+        } else if (country.equals("kenya")) {
+            countryCode = Calendar.SATURDAY;
+            countryHour = Constants.kenyaTime;
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "invalid country").toString())
+                    .cacheControl(control).build();
+        }
+
+        Date first = null;
+        Date last = null;
+        try {
+            if(fromDate != null) {
+                first = df_Z.parse(fromDate);
+            } else {
+                FindIterable<Document> iter = flowsCollection.find().sort(new Document("created_on",1)).limit(1);;
+                iter.projection(new Document("created_on", 1).append("_id", 0));
+                first = df_Z.parse((String) iter.first().get("created_on"));
+            }
+            if(toDate != null) {
+                last = df_Z.parse(toDate);
+            } else {
+                last = new Date();
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Calendar c = Calendar.getInstance();
+        c.setTime(last);
+        Date currEnd = c.getTime();
+        Date currBeg = null;
+
+        while(currEnd.getTime() > first.getTime()) {
+
+            Calendar cTemp = Calendar.getInstance();
+            cTemp.setTime(currEnd);
+            cTemp.set(Calendar.DAY_OF_WEEK, countryCode);
+            cTemp.set(Calendar.HOUR_OF_DAY, countryHour);
+            cTemp.set(Calendar.MINUTE, 0);
+            cTemp.set(Calendar.SECOND, 0);
+            cTemp.set(Calendar.MILLISECOND, 0);
+            if (currEnd.equals(cTemp.getTime())) {
+                cTemp.add(Calendar.DATE, -7);
+                currBeg = cTemp.getTime();
+            } else
+                currBeg = cTemp.getTime();
+
+            if(first.after(cTemp.getTime())) {
+                currBeg = first;
+            }
+
+            currEnd = new Date(currEnd.getTime() -1);
+
+            Calendar cWeek = Calendar.getInstance();
+            cWeek.setMinimalDaysInFirstWeek(7);
+            cWeek.setTime(currBeg);
+            String label = cWeek.get(Calendar.YEAR) + " W" + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR))
+                    + " : " + df_dm.format(currBeg) + " - " + df_dm.format(currEnd);
+            cWeek.setTime(currEnd);
+            String nextLabel = cWeek.get(Calendar.YEAR) + " W" + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR))
+                    + " : " + df_dm.format(currBeg) + " - " + df_dm.format(currEnd);
+
+            ArrayList<Document> flowsIter = null;
+            try {
+                flowsIter = getFlowsByDeploymentDate(flowsCollection, runsCollection, null, df_Z.format(currBeg),  df_Z.format(currEnd));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            for (Document flowsDocument : flowsIter) {
+                String flow_uuid = (String) flowsDocument.get("uuid");
+
+                BasicDBObject runsQuery = new BasicDBObject();
+                runsQuery.put("flow_uuid", flow_uuid);
+                FindIterable<Document> runsIter = runsCollection.find(runsQuery);
+                runsIter.projection(new Document("_id", 0));
+                MongoCursor<Document> runsCursor = runsIter.iterator();
+
+                int totalRuns = (int) flowsDocument.get("runs");
+                if(totalRuns <= 0)
+                    continue;
+
+                int delayedRuns = 0;
+
+                while (runsCursor.hasNext()) {
+                    Document runsDocument = runsCursor.next();
+                    Date modified_on = null;
+                    try {
+                        modified_on = df_Z.parse((String) runsDocument.get("modified_on"));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    if(modified_on.after(currEnd)) {
+                        delayedRuns++;
+                    }
+                }
+
+                double delayedPerc = (double) Math.round((delayedRuns*1.0/totalRuns)*100 * 100) / 100  ;
+
+                JSONObject flow = new JSONObject();
+                flow.put("name", flowsDocument.get("name"));
+                flow.put("uuid", flowsDocument.get("uuid"));
+                flow.put("week", label);
+                flow.put("start_date", df_Z.format(currBeg));
+                flow.put("end_date", df_Z.format(currEnd));
+                flow.put("total_runs", totalRuns);
+                flow.put("late_runs", delayedRuns);
+                flow.put("late_runs_perc", delayedPerc);
+                array.put(flow);
+            }
+
+            currEnd = currBeg;
+        }
+
+        return Response.ok(array.toString()).cacheControl(control).build();
+    }
+
     public ArrayList<Document> getFlowsByDeploymentDate(MongoCollection<Document> flowsCollection,
                                                         MongoCollection<Document> runsCollection,
                                                         Bson filter,  String fromDate, String toDate) throws ParseException {
