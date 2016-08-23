@@ -7,6 +7,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.sun.jersey.api.client.ClientResponse;
+import edu.indiana.d2i.textit.api.utils.Constants;
 import edu.indiana.d2i.textit.api.utils.MongoDB;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -858,8 +859,8 @@ public class TextItRest {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFileSizes(@PathParam("country") String country,
                                         @QueryParam("flowId") String flowId,
-                                        @QueryParam("from") String fromDate,
-                                        @QueryParam("to") String toDate,
+                                        //@QueryParam("from") String fromDate,
+                                        //@QueryParam("to") String toDate,
                                         @QueryParam("count") int count) {
 
         MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
@@ -875,9 +876,10 @@ public class TextItRest {
         Calendar c = Calendar.getInstance();
         if(country.equals("zambia")) {
             c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-            c.set(Calendar.HOUR_OF_DAY, 12);
+            c.set(Calendar.HOUR_OF_DAY, Constants.zambiaTime);
         } else if (country.equals("kenya")) {
-            //TODO
+            c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+            c.set(Calendar.HOUR_OF_DAY, Constants.kenyaTime);
         } else {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JSONObject().put("error", "invalid country").toString())
@@ -964,10 +966,13 @@ public class TextItRest {
         Map<String, HashMap<String, HashMap<String, ArrayList<String>>>> qMap = new HashMap<String, HashMap<String, HashMap<String, ArrayList<String>>>>();
 
         int countryCode = 0;
+        int countryHour = 0;
         if(country.equals("zambia")) {
             countryCode = Calendar.MONDAY;
+            countryHour = Constants.zambiaTime;
         } else if (country.equals("kenya")) {
             countryCode = Calendar.SATURDAY;
+            countryHour = Constants.kenyaTime;
         } else {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JSONObject().put("error", "invalid country").toString())
@@ -1002,7 +1007,7 @@ public class TextItRest {
             Calendar cTemp = Calendar.getInstance();
             cTemp.setTime(currEnd);
             cTemp.set(Calendar.DAY_OF_WEEK, countryCode);
-            cTemp.set(Calendar.HOUR_OF_DAY, 12);
+            cTemp.set(Calendar.HOUR_OF_DAY, countryHour);
             cTemp.set(Calendar.MINUTE, 0);
             cTemp.set(Calendar.SECOND, 0);
             cTemp.set(Calendar.MILLISECOND, 0);

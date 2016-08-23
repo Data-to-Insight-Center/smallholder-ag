@@ -33,6 +33,7 @@ public final class TextItClient {
 	private final URL GET_RUNS_URL;
 	private final URL GET_CONTACTS_URL;
 	private final String START_DATE;
+	private final String TEXT_TIME;
 
     public static final String FLOWS = "flows";
     public static final String RUNS = "runs";
@@ -124,13 +125,14 @@ public final class TextItClient {
 	}
 
 	private TextItClient(String token, String outputDir, String epr,
-			int workerNum, String timezone, int no_of_days, String start_date) throws IOException {
+			int workerNum, String timezone, int no_of_days, String start_date, String textTime) throws IOException {
         df.setTimeZone(TimeZone.getTimeZone("timezone"));
 
         TOKEN = token;
 		TIMEZONE = timezone;
 		NO_OF_DAYS = no_of_days;
         START_DATE = start_date;
+        TEXT_TIME = textTime;
 
 		String final_dir = outputDir + START_DATE;
 		OUTPUT_DIRECTORY = final_dir;
@@ -175,8 +177,8 @@ public final class TextItClient {
 		logger.info("No of Days " + no_of_days);
         URL target = null;
         target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp_prev
-                    + "T00:00:00.000" + "&&" + "before=" + timestamp_now
-                    + "T00:00:00.000");
+                    + "T" + TEXT_TIME + "&&" + "before=" + timestamp_now
+                    + "T" + TEXT_TIME);
 
         final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
 				+ timestamp_now.replace("-", "_");
@@ -215,8 +217,8 @@ public final class TextItClient {
 		final String timestamp_now = df.format(new DateTime(START_DATE)
 				.toDate());
 		URL target = new URL(GET_CONTACTS_URL.toString() + "?after="
-				+ timestamp_prev + "T00:00:00.000" + "&&" + "before=" + timestamp_now
-				+ "T00:00:00.000");
+				+ timestamp_prev + "T" + TEXT_TIME + "&&" + "before=" + timestamp_now
+				+ "T" + TEXT_TIME);
 		final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
 				+ timestamp_now.replace("-", "_");
 
@@ -284,8 +286,8 @@ public final class TextItClient {
         final String timestamp_now = df.format(new DateTime(START_DATE)
                 .toDate());
         URL target = new URL(GET_RUNS_URL.toString() + "?after="
-                + timestamp_prev + "T00:00:00.000" + "&&" + "before=" + timestamp_now
-                + "T00:00:00.000");
+                + timestamp_prev + "T" + TEXT_TIME + "&&" + "before=" + timestamp_now
+                + "T" + TEXT_TIME);
         final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
                 + timestamp_now.replace("-", "_");
         logger.info("Downloading updated runs for : " + timestamp_final);
@@ -345,9 +347,12 @@ public final class TextItClient {
         if (properties.getProperty("start_date") != null) {
             start_date = properties.getProperty("start_date");
         }
-
+        String textTime = "00:00:00.000";
+        if (properties.getProperty("text.time") != null) {
+            textTime = properties.getProperty("text.time");
+        }
 		TextItClient instance = new TextItClient(token, outputDir, textitEpr,
-				workerNum, timezone, no_of_days, start_date);
+				workerNum, timezone, no_of_days, start_date, textTime);
 		return instance;
 	}
 
@@ -388,7 +393,7 @@ public final class TextItClient {
 		public TextItClient build() throws IOException {
 
 			return new TextItClient(token, outputDir, textitEpr, workerNum,
-					timezone, no_of_days, df.format(new Date()));
+					timezone, no_of_days, df.format(new Date()), "00:00:00.000");
 		}
 
 		public TextItClientBuilder setWorkerNum(int workerNum) {

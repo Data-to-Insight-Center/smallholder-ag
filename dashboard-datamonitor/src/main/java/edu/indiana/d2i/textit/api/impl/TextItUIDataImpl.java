@@ -558,6 +558,17 @@ public class TextItUIDataImpl extends TextItUIData {
 										@QueryParam("to") String toDate) {
 		WebResource webResource = resource();
 
+        int countryCode = 0;
+        if(country.equals("zambia")) {
+            countryCode = Calendar.SUNDAY;
+        } else if (country.equals("kenya")) {
+            countryCode = Calendar.FRIDAY;
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "invalid country").toString())
+                    .cacheControl(control).build();
+        }
+
 		ClientResponse response = webResource.path(country + "/questionanalysis")
 				.queryParam("type", qType)
 				.queryParam("from", fromDate)
@@ -626,7 +637,7 @@ public class TextItUIDataImpl extends TextItUIData {
             } else if (interval.equals(WEEKLY)) {
                 Calendar cTemp = Calendar.getInstance();
                 cTemp.setTime(currEnd);
-                cTemp.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY); // TODO change for kenya
+                cTemp.set(Calendar.DAY_OF_WEEK, countryCode);
                 cTemp.set(Calendar.HOUR_OF_DAY, 00);
                 cTemp.set(Calendar.MINUTE, 0);
                 cTemp.set(Calendar.SECOND, 0);
