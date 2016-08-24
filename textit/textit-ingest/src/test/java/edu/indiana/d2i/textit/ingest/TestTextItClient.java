@@ -1,5 +1,6 @@
 package edu.indiana.d2i.textit.ingest;
 
+import edu.indiana.d2i.textit.ingest.utils.TextItUtils;
 import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpException;
@@ -20,13 +21,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class TestTextItClient {
 	private LocalTestServer server = null;
@@ -137,4 +138,99 @@ public class TestTextItClient {
 		// TODO: check the directory
 		FileUtils.deleteQuietly(Paths.get("./out").toFile());
 	}
+
+    @Test
+    public void testQuestionLabels() throws IOException {
+
+        //final String timestamp_prev = "2013-12-15"; //Zambia start date
+        final String timestamp_prev = "2015-03-01"; //Kenya start date
+        final String timestamp_now = "2016-09-01";
+
+        String TEXT_TIME = "00:00:00.000";
+        String FLOWS_URL = "https://textit.in/api/v1/flows.json";
+        String RUNS_URL = "https://textit.in/api/v1/runs.json";
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        final String OUTPUT_FILE = "./output.txt";
+        final String FLOWS = "flows";
+
+        //TextItUtils utils = TextItUtils.createUtils("apiKey", "Africa/Zambia");
+        TextItUtils utils = TextItUtils.createUtils("apiKey", "Africa/Kenya");
+
+        final List<String> res = new ArrayList<String>();
+        final Map<String, String> types = new HashMap<String, String>();
+
+        URL target = null;
+        target = new URL(FLOWS_URL.toString() + "?after=" + timestamp_prev
+                + "T" + TEXT_TIME + "&&" + "before=" + timestamp_now
+                + "T" + TEXT_TIME);
+
+        final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
+                + timestamp_now.replace("-", "_");
+
+        utils.processData(target, new TextItUtils.IJsonProcessor() {
+            @Override
+            public void process(Map<String, Object> data, int pageNum)
+                    throws IOException {
+                List<Object> results = (List<Object>) data.get("results");
+                for (Object result : results) {
+                    Map<Object, Object> map = (Map<Object, Object>) result;
+                    if (map.get("uuid") != null) {
+                        res.add((String) map.get("uuid"));
+                    }
+
+                    List<Object> steps = (List<Object>) map.get("rulesets");
+                    for (Object step : steps) {
+                        Map<Object, Object> stepObject = (Map<Object, Object>) step;
+                        types.put((String)stepObject.get("node"), (String)stepObject.get("label"));
+                    }
+                }
+                //ObjectMapper objectMapper = new ObjectMapper();
+                //objectMapper.writeValue(Paths.get(OUTPUT_FILE).toFile(), data);
+            }
+        });
+
+        Writer output = new BufferedWriter(new FileWriter(OUTPUT_FILE, true));
+        output.write("Flow ID|node ID|Question Text|Type|Left On\n");
+        output.flush();
+        output.close();
+
+        for(final String flowId : res) {
+            URL runUrl = new URL(RUNS_URL + "?flow_uuid=" + flowId);
+            utils.processData( runUrl , new TextItUtils.IJsonProcessor() {
+                @Override
+                public void process(Map<String, Object> data, int pageNum)
+                        throws IOException {
+                    List<Object> results = (List<Object>) data.get("results");
+                    String csv = "";
+                    for (Object result : results) {
+                        Map<Object, Object> map = (Map<Object, Object>) result;
+
+                        List<Object> steps = (List<Object>) map.get("steps");
+                        String qText = "";
+                        String leftOn = "";
+                        int count = 1;
+                        for (Object step : steps) {
+                            Map<Object, Object> stepObject = (Map<Object, Object>) step;
+                            if(((String)stepObject.get("type")).equals("A")) {
+                                if(steps.size() == count)
+                                    break;
+                                qText = (String)stepObject.get("text");
+                                leftOn = (String)stepObject.get("left_on");
+                            } else {
+                                String node = (String)stepObject.get("node");
+                                csv += flowId + "|" + node + "|" + qText + "|" + types.get(node) + "|" + leftOn + "\n";
+                            }
+                            count++;
+                        }
+                    }
+                    Writer output = new BufferedWriter(new FileWriter(OUTPUT_FILE, true));
+                    output.write(csv);
+                    output.flush();
+                    output.close();
+                }
+            });
+        }
+
+        utils.close();
+    }
 }
