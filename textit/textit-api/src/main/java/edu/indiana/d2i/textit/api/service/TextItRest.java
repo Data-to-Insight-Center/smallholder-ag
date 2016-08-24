@@ -1136,6 +1136,7 @@ public class TextItRest {
                                      @QueryParam("from") String fromDate,
                                      @QueryParam("to") String toDate) {
 
+        // TODO from=2016-08-08T11:00:00.000Z&to=2016-08-22T11:00:00.000Z
         MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
         MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
         MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
@@ -1236,9 +1237,10 @@ public class TextItRest {
 
                 while (runsCursor.hasNext()) {
                     Document runsDocument = runsCursor.next();
+                    ArrayList<Document> values = (ArrayList<Document>)runsDocument.get("steps");
                     Date modified_on = null;
                     try {
-                        modified_on = df_Z.parse((String) runsDocument.get("modified_on"));
+                        modified_on = df_Z.parse(values.get(values.size() -1).getString("arrived_on"));
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
