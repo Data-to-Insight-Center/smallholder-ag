@@ -26,6 +26,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -230,6 +231,54 @@ public class TestTextItClient {
                 }
             });
         }
+
+        utils.close();
+    }
+
+
+    @Test
+    public void testFlowNames() throws IOException, ParseException {
+
+        final String timestamp_prev = "2015-09-28T11:00:00.000Z"; //Zambia start date
+        //final String timestamp_prev = "2015-03-01"; //Kenya start date
+        final String timestamp_now = "2016-09-01T11:00:00.000Z";
+
+        String FLOWS_URL = "https://textit.in/api/v1/flows.json";
+        DateFormat df_Z = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        final String OUTPUT_FILE = "./output.txt";
+        final String FLOWS = "flows";
+
+        TextItUtils utils = TextItUtils.createUtils("apiKey", "Africa/Zambia");
+        //TextItUtils utils = TextItUtils.createUtils("apiKey", "Africa/Kenya");
+
+        final List<String> res = new ArrayList<String>();
+        final Map<String, String> types = new HashMap<String, String>();
+
+        URL target = null;
+        target = new URL(FLOWS_URL.toString() + "?after=" + timestamp_prev + "&" + "before=" + timestamp_now);
+
+
+        utils.processData(target, new TextItUtils.IJsonProcessor() {
+            @Override
+            public void process(Map<String, Object> data, int pageNum)
+                    throws IOException {
+                List<Object> results = (List<Object>) data.get("results");
+                for (Object result : results) {
+                    Map<Object, Object> map = (Map<Object, Object>) result;
+                    List<Object> steps = (List<Object>) map.get("rulesets");
+                    String labels = "";
+                    for (Object step : steps) {
+                        Map<Object, Object> stepObject = (Map<Object, Object>) step;
+                        labels += " ## " + stepObject.get("label");
+                    }
+                    res.add( map.get("uuid") + "|" + map.get("name") + "|" + map.get("created_on") + "|" + map.get("runs") + "|" + map.get("completed_runs") + "|" + labels);
+                }
+                //ObjectMapper objectMapper = new ObjectMapper();
+                //objectMapper.writeValue(Paths.get(OUTPUT_FILE).toFile(), data);
+            }
+        });
+
+        System.out.println(res.toString());
 
         utils.close();
     }

@@ -15,7 +15,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
+import org.apache.commons.lang3.StringUtils;
 import javax.ws.rs.*;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.MediaType;
@@ -40,10 +40,19 @@ public class TextItRest {
     private SimpleDateFormat df_dm = new SimpleDateFormat("d MMM");
 
     private static Logger logger = Logger.getLogger(TextItRest.class);
-    private static int daysBeforeFlowDeployment = 14;
+    private static int daysBeforeFlowDeployment = 16;
+
+    private static ArrayList<String> excludeFlowsMatch = new ArrayList<>();
+    private static ArrayList<String> excludeFlows = new ArrayList<>();
 
     static {
         PropertyConfigurator.configure(TextItRest.class.getResource("./../log4j.properties"));
+        excludeFlows.add("inter-season flow 1"); //TODO remove hardcoded values for test flows
+        excludeFlows.add("inter-season flow 2");
+        excludeFlowsMatch.add("test");
+        excludeFlowsMatch.add("join");
+        excludeFlowsMatch.add("copy");
+        excludeFlowsMatch.add("15-16");
     }
 
     @GET
@@ -1264,6 +1273,270 @@ public class TextItRest {
             }
 
             currEnd = currBeg;
+        }
+
+        return Response.ok(array.toString()).cacheControl(control).build();
+    }
+
+
+    @GET
+    @Path("/{country}/contactresponses")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getResponsesByContacts(@PathParam("country") String country,
+                                            @QueryParam("qtype") String qType,
+                                            @QueryParam("from") String fromDate,
+                                            @QueryParam("to") String toDate) {
+
+
+        if(qType == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "'type' is a mandatory query parameter").toString())
+                    .cacheControl(control).build();
+        }
+
+        // TODO from=2016-08-08T11:00:00.000Z&to=2016-08-22T11:00:00.000Z
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
+        MongoCollection<Document> runsCollection = db.getCollection(MongoDB.runsCollectionName);
+        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollectionName);
+
+        control.setNoCache(true);
+        JSONArray array = new JSONArray();
+        Map<String, HashMap<String, HashMap<String, ArrayList<String>>>> qMap = new HashMap<String, HashMap<String, HashMap<String, ArrayList<String>>>>();
+
+        int countryCode = 0;
+        int countryHour = 0;
+        if(country.equals("zambia")) {
+            countryCode = Calendar.MONDAY;
+            countryHour = Constants.zambiaTime;
+        } else if (country.equals("kenya")) {
+            countryCode = Calendar.SATURDAY;
+            countryHour = Constants.kenyaTime;
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "invalid country").toString())
+                    .cacheControl(control).build();
+        }
+
+        Date first = null;
+        Date last = null;
+        try {
+            if(fromDate != null) {
+                first = df_Z.parse(fromDate);
+            } else {
+                FindIterable<Document> iter = flowsCollection.find().sort(new Document("created_on",1)).limit(1);;
+                iter.projection(new Document("created_on", 1).append("_id", 0));
+                first = df_Z.parse((String) iter.first().get("created_on"));
+            }
+            if(toDate != null) {
+                last = df_Z.parse(toDate);
+            } else {
+                last = new Date();
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Calendar c = Calendar.getInstance();
+        c.setTime(last);
+        Date currEnd = c.getTime();
+        Date currBeg = null;
+
+        ArrayList<String> weekLabels = new ArrayList<>();
+
+        while(currEnd.getTime() > first.getTime()) {
+
+            Calendar cTemp = Calendar.getInstance();
+            cTemp.setTime(currEnd);
+            cTemp.set(Calendar.DAY_OF_WEEK, countryCode);
+            cTemp.set(Calendar.HOUR_OF_DAY, countryHour);
+            cTemp.set(Calendar.MINUTE, 0);
+            cTemp.set(Calendar.SECOND, 0);
+            cTemp.set(Calendar.MILLISECOND, 0);
+            if (currEnd.equals(cTemp.getTime())) {
+                cTemp.add(Calendar.DATE, -7);
+                currBeg = cTemp.getTime();
+            } else
+                currBeg = cTemp.getTime();
+
+            if(first.after(cTemp.getTime())) {
+                currBeg = first;
+            }
+
+            currEnd = new Date(currEnd.getTime() -1);
+
+            Calendar cWeek = Calendar.getInstance();
+            cWeek.setMinimalDaysInFirstWeek(7);
+            cWeek.setTime(currBeg);
+            String label = cWeek.get(Calendar.YEAR) + " W" + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR))
+                    + " : " + df_dm.format(currBeg) + " - " + df_dm.format(currEnd);
+            cWeek.setTime(currEnd);
+            //String nextLabel = cWeek.get(Calendar.YEAR) + " W" + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR))
+                    //+ " : " + df_dm.format(currBeg) + " - " + df_dm.format(currEnd);
+            weekLabels.add(label);
+
+            Bson flowsFilter = null;
+            if(qType != null)
+                flowsFilter = Filters.in("rulesets.label", qType);
+
+            ArrayList<Document> flowsIter = null;
+            try {
+                flowsIter = getFlowsByDeploymentDate(flowsCollection, runsCollection, flowsFilter, df_Z.format(currBeg),  df_Z.format(currEnd));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+           /* for (Document flowsDocument : flowsIter) {
+                JSONObject flow = new JSONObject();
+                flow.put("name", flowsDocument.get("name"));
+                flow.put("week", label);
+                flow.put("start_date", df_Z.format(currBeg));
+                flow.put("end_date", df_Z.format(currEnd));
+                array.put(flow);
+            }*/
+
+            for (Document flowsDocument : flowsIter) {
+                String flow_uuid = (String) flowsDocument.get("uuid");
+
+                if (flowsDocument.containsKey("name") && flowsDocument.get("name") != null && flowsDocument.get("name") instanceof String) {
+                    String flowNameLowerCase = flowsDocument.getString("name").trim().toLowerCase();
+                    System.out.print("Analyze Flow : " + flowNameLowerCase);
+
+                    if (excludeFlows.contains(flowNameLowerCase)) {
+                        System.out.println(" - SKIPPED");
+                        continue;
+                    } else {
+                        boolean skip = false;
+                        for (String match : excludeFlowsMatch) {
+                            if (flowNameLowerCase.contains(match)) {
+                                skip = true;
+                                break;
+                            }
+                        }
+                        if (skip) {
+                            System.out.println(" - SKIPPED");
+                            continue;
+                        }
+                    }
+                } else {
+                    System.out.println("No Flow Name");
+                    continue;
+                }
+
+                System.out.println("--");
+
+                String qUuid = "";
+                Object rulesets = flowsDocument.get("rulesets");
+                if (rulesets instanceof ArrayList) {
+                    ArrayList<Document> rulesetsArray = (ArrayList<Document>) rulesets;
+                    for (Document rule : rulesetsArray) {
+                        if (rule.getString("label").equals(qType)) {
+                            qUuid = rule.getString("node");
+                            break;
+                        }
+                    }
+                }
+
+                BasicDBObject runsQuery = new BasicDBObject();
+                runsQuery.put("flow_uuid", flow_uuid);
+                //FindIterable<Document> runsIter = runsCollection.find(runsQuery);
+                FindIterable<Document> runsIter = runsCollection.find(Filters.and(runsQuery, Filters.in("values.node", qUuid)));
+                runsIter.projection(new Document("_id", 0));
+                MongoCursor<Document> runsCursor = runsIter.iterator();
+
+                while (runsCursor.hasNext()) {
+                    Document runsDocument = runsCursor.next();
+                    Object values = runsDocument.get("values");
+                    String contact = (String) runsDocument.get("contact");
+                    if (values instanceof ArrayList) {
+                        ArrayList<Document> valuesArray = (ArrayList<Document>) values;
+                        for (Document value : valuesArray) {
+                            Document category = (Document) value.get("category");
+                            //String date = null;
+
+                            String qLabel = (String) value.get("label");
+                            if(qType!= null && !qLabel.equalsIgnoreCase(qType))
+                                continue;
+
+                            Date dateZ = null;
+                            try {
+                                //date = df_dd.format(df_SSS.parse(value.getString("time").substring(0, 23)));
+                                dateZ = df_SSS.parse(value.getString("time").substring(0, 23));
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+                            if (dateZ.after(currEnd)) { // change if needed to put delayed responses to the next week
+                                //week = nextLabel;
+                                continue;
+                            }
+
+                            String qVal = category.get("base") != null ? category.getString("base") : category.getString("eng");
+                            if (qVal.equals("numeric") && value.containsKey("value")) {
+                                qVal = "" + value.get("value");
+                            }
+                            if (qVal.equalsIgnoreCase("Other") && value.containsKey("value")) {
+                                qVal += "-" + ("" + value.get("value"));
+                            }
+                            String week = label;
+
+                            if (qMap.get(contact) != null) {
+                                Map<String, HashMap<String, ArrayList<String>>> qObject = qMap.get(contact);
+                                if (qObject.get(week) != null) {
+                                    Map<String, ArrayList<String>> dateObject = qObject.get(week);
+                                    if (dateObject.get(qLabel) != null) {
+                                        dateObject.get(qLabel).add(qVal);
+                                    } else {
+                                        ArrayList<String> answerArray = new ArrayList<String>();
+                                        answerArray.add(qVal);
+                                        dateObject.put(qLabel, answerArray);
+                                    }
+                                } else {
+                                    HashMap<String, ArrayList<String>> dateObject = new HashMap<String, ArrayList<String>>();
+                                    ArrayList<String> answerArray = new ArrayList<String>();
+                                    answerArray.add(qVal);
+                                    dateObject.put(qLabel, answerArray);
+                                    qObject.put(week, dateObject);
+                                }
+                            } else {
+                                HashMap<String, HashMap<String, ArrayList<String>>> qObject = new HashMap<String, HashMap<String, ArrayList<String>>>();
+                                HashMap<String, ArrayList<String>> dateObject = new HashMap<String, ArrayList<String>>();
+                                ArrayList<String> answerArray = new ArrayList<String>();
+                                answerArray.add(qVal);
+                                dateObject.put(qLabel, answerArray);
+                                qObject.put(week, dateObject);
+                                qMap.put(contact, qObject);
+                            }
+                        }
+                    }
+                }
+            }
+
+            currEnd = currBeg;
+        }
+
+        Collections.sort(weekLabels);
+        for (String contact : qMap.keySet()) {
+            FindIterable<Document> contactsIter = contactsCollection.find(Filters.eq("uuid", contact));
+            Document contactDoc = contactsIter.first();
+            JSONObject contactObj = new JSONObject();
+            if (contactDoc != null && contactDoc.containsKey("name")) {
+                contactObj.put("name", contactDoc.get("name"));
+            }
+            if (contactDoc != null && contactDoc.containsKey("phone")) {
+                contactObj.put("phone", contactDoc.get("phone"));
+            }
+            contactObj.put("uuid", contact);
+            if(qType != null) {
+                for (String weekLabel : weekLabels) {  // if qType is provided
+                    String answer = "-";
+                    if (qMap.get(contact).containsKey(weekLabel)) {
+                        answer = StringUtils.join(qMap.get(contact).get(weekLabel).get(qType), " | ");
+                    }
+                    contactObj.put(weekLabel.split(":")[0].trim(), answer);
+                }
+            } else {
+                contactObj.put("results", new JSONObject(qMap.get(contact)));
+            }
+            array.put(contactObj);
         }
 
         return Response.ok(array.toString()).cacheControl(control).build();
