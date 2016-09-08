@@ -1283,14 +1283,14 @@ public class TextItRest {
     @Path("/{country}/contactresponses")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getResponsesByContacts(@PathParam("country") String country,
-                                            @QueryParam("qtype") String qType,
+                                            @QueryParam("qtype") List<String> qType,
                                             @QueryParam("from") String fromDate,
                                             @QueryParam("to") String toDate) {
 
 
-        if(qType == null) {
+        if(qType == null || qType.size() == 0) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JSONObject().put("error", "'type' is a mandatory query parameter").toString())
+                    .entity(new JSONObject().put("error", "'qtype' is a mandatory query parameter").toString())
                     .cacheControl(control).build();
         }
 
@@ -1424,14 +1424,13 @@ public class TextItRest {
 
                 System.out.println("--");
 
-                String qUuid = "";
+                List<String> qUuid = new ArrayList<String>();
                 Object rulesets = flowsDocument.get("rulesets");
                 if (rulesets instanceof ArrayList) {
                     ArrayList<Document> rulesetsArray = (ArrayList<Document>) rulesets;
                     for (Document rule : rulesetsArray) {
-                        if (rule.getString("label").equals(qType)) {
-                            qUuid = rule.getString("node");
-                            break;
+                        if (qType.contains(rule.getString("label"))) {
+                            qUuid.add(rule.getString("node"));
                         }
                     }
                 }
@@ -1454,7 +1453,8 @@ public class TextItRest {
                             //String date = null;
 
                             String qLabel = (String) value.get("label");
-                            if(qType!= null && !qLabel.equalsIgnoreCase(qType))
+                            String qNode = (String) value.get("node");
+                            if(qUuid.size() != 0 && !qUuid.contains(qNode))
                                 continue;
 
                             Date dateZ = null;
@@ -1525,11 +1525,20 @@ public class TextItRest {
                 contactObj.put("phone", contactDoc.get("phone"));
             }
             contactObj.put("uuid", contact);
-            if(qType != null) {
+            if(qType != null && qType.size() != 0) {
                 for (String weekLabel : weekLabels) {  // if qType is provided
                     String answer = "-";
                     if (qMap.get(contact).containsKey(weekLabel)) {
-                        answer = StringUtils.join(qMap.get(contact).get(weekLabel).get(qType), " | ");
+                        HashMap<String, ArrayList<String>> answers = qMap.get(contact).get(weekLabel);
+                        int i = 0;
+                        for(ArrayList<String> answerArray : answers.values()){
+                            if(i == 0) {
+                                answer = StringUtils.join(answerArray, " | ");
+                            } else {
+                                answer += " | " + StringUtils.join(answerArray, " | ");
+                            }
+                            i++;
+                        }
                     }
                     contactObj.put(weekLabel.split(":")[0].trim(), answer);
                 }
