@@ -9,4 +9,4 @@ cd $home
 . "$bin"/env.sh
 
 $JAVA $JAVA_HEAP_MAX -classpath "$TEXTIT_DOWNLOADER_CLASSPATH" \
-    edu.indiana.d2i.textit.ingest.TextItIngestor $2 $3 $4 & wait
+    edu.indiana.d2i.textit.ingest.TextItIngestor $2 $3 $4 $5 & wait

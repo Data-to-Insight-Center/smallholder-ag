@@ -3,18 +3,14 @@ package edu.indiana.d2i.textit.ingest;
 import edu.indiana.d2i.textit.ingest.utils.TextItUtils;
 import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.FileEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.localserver.LocalTestServer;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.junit.After;
@@ -112,15 +108,15 @@ public class TestTextItClient {
 		// TODO: check the directory
 		FileUtils.deleteQuietly(Paths.get("./tmp").toFile());
 	}
-	
-	@Test
+
+/*	@Test
 	public void testWebHook() throws Exception {
 		properties.setProperty("textit.downloader.outputdir", "./out");
-		
+
 		TextItWebHook hook = TextItWebHook.getTestInstance(properties, 9000);
 		hook.start();
-		
-		// make a post 
+
+		// make a post
 		HttpClient client = HttpClientBuilder.create().build();
 		HttpPost request = new HttpPost("http://127.0.0.1:9000/notify");
 		List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
@@ -131,14 +127,14 @@ public class TestTextItClient {
 		urlParameters.add(new BasicNameValuePair("phone", "12345"));
 		urlParameters.add(new BasicNameValuePair("step", "12341234-1234-1234-1234-1234-12341234"));
 		request.setEntity(new UrlEncodedFormEntity(urlParameters));
-		
+
 		client.execute(request);
-		
+
 		hook.stop();
-		
+
 		// TODO: check the directory
 		FileUtils.deleteQuietly(Paths.get("./out").toFile());
-	}
+	}*/
 
     @Test
     public void testQuestionLabels() throws IOException {
@@ -239,17 +235,18 @@ public class TestTextItClient {
     @Test
     public void testFlowNames() throws IOException, ParseException {
 
-        final String timestamp_prev = "2015-09-28T11:00:00.000Z"; //Zambia start date
-        //final String timestamp_prev = "2015-03-01"; //Kenya start date
-        final String timestamp_now = "2016-09-01T11:00:00.000Z";
+        //final String timestamp_prev = "2015-09-28T11:00:00.000Z"; //Zambia start date
+        final String timestamp_prev = "2015-02-28T06:00:00.000Z"; //Kenya start date
+        //final String timestamp_now = "2016-09-26T11:00:00.000Z";
+        final String timestamp_now = "2016-09-24T06:00:00.000Z";// Kenya
 
         String FLOWS_URL = "https://textit.in/api/v1/flows.json";
         DateFormat df_Z = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         final String OUTPUT_FILE = "./output.txt";
         final String FLOWS = "flows";
 
-        TextItUtils utils = TextItUtils.createUtils("apiKey", "Africa/Zambia");
-        //TextItUtils utils = TextItUtils.createUtils("apiKey", "Africa/Kenya");
+        //TextItUtils utils = TextItUtils.createUtils("apiKey", "Africa/Zambia");
+        TextItUtils utils = TextItUtils.createUtils("apiKey", "Africa/Kenya");
 
         final List<String> res = new ArrayList<String>();
         final Map<String, String> types = new HashMap<String, String>();
@@ -278,7 +275,7 @@ public class TestTextItClient {
             }
         });
 
-        System.out.println(res.toString());
+        System.out.println(StringUtils.join(res, "\n"));
 
         utils.close();
     }

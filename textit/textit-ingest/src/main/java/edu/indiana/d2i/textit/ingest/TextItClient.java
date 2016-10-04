@@ -32,6 +32,7 @@ public final class TextItClient {
 	private final URL GET_RUNS_URL;
 	private final URL GET_CONTACTS_URL;
 	private final String START_DATE;
+	private final String END_DATE;
 	private final String TEXT_TIME;
 
     public static final String FLOWS = "flows";
@@ -123,18 +124,17 @@ public final class TextItClient {
 		}
 	}
 
-	private TextItClient(String token, String outputDir, String epr,
-			int workerNum, String timezone, int no_of_days, String start_date, String textTime) throws IOException {
+	private TextItClient(String token, String outputDir, String epr, int workerNum,
+            String timezone, int no_of_days, String start_date, String end_date, String textTime) throws IOException {
         df.setTimeZone(TimeZone.getTimeZone("timezone"));
 
         TOKEN = token;
 		TIMEZONE = timezone;
 		NO_OF_DAYS = no_of_days;
         START_DATE = start_date;
+        END_DATE = end_date;
         TEXT_TIME = textTime;
-
-		String final_dir = outputDir + START_DATE;
-		OUTPUT_DIRECTORY = final_dir;
+		OUTPUT_DIRECTORY = outputDir;
 
 		String textitEpr = epr;
 		WORKER_NUM = workerNum;
@@ -167,13 +167,13 @@ public final class TextItClient {
 	protected List<String> getFlowIDs() throws IOException {
 		final List<String> res = new ArrayList<String>();
 
-        int no_of_days = NO_OF_DAYS + 7;
+        int no_of_days_before = 7;
 		final String timestamp_prev = df.format(new DateTime(START_DATE)
-				.minusDays(no_of_days).toDate());
-		final String timestamp_now = df.format(new DateTime(START_DATE)
+				.minusDays(no_of_days_before).toDate());
+		final String timestamp_now = df.format(new DateTime(END_DATE)
 				.toDate());
 
-		logger.info("No of Days " + no_of_days);
+		logger.info("No of Days : " + timestamp_prev + " to " + timestamp_now);
         URL target = null;
         target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp_prev
                     + "T" + TEXT_TIME + "&&" + "before=" + timestamp_now
@@ -211,10 +211,9 @@ public final class TextItClient {
 	protected List<String> getContactInfo() throws IOException {
 		final List<String> res = new ArrayList<String>();
 
-		final String timestamp_prev = df.format(new DateTime(START_DATE)
-				.minusDays(NO_OF_DAYS).toDate());
-		final String timestamp_now = df.format(new DateTime(START_DATE)
-				.toDate());
+		final String timestamp_prev = df.format(new DateTime(START_DATE).toDate());
+		final String timestamp_now = df.format(new DateTime(END_DATE).toDate());
+
 		URL target = new URL(GET_CONTACTS_URL.toString() + "?after="
 				+ timestamp_prev + "T" + TEXT_TIME + "&&" + "before=" + timestamp_now
 				+ "T" + TEXT_TIME);
@@ -280,10 +279,9 @@ public final class TextItClient {
     protected List<String> getUpdatedRuns() throws IOException {
         final List<String> res = new ArrayList<String>();
 
-        final String timestamp_prev = df.format(new DateTime(START_DATE)
-                .minusDays(NO_OF_DAYS).toDate());
-        final String timestamp_now = df.format(new DateTime(START_DATE)
-                .toDate());
+        final String timestamp_prev = df.format(new DateTime(START_DATE).toDate());
+        final String timestamp_now = df.format(new DateTime(END_DATE).toDate());
+
         URL target = new URL(GET_RUNS_URL.toString() + "?after="
                 + timestamp_prev + "T" + TEXT_TIME + "&&" + "before=" + timestamp_now
                 + "T" + TEXT_TIME);
@@ -342,16 +340,15 @@ public final class TextItClient {
 		int workerNum = Integer.valueOf(properties.getProperty(
 				"workernum", "1"));
 
-        String start_date = df.format(new Date());
-        if (properties.getProperty("start_date") != null) {
-            start_date = properties.getProperty("start_date");
-        }
+        String start_date = properties.getProperty("start_date");
+        String end_date = properties.getProperty("end_date");
+
         String textTime = "00:00:00.000";
         if (properties.getProperty("text.time") != null) {
             textTime = properties.getProperty("text.time");
         }
 		TextItClient instance = new TextItClient(token, outputDir, textitEpr,
-				workerNum, timezone, no_of_days, start_date, textTime);
+				workerNum, timezone, no_of_days, start_date, end_date, textTime);
 		return instance;
 	}
 
