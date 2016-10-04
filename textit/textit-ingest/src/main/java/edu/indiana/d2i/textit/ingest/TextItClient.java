@@ -9,7 +9,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -354,87 +353,6 @@ public final class TextItClient {
 		TextItClient instance = new TextItClient(token, outputDir, textitEpr,
 				workerNum, timezone, no_of_days, start_date, textTime);
 		return instance;
-	}
-
-	public static class TextItClientBuilder {
-		private String token, outputDir, textitEpr, timezone;
-		private int workerNum, no_of_days;
-
-		private Properties getProperties() throws IOException {
-
-			final Properties properties = new Properties();
-			InputStream stream = TextItClient.class.getClassLoader()
-					.getResourceAsStream("config.properties");
-			if (stream == null) {
-				throw new RuntimeException("config.properties is not found!");
-			}
-			properties.load(stream);
-			stream.close();
-
-			return properties;
-		}
-
-		public TextItClientBuilder() throws IOException {
-
-			Properties properties = getProperties();
-			token = properties.getProperty("token");
-			outputDir = properties.getProperty("outputdir",
-					"./output");
-			textitEpr = properties.getProperty("textit.epr",
-					"https://textit.in/api/v1");
-			workerNum = Integer.valueOf(properties.getProperty(
-					"workernum", "1"));
-			timezone = properties.getProperty("timezone");
-			no_of_days = Integer.valueOf(properties
-					.getProperty("download_no_of_days", "1"));
-
-		}
-
-		public TextItClient build() throws IOException {
-
-			return new TextItClient(token, outputDir, textitEpr, workerNum,
-					timezone, no_of_days, df.format(new Date()), "00:00:00.000");
-		}
-
-		public TextItClientBuilder setWorkerNum(int workerNum) {
-			this.workerNum = workerNum;
-			return this;
-		}
-
-		public TextItClientBuilder setProperties(Properties properties) {
-			token = properties.getProperty("token");
-			outputDir = properties.getProperty("outputdir",
-					"./output");
-			textitEpr = properties.getProperty("textit.epr",
-					"https://textit.in/api/v1");
-			workerNum = Integer.valueOf(properties.getProperty(
-					"workernum", "1"));
-			timezone = properties.getProperty("timezone");
-			no_of_days = Integer.valueOf(properties
-					.getProperty("download_no_of_days", "1"));
-
-			return this;
-		}
-	}
-
-	public static TextItClientBuilder custom() throws IOException {
-		return new TextItClientBuilder();
-	}
-
-	public static TextItClient createClient() throws IOException {
-		return new TextItClientBuilder().build();
-	}
-
-	public void downloadRunsByFlowUUID(String flowID) throws IOException {
-		List<String> flowIDs = new ArrayList<String>();
-		flowIDs.add(flowID);
-		downloadData(null, flowIDs);
-	}
-
-	public void downloadRunsByFlowID(String flowID) throws IOException {
-		List<String> flowIDs = new ArrayList<String>();
-		flowIDs.add(flowID);
-		downloadData("?flow=", flowIDs);
 	}
 
 	public boolean downloadRuns(){

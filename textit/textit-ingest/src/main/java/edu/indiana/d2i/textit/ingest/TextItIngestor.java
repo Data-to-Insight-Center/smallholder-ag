@@ -14,7 +14,6 @@ import java.util.Properties;
 import java.util.TimeZone;
 
 public class TextItIngestor {
-	static TextItWebHook hook = null;
     private static Logger logger = Logger.getLogger(TextItIngestor.class);
     static DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -23,18 +22,32 @@ public class TextItIngestor {
         df.setTimeZone(TimeZone.getTimeZone("timezone"));
 
 		if (args.length != 2 && args.length != 3 && args.length != 4) {
-			logger.error("Usage: [config_file] [weekly|daily] [start_date] [port]");
+			logger.error("Usage: [config_file] [weekly|daily|dur] [start_date] [end_date]");
 			System.exit(-1);
 		}
 
-        if(!args[1].equals("daily") && !args[1].equals("weekly")){
-            logger.error("Error: Second argument to the TextItDownloader should be either 'daily' or 'weekly'");
+        if(!args[1].equals("daily") && !args[1].equals("weekly") && !args[1].equals("dur")){
+            logger.error("Error: Second argument to the TextItDownloader should be either 'daily', 'weekly' or 'dur'");
+            System.exit(-1);
+        }
+
+        if(args[1].equals("dur") && args.length <= 3) {
+            logger.error("Error: If the script need to be run for a duration provide a start and end date");
             System.exit(-1);
         }
 
         if(args.length > 2 && args[2] != null && args[2] != "") {
             try {
-                Date today = df.parse(args[2]);
+                Date end_date = df.parse(args[2]);
+            } catch (ParseException e) {
+                logger.error("Error: Third argument to the TextItDownloader should be in yyyy-MM-dd format");
+                System.exit(-1);
+            }
+        }
+
+        if(args.length > 3 && args[3] != null && args[3] != "") {
+            try {
+                Date start_date = df.parse(args[3]);
             } catch (ParseException e) {
                 logger.error("Error: Third argument to the TextItDownloader should be in yyyy-MM-dd format");
                 System.exit(-1);
@@ -52,12 +65,6 @@ public class TextItIngestor {
                     e.printStackTrace();
                 }
                 logger.info("Clean up resources.");
-                if (hook != null)
-                    try {
-                        hook.stop();
-                    } catch (Exception e) {
-                        System.err.println(e.getStackTrace());
-                    }
             }
         });
 
@@ -69,14 +76,14 @@ public class TextItIngestor {
         }
         if(args[1].equals("daily")) {
             properties.put("download_no_of_days", "1");
-        } else {
+        } else if (args[1].equals("weekly")) {
             properties.put("download_no_of_days", "7");
         }
 
-        Date date = new Date();
+        Date end_date = new Date();
         if(args.length > 2 && args[2] != null && args[2] != "") {
             try {
-                date =df.parse(args[2]);
+                end_date =df.parse(args[2]);
                 properties.put("start_date", args[2]);
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -86,7 +93,7 @@ public class TextItIngestor {
         properties.load(stream);
         stream.close();
 
-        String output_dir = properties.getProperty("outputdir") + df.format(date);
+        String output_dir = properties.getProperty("outputdir") + df.format(end_date);
 
         try {
             MongoDB.createDatabase(properties.getProperty("mongodb.host"), Integer.parseInt(properties.getProperty("mongodb.port"))
@@ -100,25 +107,11 @@ public class TextItIngestor {
         }
 
         boolean downloaded = false;
-        if (args.length == 2 || args.length == 3) {
-            logger.info("Just download the runs.");
-			TextItClient client = TextItClient.createClient(properties);
-            downloaded = client.downloadRuns();
-            client.close();
-		} else {
-			/*// TODO: check if there is any run before, try to resume first
-            logger.info("Download the runs first and then runs as a callback service.");
-			
-			// start downloading from scratch
-			TextItClient client = TextItClient.createClient(properties);
-			client.downloadRuns();
-			client.close();
-			
-			// run the web hook
-			int port = Integer.valueOf(args[2]);
-			hook = TextItWebHook.getSingleton(properties, port);
-			hook.start();*/
-		}
+        logger.info("Just download the runs.");
+        TextItClient client = TextItClient.createClient(properties);
+        downloaded = client.downloadRuns();
+        client.close();
+
 
         if(!downloaded) {
             logger.error("Failure to download data from TextIt");
