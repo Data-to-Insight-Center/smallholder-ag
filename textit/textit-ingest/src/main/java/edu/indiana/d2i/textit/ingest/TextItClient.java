@@ -34,6 +34,7 @@ public final class TextItClient {
 	private final String START_DATE;
 	private final String END_DATE;
 	private final String TEXT_TIME;
+	private final String INTERVAL;
 
     public static final String FLOWS = "flows";
     public static final String RUNS = "runs";
@@ -66,8 +67,7 @@ public final class TextItClient {
 						final String id = flowid;
 						logger.info("Downloading runs for flow : " + flowid);
 
-						final String timestamp = new SimpleDateFormat(
-								"yyyy_MM_dd").format(new Date());
+						final String timestamp = df.format(new DateTime(END_DATE).toDate()).replace("-", "_");
 						utils.processData(target,
 								new TextItUtils.IJsonProcessor() {
 									@Override
@@ -124,8 +124,8 @@ public final class TextItClient {
 		}
 	}
 
-	private TextItClient(String token, String outputDir, String epr, int workerNum,
-            String timezone, int no_of_days, String start_date, String end_date, String textTime) throws IOException {
+	private TextItClient(String token, String outputDir, String epr, int workerNum, String timezone, int no_of_days,
+                         String start_date, String end_date, String textTime, String interval) throws IOException {
         df.setTimeZone(TimeZone.getTimeZone("timezone"));
 
         TOKEN = token;
@@ -135,6 +135,7 @@ public final class TextItClient {
         END_DATE = end_date;
         TEXT_TIME = textTime;
 		OUTPUT_DIRECTORY = outputDir;
+        INTERVAL = interval;
 
 		String textitEpr = epr;
 		WORKER_NUM = workerNum;
@@ -247,9 +248,11 @@ public final class TextItClient {
                     if(statFile.exists()) {
                         exsistingVals = objectMapper2.readValue(statFile, Map.class);
                     }
-                    exsistingVals.put("updated", data.get("count"));
-                    exsistingVals.put("fromDate", timestamp_prev);
-                    exsistingVals.put("toDate", timestamp_now);
+                    exsistingVals.put(MongoDB.UPDATED, data.get("count"));
+                    exsistingVals.put(MongoDB.FROM_DATE, timestamp_prev);
+                    exsistingVals.put(MongoDB.TO_DATE, timestamp_now);
+                    exsistingVals.put(MongoDB.DATE, df.format(new Date()));
+                    exsistingVals.put(MongoDB.INTERVAL, INTERVAL);
                     objectMapper2.writeValue(statFile, exsistingVals);
                 }
 			}
@@ -267,7 +270,7 @@ public final class TextItClient {
                 if(statFile.exists()) {
                     exsistingVals = objectMapper.readValue(statFile, Map.class);
                 }
-                exsistingVals.put("total", data.get("count"));
+                exsistingVals.put(MongoDB.TOTAL, data.get("count"));
                 objectMapper.writeValue(statFile, exsistingVals);
             }
         });
@@ -342,13 +345,14 @@ public final class TextItClient {
 
         String start_date = properties.getProperty("start_date");
         String end_date = properties.getProperty("end_date");
+        String interval = properties.getProperty("interval");
 
         String textTime = "00:00:00.000";
         if (properties.getProperty("text.time") != null) {
             textTime = properties.getProperty("text.time");
         }
 		TextItClient instance = new TextItClient(token, outputDir, textitEpr,
-				workerNum, timezone, no_of_days, start_date, end_date, textTime);
+				workerNum, timezone, no_of_days, start_date, end_date, textTime, interval);
 		return instance;
 	}
 
@@ -358,6 +362,11 @@ public final class TextItClient {
 
         JSONObject statusObject = new JSONObject();
         statusObject.put(MongoDB.DATE, df.format(new Date()));
+        statusObject.put(MongoDB.END_DATE, df.format(new DateTime(END_DATE).toDate()));
+        if(INTERVAL.equals(MongoDB.DURATION)) {
+            statusObject.put(MongoDB.START_DATE, df.format(new DateTime(START_DATE).toDate()));
+        }
+        statusObject.put(MongoDB.INTERVAL, INTERVAL);
         statusObject.put(MongoDB.ACTION, MongoDB.DOWNLOAD);
 
         statusObject.put(MongoDB.TYPE, FLOWS);

@@ -37,6 +37,19 @@ public class MongoDB {
     public static final String SUCCESS = "success";
     public static final String FAILURE = "failure";
     public static final String MESSAGE = "message";
+    public static final String INTERVAL = "interval";
+    public static final String WEEKLY = "weekly";
+    public static final String DAILY = "daily";
+    public static final String DURATION = "dur";
+    public static final String START_DATE = "start_date";
+    public static final String END_DATE = "end_date";
+
+    //contact status elements
+    public static final String UPDATED = "updated";
+    public static final String FROM_DATE = "fromDate";
+    public static final String TO_DATE = "toDate";
+    public static final String TOTAL = "total";
+
 
     private static MongoDatabase database = null;
     private static DB rawDatabase = null;

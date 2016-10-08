@@ -2,6 +2,7 @@ package edu.indiana.d2i.textit.ingest;
 
 import edu.indiana.d2i.textit.ingest.utils.MongoDB;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -14,6 +15,7 @@ import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 import java.util.TimeZone;
 
 /**
@@ -26,12 +28,18 @@ public class DBHandler {
     public static final String RUNS = "runs";
     public static final String CONTACTS = "contacts";
     public static final String STATS = "stats";
+    public final String END_DATE;
+    public final String START_DATE;
+    public final String INTERVAL;
 
     private static Logger logger = Logger.getLogger(DBHandler.class);
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
-    public DBHandler(String output_dir) {
-        this.output_dir = output_dir;
+    public DBHandler(Properties properties) {
+        this.output_dir = properties.getProperty("outputdir");
+        this.END_DATE = properties.getProperty("end_date");;
+        this.START_DATE = properties.getProperty("start_date");
+        this.INTERVAL = properties.getProperty("interval");
         df.setTimeZone(TimeZone.getTimeZone("timezone"));
     }
 
@@ -40,6 +48,11 @@ public class DBHandler {
         statusObject.put(MongoDB.DATE, df.format(new Date()));
         statusObject.put(MongoDB.ACTION, MongoDB.WRITE_TO_MONGO);
         statusObject.put(MongoDB.TYPE, "all");
+        statusObject.put(MongoDB.END_DATE, df.format(new DateTime(END_DATE).toDate()));
+        if(INTERVAL.equals(MongoDB.DURATION)) {
+            statusObject.put(MongoDB.START_DATE, df.format(new DateTime(START_DATE).toDate()));
+        }
+        statusObject.put(MongoDB.INTERVAL, INTERVAL);
 
         try {
             saveRawRuns();

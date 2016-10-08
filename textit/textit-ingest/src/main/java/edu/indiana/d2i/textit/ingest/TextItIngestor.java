@@ -23,16 +23,17 @@ public class TextItIngestor {
         df.setTimeZone(TimeZone.getTimeZone("timezone"));
 
 		if (args.length != 2 && args.length != 3 && args.length != 4) {
-			logger.error("Usage: [config_file] [weekly|daily|dur] [end_date] [start_date]");
+			logger.error("Usage: [config_file] ["+MongoDB.WEEKLY+"|"+MongoDB.DAILY+"|"+MongoDB.DURATION+"] [end_date] [start_date]");
 			System.exit(-1);
 		}
 
-        if(!args[1].equals("daily") && !args[1].equals("weekly") && !args[1].equals("dur")){
-            logger.error("Error: Second argument to the TextItDownloader should be either 'daily', 'weekly' or 'dur'");
+        if(!args[1].equals(MongoDB.DAILY) && !args[1].equals(MongoDB.WEEKLY) && !args[1].equals(MongoDB.DURATION)){
+            logger.error("Error: Second argument to the TextItDownloader should be either '" + MongoDB.WEEKLY
+                    + "', '" + MongoDB.DAILY + "' or '" + MongoDB.DURATION + "'");
             System.exit(-1);
         }
 
-        if(args[1].equals("dur") && args.length <= 3) {
+        if(args[1].equals(MongoDB.DURATION) && args.length <= 3) {
             logger.error("Error: If the script need to be run for a duration provide a start and end date");
             System.exit(-1);
         }
@@ -76,10 +77,12 @@ public class TextItIngestor {
             throw new RuntimeException("Error : " + args[0] + " is not found!");
         }
 
+        properties.put("interval", args[1]);
+
         int no_of_days = 0;
-        if(args[1].equals("daily")) {
+        if(args[1].equals(MongoDB.DAILY)) {
             no_of_days = 1;
-        } else if (args[1].equals("weekly")) {
+        } else if (args[1].equals(MongoDB.WEEKLY)) {
             no_of_days = 7;
         }
         properties.put("download_no_of_days", ""+no_of_days);
@@ -96,7 +99,7 @@ public class TextItIngestor {
         properties.put("end_date", end_date_str);
 
         String start_date_str;
-        if(args[1].equals("dur")) {
+        if(args[1].equals(MongoDB.DURATION)) {
             start_date_str = args[3];
         } else {
             start_date_str = df.format(new DateTime(end_date).minusDays(no_of_days).toDate());
@@ -132,7 +135,7 @@ public class TextItIngestor {
             System.exit(-1);
         }
 
-        DBHandler dbHandler = new DBHandler(output_dir);
+        DBHandler dbHandler = new DBHandler(properties);
         boolean persisted = dbHandler.persistData();
 
         if(!persisted) {
