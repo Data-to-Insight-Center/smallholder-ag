@@ -56,6 +56,8 @@ public class DBHandler {
 
         try {
             saveRawRuns();
+            saveRawFlows();
+            saveRawContacts();
             saveRuns();
             saveFlows();
             saveContacts();
@@ -82,6 +84,38 @@ public class DBHandler {
         if (directoryListing != null) {
             for (File child : directoryListing) {
                 MongoDB.addRawRuns(out_dir, child.getName());
+            }
+        }
+        return true;
+    }
+
+    private boolean saveRawFlows() throws FileNotFoundException {
+        String out_dir = output_dir+ "/" + FLOWS;
+        File dir = new File(out_dir);
+        File[] directoryListing = dir.listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(".json");
+            }
+        });
+        if (directoryListing != null) {
+            for (File child : directoryListing) {
+                MongoDB.addRawFlows(out_dir, child.getName());
+            }
+        }
+        return true;
+    }
+
+    private boolean saveRawContacts() throws FileNotFoundException {
+        String out_dir = output_dir+ "/" + CONTACTS;
+        File dir = new File(out_dir);
+        File[] directoryListing = dir.listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(CONTACTS + ".json");
+            }
+        });
+        if (directoryListing != null) {
+            for (File child : directoryListing) {
+                MongoDB.addRawContacts(out_dir, child.getName());
             }
         }
         return true;

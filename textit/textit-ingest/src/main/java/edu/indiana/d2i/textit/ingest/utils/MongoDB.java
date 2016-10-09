@@ -26,6 +26,8 @@ public class MongoDB {
     public static String CONTACTS_STAT_COLLECTION_NAME = "contactsStats";
     public static String STATUS_COLLECTION_NAME = "status";
     public static String RAW_RUNS_COLLECTION_NAME = "raw_runs";
+    public static String RAW_FLOWS_COLLECTION_NAME = "raw_flows";
+    public static String RAW_CONTACTS_COLLECTION_NAME = "raw_contacts";
 
     //status elements
     public static final String TYPE = "type";
@@ -59,6 +61,8 @@ public class MongoDB {
     private static MongoCollection<Document> runsCollection = null;
     private static MongoCollection<Document> statusCollection = null;
     private static GridFS rawRunsCollection = null;
+    private static GridFS rawFlowsCollection = null;
+    private static GridFS rawContactsCollection = null;
 
     public static synchronized MongoDatabase createDatabase(String host, int port, String dbName, String username, String password) {
         if (database == null) {
@@ -148,6 +152,24 @@ public class MongoDB {
         }
         FileInputStream inputStream = new FileInputStream(new File(folder + "/" + fileName));
         GridFSInputFile gfsFile = rawRunsCollection.createFile(inputStream, fileName, true);
+        gfsFile.save();
+    }
+
+    public static void addRawFlows(String folder, String fileName) throws FileNotFoundException {
+        if(rawFlowsCollection == null) {
+            rawFlowsCollection = new GridFS(rawDatabase, RAW_FLOWS_COLLECTION_NAME);
+        }
+        FileInputStream inputStream = new FileInputStream(new File(folder + "/" + fileName));
+        GridFSInputFile gfsFile = rawFlowsCollection.createFile(inputStream, fileName, true);
+        gfsFile.save();
+    }
+
+    public static void addRawContacts(String folder, String fileName) throws FileNotFoundException {
+        if(rawContactsCollection == null) {
+            rawContactsCollection = new GridFS(rawDatabase, RAW_CONTACTS_COLLECTION_NAME);
+        }
+        FileInputStream inputStream = new FileInputStream(new File(folder + "/" + fileName));
+        GridFSInputFile gfsFile = rawContactsCollection.createFile(inputStream, fileName, true);
         gfsFile.save();
     }
 }
