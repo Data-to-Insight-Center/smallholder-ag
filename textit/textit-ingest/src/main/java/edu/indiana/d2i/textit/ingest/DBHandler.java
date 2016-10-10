@@ -1,5 +1,6 @@
 package edu.indiana.d2i.textit.ingest;
 
+import edu.indiana.d2i.textit.ingest.utils.EmailService;
 import edu.indiana.d2i.textit.ingest.utils.MongoDB;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -14,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
 import java.util.TimeZone;
@@ -31,6 +33,7 @@ public class DBHandler {
     public final String END_DATE;
     public final String START_DATE;
     public final String INTERVAL;
+    public final String EMAILS;
 
     private static Logger logger = Logger.getLogger(DBHandler.class);
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
@@ -40,6 +43,7 @@ public class DBHandler {
         this.END_DATE = properties.getProperty("end_date");;
         this.START_DATE = properties.getProperty("start_date");
         this.INTERVAL = properties.getProperty("interval");
+        EMAILS = properties.getProperty("notification.email.addresses");
         df.setTimeZone(TimeZone.getTimeZone("timezone"));
     }
 
@@ -66,6 +70,9 @@ public class DBHandler {
             statusObject.put(MongoDB.STATUS, MongoDB.FAILURE);
             statusObject.put(MongoDB.MESSAGE, e.getMessage());
             MongoDB.addStatus(statusObject.toString());
+
+            EmailService.sendNotificatinEmail(Arrays.asList(EMAILS.split("|")),
+                    "TextIt Ingestor Script failed to persist data in MongoDB : " + e.getMessage());
             return false;
         }
         statusObject.put(MongoDB.STATUS, MongoDB.SUCCESS);

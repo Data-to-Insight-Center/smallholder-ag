@@ -1,6 +1,7 @@
 package edu.indiana.d2i.textit.ingest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.indiana.d2i.textit.ingest.utils.EmailService;
 import edu.indiana.d2i.textit.ingest.utils.MongoDB;
 import edu.indiana.d2i.textit.ingest.utils.TextItUtils;
 import org.apache.log4j.Logger;
@@ -35,6 +36,7 @@ public final class TextItClient {
 	private final String END_DATE;
 	private final String TEXT_TIME;
 	private final String INTERVAL;
+	private final String EMAILS;
     List<String> runsOfFlowsCreated;
 
     public static final String FLOWS = "flows";
@@ -133,7 +135,7 @@ public final class TextItClient {
 	}
 
 	private TextItClient(String token, String outputDir, String epr, int workerNum, String timezone, int no_of_days,
-                         String start_date, String end_date, String textTime, String interval) throws IOException {
+                         String start_date, String end_date, String textTime, String interval, String emails) throws IOException {
         df.setTimeZone(TimeZone.getTimeZone("timezone"));
 
         TOKEN = token;
@@ -144,6 +146,7 @@ public final class TextItClient {
         TEXT_TIME = textTime;
 		OUTPUT_DIRECTORY = outputDir;
         INTERVAL = interval;
+        EMAILS = emails;
 
 		String textitEpr = epr;
 		WORKER_NUM = workerNum;
@@ -406,13 +409,14 @@ public final class TextItClient {
         String start_date = properties.getProperty("start_date");
         String end_date = properties.getProperty("end_date");
         String interval = properties.getProperty("interval");
+        String emails = properties.getProperty("notification.email.addresses");
 
         String textTime = "00:00:00.000";
         if (properties.getProperty("text.time") != null) {
             textTime = properties.getProperty("text.time");
         }
 		TextItClient instance = new TextItClient(token, outputDir, textitEpr,
-				workerNum, timezone, no_of_days, start_date, end_date, textTime, interval);
+				workerNum, timezone, no_of_days, start_date, end_date, textTime, interval, emails);
 		return instance;
 	}
 
@@ -445,6 +449,9 @@ public final class TextItClient {
             // update runs status
             statusObject.put(MongoDB.TYPE, RUNS);
             MongoDB.addStatus(statusObject.toString());
+
+            EmailService.sendNotificatinEmail(Arrays.asList(EMAILS.split("|")),
+                    "TextIt Ingestor Script failed to download Flows : " + e.getMessage());
             return status;
         }
         statusObject.put(MongoDB.STATUS, MongoDB.SUCCESS);
@@ -462,6 +469,9 @@ public final class TextItClient {
             statusObject.put(MongoDB.TYPE, RUNS);
             statusObject.put(MongoDB.MESSAGE, "Failed to download Contacts hence halted");
             MongoDB.addStatus(statusObject.toString());
+
+            EmailService.sendNotificatinEmail(Arrays.asList(EMAILS.split("|")),
+                    "TextIt Ingestor Script failed to download Contacts : " + e.getMessage());
             return status;
         }
         MongoDB.addStatus(statusObject.toString());
@@ -471,8 +481,8 @@ public final class TextItClient {
         List<String> flowsOfUpdatedRuns = null;
         try {
             downloadData(null, createdFlows); // download runs for created flows
-            Map<String, List<String>> map = getUpdatedRuns();
             if(!INTERVAL.equals(MongoDB.DURATION)) { // if the script is run to collect data not for a specific duration
+                Map<String, List<String>> map = getUpdatedRuns();
                 updatedRuns = map.get("runs"); // list of updated runs
                 flowsOfUpdatedRuns = map.get("flows"); // list of flows of updated runs
 
@@ -488,6 +498,9 @@ public final class TextItClient {
             statusObject.put(MongoDB.STATUS, MongoDB.FAILURE);
             statusObject.put(MongoDB.MESSAGE, e.getMessage());
             MongoDB.addStatus(statusObject.toString());
+
+            EmailService.sendNotificatinEmail(Arrays.asList(EMAILS.split("|")),
+                    "TextIt Ingestor Script failed to download created/modified Runs : " + e.getMessage());
             return status;
         }
         MongoDB.addStatus(statusObject.toString());
