@@ -1,7 +1,7 @@
 package edu.indiana.d2i.textit.ingest;
 
-import edu.indiana.d2i.textit.ingest.utils.EmailService;
-import edu.indiana.d2i.textit.ingest.utils.MongoDB;
+import edu.indiana.d2i.textit.utils.EmailService;
+import edu.indiana.d2i.textit.utils.MongoDB;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONArray;

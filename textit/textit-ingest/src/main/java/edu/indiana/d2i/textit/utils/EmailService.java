@@ -1,4 +1,4 @@
-package edu.indiana.d2i.textit.ingest.utils;
+package edu.indiana.d2i.textit.utils;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;

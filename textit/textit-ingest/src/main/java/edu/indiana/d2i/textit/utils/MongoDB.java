@@ -1,4 +1,4 @@
-package edu.indiana.d2i.textit.ingest.utils;
+package edu.indiana.d2i.textit.utils;
 
 import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
