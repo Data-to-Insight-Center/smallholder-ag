@@ -54,6 +54,7 @@ public class MongoDB {
 
 
     private static MongoDatabase database = null;
+    private static MongoDatabase integratedDatabase = null;
     private static DB rawDatabase = null;
     private static MongoCollection<Document> flowsCollection = null;
     private static MongoCollection<Document> contactsCollection = null;
@@ -82,6 +83,24 @@ public class MongoDB {
         return database;
     }
 
+    public static synchronized MongoDatabase createIntegratedDatabase(String host, int port, String dbName, String username, String password) {
+        if (integratedDatabase == null) {
+            MongoClient client = null;
+            MongoClientOptions.Builder builder = MongoClientOptions.builder().serverSelectionTimeout(5000);
+            if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
+                MongoCredential credential = MongoCredential.createMongoCRCredential(username,
+                        dbName, password.toCharArray());
+                client = new MongoClient(new ServerAddress(host, port), Arrays.asList(credential), builder.build());
+            } else {
+                client = new MongoClient(new ServerAddress(host, port), builder.build());
+            }
+            client.getAddress();
+            integratedDatabase = client.getDatabase(dbName);
+            logger.info("Initialized database '" + integratedDatabase.getName() + "' with port " + port + " and host " + host);
+        }
+        return integratedDatabase;
+    }
+
     public static synchronized DB createRawDatabase(String host, int port, String dbName) {
         if (rawDatabase == null) {
             MongoClientOptions.Builder builder = MongoClientOptions.builder().serverSelectionTimeout(5000);
@@ -91,6 +110,14 @@ public class MongoDB {
             logger.info("Initialized database '" + rawDatabase.getName() + "' with port " + port + " and host " + host);
         }
         return rawDatabase;
+    }
+
+    public static MongoDatabase getIntegratedDatabase() {
+        return integratedDatabase;
+    }
+
+    public static MongoDatabase getDatabase() {
+        return database;
     }
 
     public static void addStatus(String status) {

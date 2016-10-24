@@ -20,13 +20,13 @@ import java.util.List;
  */
 public class AnalyzerUtils {
 
-    private SimpleDateFormat df_Z = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-    private SimpleDateFormat df_dmmy = new SimpleDateFormat("d MMMMM yyyy");
-    private SimpleDateFormat df_dmy = new SimpleDateFormat("d MMM yyyy");
+    private static SimpleDateFormat df_Z = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private static SimpleDateFormat df_dmmy = new SimpleDateFormat("d MMMMM yyyy");
+    private static SimpleDateFormat df_dmy = new SimpleDateFormat("d MMM yyyy");
 
     private static int daysBeforeFlowDeployment = 16;
 
-    public ArrayList<Document> getFlowsByDeploymentDate(MongoCollection<Document> flowsCollection,
+    public static ArrayList<Document> getFlowsByDeploymentDate(MongoCollection<Document> flowsCollection,
                                                         MongoCollection<Document> runsCollection,
                                                         Bson filter,  String fromDate, String toDate) throws ParseException {
 
