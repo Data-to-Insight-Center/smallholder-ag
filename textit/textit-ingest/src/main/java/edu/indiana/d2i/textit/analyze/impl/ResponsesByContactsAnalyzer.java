@@ -13,7 +13,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -75,6 +74,7 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
         MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.CONTACTS_COLLECTION_NAME);
         MongoCollection<Document> outputCollection = integratedDB.getCollection(COLLECTION_NAME);
 
+        // gobal map contact -> {week -> {label -> {responses}}}
         Map<String, HashMap<String, HashMap<String, ArrayList<String>>>> qMap = new HashMap<String, HashMap<String, HashMap<String, ArrayList<String>>>>();
 
         int countryCode = 0;
@@ -114,6 +114,7 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
         Date currBeg = null;
 
         ArrayList<String> weekLabels = new ArrayList<>();
+        //Map<String, ArrayList<String>> weekQuestionLabels = new HashMap<String, ArrayList<String>>();
 
         while(currEnd.getTime() > first.getTime()) {
 
@@ -145,6 +146,7 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
             //String nextLabel = cWeek.get(Calendar.YEAR) + " W" + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR))
             //+ " : " + df_dm.format(currBeg) + " - " + df_dm.format(currEnd);
             weekLabels.add(label);
+            //weekQuestionLabels.put(label, new ArrayList<String>());
 
             Bson flowsFilter = null;
             if(qType != null)
@@ -156,15 +158,6 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-
-           /* for (Document flowsDocument : flowsIter) {
-                JSONObject flow = new JSONObject();
-                flow.put("name", flowsDocument.get("name"));
-                flow.put("week", label);
-                flow.put("start_date", df_Z.format(currBeg));
-                flow.put("end_date", df_Z.format(currEnd));
-                array.put(flow);
-            }*/
 
             for (Document flowsDocument : flowsIter) {
                 String flow_uuid = (String) flowsDocument.get("uuid");
@@ -202,6 +195,9 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
                     ArrayList<Document> rulesetsArray = (ArrayList<Document>) rulesets;
                     for (Document rule : rulesetsArray) {
                         if (qType.contains(rule.getString("label"))) {
+                           // if(!weekQuestionLabels.get(label).contains(rule.getString("label"))) {
+                           //     weekQuestionLabels.get(label).add(rule.getString("label"));
+                           // }
                             qUuid.add(rule.getString("node"));
                         }
                     }
@@ -287,42 +283,31 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
 
         Collections.sort(weekLabels);
         for (String contact : qMap.keySet()) {
-            FindIterable<Document> contactsIter = contactsCollection.find(Filters.eq("uuid", contact));
-            Document contactDoc = contactsIter.first();
-            Document contactObj = new Document();
-            if (contactDoc != null && contactDoc.containsKey("name")) {
-                contactObj.put("name", contactDoc.get("name"));
-            }
-            if (contactDoc != null && contactDoc.containsKey("phone")) {
-                contactObj.put("phone", contactDoc.get("phone"));
-            }
-            contactObj.put("uuid", contact);
-            if(qType != null && qType.size() != 0) {
-                for (String weekLabel : weekLabels) {  // if qType is provided
-                    String answer = "-";
-                    if (qMap.get(contact).containsKey(weekLabel)) {
-                        HashMap<String, ArrayList<String>> answers = qMap.get(contact).get(weekLabel);
-                        int i = 0;
-                        for(ArrayList<String> answerArray : answers.values()){
-                            if(i == 0) {
-                                answer = StringUtils.join(answerArray, " | ");
-                            } else {
-                                answer += " | " + StringUtils.join(answerArray, " | ");
-                            }
-                            i++;
+            ArrayList<Document> docArray = new ArrayList<Document>();
+            for (String weekLabel : weekLabels) {  // if qType is provided
+                String answer = "-";
+                if (qMap.get(contact).containsKey(weekLabel)) {
+                    HashMap<String, ArrayList<String>> answers = qMap.get(contact).get(weekLabel);
+                    int i = 0;
+                    Document contactObj = new Document();
+                    contactObj.put("uuid", contact);
+                    contactObj.put("week", weekLabel.split(":")[0].trim());
+                    for (String qLabel : answers.keySet()) {
+                        ArrayList<String> answerArray = answers.get(qLabel);
+                        if (i == 0) {
+                            answer = StringUtils.join(answerArray, " | ");
+                        } else {
+                            answer += " | " + StringUtils.join(answerArray, " | ");
                         }
+                        i++;
+
+                        contactObj.put(qLabel, answer);
                     }
-                    contactObj.put(weekLabel.split(":")[0].trim(), answer);
+                    docArray.add(contactObj);
                 }
-            } else {
-                contactObj.put("results", new JSONObject(qMap.get(contact)));
             }
-            outputCollection.insertOne(contactObj);
+            outputCollection.insertMany(docArray);
         }
-
-
-//EmailService.sendNotificatinEmail(Arrays.asList(EMAILS.split("|")),
-        //"TextIt Ingestor Script failed to download created/modified Runs : " + e.getMessage());
 
     }
 }
