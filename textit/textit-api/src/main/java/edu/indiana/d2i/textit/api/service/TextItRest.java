@@ -6,6 +6,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.UpdateResult;
 import com.sun.jersey.api.client.ClientResponse;
 import edu.indiana.d2i.textit.api.utils.Constants;
 import edu.indiana.d2i.textit.api.utils.MongoDB;
@@ -94,9 +95,51 @@ public class TextItRest {
         MongoCursor<Document> cursor = iter.iterator();
         JSONArray array = new JSONArray();
         while (cursor.hasNext()) {
-            array.put(new JSONObject(cursor.next().toJson()));
+            array.put(new JSONObject(cursor.next().toJson()).put("country", country));
         }
         return Response.ok(array.toString()).cacheControl(control).build();
+    }
+
+
+    @POST
+    @Path("/{country}/flows")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateFlows(@PathParam("country") String country, String jsonString) {
+        control.setNoCache(true);
+
+        JSONObject flowObject = new JSONObject(jsonString);
+        String uuid = flowObject.getString("uuid");
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.flowsCollectionName);
+
+        if(flowsCollection.count(new BasicDBObject("uuid", uuid)) == 0 ) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JSONObject().put("error", "Flow with UUID " + uuid + " does not exist").toString())
+                    .cacheControl(control).build();
+        }
+
+        String creator = flowObject.has("creator") ? flowObject.getString("creator") : "";
+        String flowType = flowObject.has("flow_type") ? flowObject.getString("flow_type") : "";
+        String run_start_date = flowObject.has("run_start_date") ? flowObject.getString("run_start_date") : "";
+        String run_end_date = flowObject.has("run_end_date") ? flowObject.getString("run_end_date") : "";
+        String run_start_time = flowObject.has("run_start_time") ? flowObject.getString("run_start_time") : "";
+        String run_end_time = flowObject.has("run_end_time") ? flowObject.getString("run_end_time") : "";
+
+        BasicDBObject newDocument = new BasicDBObject();
+        newDocument.append("$set", new BasicDBObject()
+                .append("creator", creator).append("flowType", flowType)
+                .append("run_start_date", run_start_date).append("run_end_date", run_end_date)
+                .append("run_start_time", run_start_time).append("run_end_time", run_end_time));
+
+        UpdateResult updateResult = flowsCollection.updateOne(new BasicDBObject("uuid", uuid), newDocument);
+        if(updateResult.wasAcknowledged()) {
+            return Response.ok(new JSONObject().put("response", "Flow with UUID" + uuid + " successfully updated").toString()).cacheControl(control).build();
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JSONObject().put("error", "Flow with UUID " + uuid + " couldn't updated successfully").toString())
+                    .cacheControl(control).build();
+        }
     }
 
     @GET
