@@ -125,12 +125,14 @@ public class TextItRest {
         String run_end_date = flowObject.has("run_end_date") ? flowObject.getString("run_end_date") : "";
         String run_start_time = flowObject.has("run_start_time") ? flowObject.getString("run_start_time") : "";
         String run_end_time = flowObject.has("run_end_time") ? flowObject.getString("run_end_time") : "";
+        String season = flowObject.has("season") ? flowObject.getString("season") : "";
 
         BasicDBObject newDocument = new BasicDBObject();
         newDocument.append("$set", new BasicDBObject()
                 .append("creator", creator).append("flowType", flowType)
                 .append("run_start_date", run_start_date).append("run_end_date", run_end_date)
-                .append("run_start_time", run_start_time).append("run_end_time", run_end_time));
+                .append("run_start_time", run_start_time).append("run_end_time", run_end_time)
+                .append("season", season));
 
         UpdateResult updateResult = flowsCollection.updateOne(new BasicDBObject("uuid", uuid), newDocument);
         if(updateResult.wasAcknowledged()) {
