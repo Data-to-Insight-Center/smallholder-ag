@@ -36,6 +36,7 @@ public class TextItRest {
     private SimpleDateFormat df_Z = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private SimpleDateFormat df_SSS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private SimpleDateFormat df_dd = new SimpleDateFormat("yyyy-MM-dd");
+    private SimpleDateFormat df_tt = new SimpleDateFormat("HH:mm:ss.SSS'Z'");
     private SimpleDateFormat df_dmmy = new SimpleDateFormat("d MMMMM yyyy");
     private SimpleDateFormat df_dmy = new SimpleDateFormat("d MMM yyyy");
     private SimpleDateFormat df_dm = new SimpleDateFormat("d MMM");
@@ -86,12 +87,7 @@ public class TextItRest {
         }
 
         FindIterable<Document> iter = flowsCollection.find(andQuery).sort(new Document("created_on",-1));;
-        iter.projection(new Document("flows", 1)
-                .append("uuid", 1).append("name", 1)
-                .append("archived", 1).append("labels", 1)
-                .append("created_on", 1).append("expires", 1)
-                .append("runs", 1).append("completed_runs", 1)
-                .append("rulesets", 1).append("_id", 0));
+        iter.projection(new Document("_id", 0));
         MongoCursor<Document> cursor = iter.iterator();
         JSONArray array = new JSONArray();
         while (cursor.hasNext()) {
@@ -108,6 +104,11 @@ public class TextItRest {
         control.setNoCache(true);
 
         JSONObject flowObject = new JSONObject(jsonString);
+        if(!flowObject.has("uuid") || !(flowObject.get("uuid") instanceof String)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "invalid Flow UUID").toString())
+                    .cacheControl(control).build();
+        }
         String uuid = flowObject.getString("uuid");
 
         MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
@@ -119,22 +120,16 @@ public class TextItRest {
                     .cacheControl(control).build();
         }
 
-        String creator = flowObject.has("creator") ? flowObject.getString("creator") : "";
-        String flowType = flowObject.has("flow_type") ? flowObject.getString("flow_type") : "";
-        String run_start_date = flowObject.has("run_start_date") ? flowObject.getString("run_start_date") : "";
-        String run_end_date = flowObject.has("run_end_date") ? flowObject.getString("run_end_date") : "";
-        String run_start_time = flowObject.has("run_start_time") ? flowObject.getString("run_start_time") : "";
-        String run_end_time = flowObject.has("run_end_time") ? flowObject.getString("run_end_time") : "";
-        String season = flowObject.has("season") ? flowObject.getString("season") : "";
+        BasicDBObject newFlowDocument = null;
+        try {
+            newFlowDocument = buildFlowObject(flowObject);
+        } catch (RuntimeException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JSONObject().put("error", e.getMessage()).toString())
+                    .cacheControl(control).build();
+        }
 
-        BasicDBObject newDocument = new BasicDBObject();
-        newDocument.append("$set", new BasicDBObject()
-                .append("creator", creator).append("flowType", flowType)
-                .append("run_start_date", run_start_date).append("run_end_date", run_end_date)
-                .append("run_start_time", run_start_time).append("run_end_time", run_end_time)
-                .append("season", season));
-
-        UpdateResult updateResult = flowsCollection.updateOne(new BasicDBObject("uuid", uuid), newDocument);
+        UpdateResult updateResult = flowsCollection.updateOne(new BasicDBObject("uuid", uuid), newFlowDocument);
         if(updateResult.wasAcknowledged()) {
             return Response.ok(new JSONObject().put("response", "Flow with UUID" + uuid + " successfully updated").toString()).cacheControl(control).build();
         } else {
@@ -142,6 +137,85 @@ public class TextItRest {
                     .entity(new JSONObject().put("error", "Flow with UUID " + uuid + " couldn't updated successfully").toString())
                     .cacheControl(control).build();
         }
+    }
+
+    private BasicDBObject buildFlowObject(JSONObject flowObject) throws RuntimeException {
+
+        List<String> flowTypes = Arrays.asList("test", "pilot", "regular", "unused");
+        List<String> seasons = Arrays.asList("planting", "harvesting", "growing", "inter-season");
+        BasicDBObject basicObject = new BasicDBObject();
+
+        if(flowObject.has("creator") && flowObject.get("creator") != null) {
+            if (!(flowObject.get("creator") instanceof String) || flowObject.getString("creator").equals(""))
+                throw new RuntimeException("Creator Field is not a valid String");
+            else
+                basicObject.append("creator", flowObject.getString("creator"));
+        }
+
+        if(flowObject.has("flow_type") && flowObject.get("flow_type") != null) {
+            if (!(flowObject.get("flow_type") instanceof String) || flowObject.getString("flow_type").equals("")
+                    || !flowTypes.contains(flowObject.getString("flow_type")))
+                throw new RuntimeException("Flow Type Field is not a valid String");
+            else
+                basicObject.append("flow_type", flowObject.getString("flow_type"));
+        }
+
+        if(flowObject.has("season") && flowObject.get("season") != null) {
+            if (!(flowObject.get("season") instanceof String) || flowObject.getString("season").equals("")
+                    || !seasons.contains(flowObject.getString("season")))
+                throw new RuntimeException("Season Field is not a valid String");
+            else
+                basicObject.append("season", flowObject.getString("season"));
+        }
+
+        if (flowObject.has("run_start_date") && flowObject.get("run_start_date") != null) {
+            if(!(flowObject.get("run_start_date") instanceof String) || flowObject.get("run_start_date").equals(""))
+                throw new RuntimeException("Run Start Date is not a valid String");
+            try {
+                df_dd.parse(flowObject.getString("run_start_date"));
+            } catch (ParseException e) {
+                throw new RuntimeException("Run Start Date format should be yyyy-MM-dd");
+            }
+            basicObject.append("run_start_date", flowObject.getString("run_start_date"));
+        }
+
+        if (flowObject.has("run_end_date") && flowObject.get("run_end_date") != null) {
+            if(!(flowObject.get("run_end_date") instanceof String) || flowObject.get("run_end_date").equals(""))
+                throw new RuntimeException("Run End Date is not a valid String");
+            try {
+                df_dd.parse(flowObject.getString("run_end_date"));
+            } catch (ParseException e) {
+                throw new RuntimeException("Run End Date format should be yyyy-MM-dd");
+            }
+            basicObject.append("run_end_date", flowObject.getString("run_end_date"));
+        }
+
+        if (flowObject.has("run_start_time") && flowObject.get("run_start_time") != null) {
+            if(!(flowObject.get("run_start_time") instanceof String) || flowObject.get("run_start_time").equals(""))
+                throw new RuntimeException("Run Start Time is not a valid String");
+            try {
+                df_tt.parse(flowObject.getString("run_start_time"));
+            } catch (ParseException e) {
+                throw new RuntimeException("Run Start Time format should be HH:mm:ss.SSS'Z'");
+            }
+            basicObject.append("run_start_time", flowObject.getString("run_start_time"));
+        }
+
+        if (flowObject.has("run_end_time") && flowObject.get("run_end_time") != null) {
+            if(!(flowObject.get("run_end_time") instanceof String) || flowObject.get("run_end_time").equals(""))
+                throw new RuntimeException("Run End Time is not a valid String");
+            try {
+                df_tt.parse(flowObject.getString("run_end_time"));
+            } catch (ParseException e) {
+                throw new RuntimeException("Run End Time format should be HH:mm:ss.SSS'Z'");
+            }
+            basicObject.append("run_end_time", flowObject.getString("run_end_time"));
+        }
+
+        BasicDBObject newFlowDocument = new BasicDBObject();
+        newFlowDocument.append("$set", basicObject);
+
+        return newFlowDocument;
     }
 
     @GET
