@@ -1402,6 +1402,85 @@ public class TextItRest {
     @Path("/{country}/contactresponses")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getResponsesByContacts(@PathParam("country") String country,
+                                           @QueryParam("qtype") List<String> qType,
+                                           @QueryParam("from") String fromDate,
+                                           @QueryParam("to") String toDate) {
+
+        if(qType == null || qType.size() == 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "'qtype' is a mandatory query parameter").toString())
+                    .cacheControl(control).build();
+        }
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country + "_integrated");
+        MongoCollection<Document> statCollection = db.getCollection("responses_by_contacts");
+
+        String firstWeek = null;
+        String lastWeek = null;
+        Date last = null;
+        Calendar cWeek = Calendar.getInstance();
+        cWeek.setMinimalDaysInFirstWeek(7);
+
+        try {
+            if(fromDate != null) {
+                Date first = df_Z.parse(fromDate);
+                cWeek.setTime(first);
+                firstWeek = cWeek.get(Calendar.YEAR) + " W" + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR));
+            } else {
+                FindIterable<Document> iter = statCollection.find().sort(new Document("week",1)).limit(1);;
+                iter.projection(new Document("week", 1).append("_id", 0));
+                firstWeek = iter.first().get("week").toString();
+            }
+            if(toDate != null) {
+                last = df_Z.parse(toDate);
+            } else {
+                last = new Date();
+            }
+            cWeek.setTime(last);
+            lastWeek = cWeek.get(Calendar.YEAR) + " W" + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR));
+        } catch (ParseException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "'to'/'from' format should be yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").toString())
+                    .cacheControl(control).build();
+        }
+
+        JSONArray array = new JSONArray();
+        FindIterable<Document> runsIter = statCollection.find(Filters.and(Filters.exists(qType.get(0)), Filters.gte("week", firstWeek), Filters.lte("week", lastWeek)));
+        runsIter.projection(new Document("_id", 0));
+        MongoCursor<Document> runsCursor = runsIter.iterator();
+
+        Map<String, Map<String, String>> qMap = new HashMap<String, Map<String, String>>();
+
+        while (runsCursor.hasNext()) {
+            Document statDocument = runsCursor.next();
+            String uuid = statDocument.getString("uuid");
+            String week = statDocument.getString("week");
+            String value = statDocument.getString(qType.get(0));
+            if(qMap.containsKey(uuid)) {
+                Map<String, String> weekMap = qMap.get(uuid);
+                weekMap.put(week, value);
+            } else {
+                Map<String, String> weekMap = new HashMap<>();
+                weekMap.put(week, value);
+                qMap.put(uuid, weekMap);
+            }
+            //array.put(statDocument);
+        }
+
+        for(String uuid : qMap.keySet()) {
+            JSONObject qObject = new JSONObject(qMap.get(uuid));
+            qObject.put("uuid", uuid);
+            array.put(qObject);
+        }
+
+        return Response.ok(array.toString()).cacheControl(control).build();
+
+    }
+
+    @GET
+    @Path("/{country}/contactresponses2")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getResponsesByContacts2(@PathParam("country") String country,
                                             @QueryParam("qtype") List<String> qType,
                                             @QueryParam("from") String fromDate,
                                             @QueryParam("to") String toDate) {
