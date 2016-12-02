@@ -312,6 +312,112 @@ public class TextItRest {
         return Response.ok(array.toString()).cacheControl(control).build();
     }
 
+    @POST
+    @Path("/{country}/contacts")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateContacts(@PathParam("country") String country, String jsonString) {
+        control.setNoCache(true);
+
+        JSONObject contactsObject = new JSONObject(jsonString);
+        if(!contactsObject.has("uuid") || !(contactsObject.get("uuid") instanceof String)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "invalid Contact UUID").toString())
+                    .cacheControl(control).build();
+        }
+        String uuid = contactsObject.getString("uuid");
+
+        MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
+        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollectionName);
+
+        if(contactsCollection.count(new BasicDBObject("uuid", uuid)) == 0 ) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JSONObject().put("error", "Contact with UUID " + uuid + " does not exist").toString())
+                    .cacheControl(control).build();
+        }
+
+        BasicDBObject newContactDocument = null;
+        try {
+            newContactDocument = buildContactObject(contactsObject);
+        } catch (RuntimeException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JSONObject().put("error", e.getMessage()).toString())
+                    .cacheControl(control).build();
+        }
+
+        UpdateResult updateResult = contactsCollection.updateOne(new BasicDBObject("uuid", uuid), newContactDocument);
+        if(updateResult.wasAcknowledged()) {
+            return Response.ok(new JSONObject().put("response", "Contact with UUID" + uuid + " successfully updated").toString()).cacheControl(control).build();
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JSONObject().put("error", "Contact with UUID " + uuid + " couldn't updated successfully").toString())
+                    .cacheControl(control).build();
+        }
+    }
+
+    private BasicDBObject buildContactObject(JSONObject contactsObject) throws RuntimeException {
+
+        BasicDBObject basicObject = new BasicDBObject();
+
+        if(contactsObject.has("network") && contactsObject.get("network") != null) {
+            if (!(contactsObject.get("network") instanceof String) || contactsObject.getString("network").equals(""))
+                throw new RuntimeException("Network Field is not a valid String");
+            else
+                basicObject.append("network", contactsObject.getString("network"));
+        }
+
+        if(contactsObject.has("longitude") && contactsObject.get("longitude") != null) {
+            if (!(contactsObject.get("longitude") instanceof String) || contactsObject.getString("longitude").equals(""))
+                throw new RuntimeException("Longitude Field is not a valid String");
+            else
+                basicObject.append("longitude", contactsObject.getString("longitude"));
+        }
+
+        if(contactsObject.has("latitude") && contactsObject.get("latitude") != null) {
+            if (!(contactsObject.get("latitude") instanceof String) || contactsObject.getString("latitude").equals(""))
+                throw new RuntimeException("Latitude Field is not a valid String");
+            else
+                basicObject.append("latitude", contactsObject.getString("latitude"));
+        }
+
+        if(contactsObject.has("hh_id") && contactsObject.get("hh_id") != null) {
+            if (!(contactsObject.get("hh_id") instanceof String) || contactsObject.getString("hh_id").equals(""))
+                throw new RuntimeException("House Hold ID Field is not a valid String");
+            else
+                basicObject.append("hh_id", contactsObject.getString("hh_id"));
+        }
+
+        if(contactsObject.has("village") && contactsObject.get("village") != null) {
+            if (!(contactsObject.get("village") instanceof String) || contactsObject.getString("village").equals(""))
+                throw new RuntimeException("Village Field is not a valid String");
+            else
+                basicObject.append("village", contactsObject.getString("village"));
+        }
+
+        if(contactsObject.has("camp") && contactsObject.get("camp") != null) {
+            if (!(contactsObject.get("camp") instanceof String) || contactsObject.getString("camp").equals(""))
+                throw new RuntimeException("Camp Field is not a valid String");
+            else
+                basicObject.append("camp", contactsObject.getString("camp"));
+        }
+
+        if (contactsObject.has("date_enrolled") && contactsObject.get("date_enrolled") != null) {
+            if(!(contactsObject.get("date_enrolled") instanceof String) || contactsObject.get("date_enrolled").equals(""))
+                throw new RuntimeException("Date Enrolled is not a valid String");
+            try {
+                df_dd.parse(contactsObject.getString("date_enrolled"));
+            } catch (ParseException e) {
+                throw new RuntimeException("Date Enrolled format should be yyyy-MM-dd");
+            }
+            basicObject.append("date_enrolled", contactsObject.getString("date_enrolled"));
+        }
+
+        BasicDBObject newFlowDocument = new BasicDBObject();
+        newFlowDocument.append("$set", basicObject);
+
+        return newFlowDocument;
+    }
+
+
     @GET
     @Path("/{country}/contactstats")
     @Produces(MediaType.APPLICATION_JSON)
