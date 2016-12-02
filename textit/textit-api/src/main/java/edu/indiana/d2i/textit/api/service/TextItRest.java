@@ -10,13 +10,14 @@ import com.mongodb.client.result.UpdateResult;
 import com.sun.jersey.api.client.ClientResponse;
 import edu.indiana.d2i.textit.api.utils.Constants;
 import edu.indiana.d2i.textit.api.utils.MongoDB;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.apache.commons.lang3.StringUtils;
+
 import javax.ws.rs.*;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.MediaType;
@@ -154,18 +155,18 @@ public class TextItRest {
 
         if(flowObject.has("flow_type") && flowObject.get("flow_type") != null) {
             if (!(flowObject.get("flow_type") instanceof String) || flowObject.getString("flow_type").equals("")
-                    || !flowTypes.contains(flowObject.getString("flow_type")))
+                    || !flowTypes.contains(flowObject.getString("flow_type").toLowerCase()))
                 throw new RuntimeException("Flow Type Field is not a valid String");
             else
-                basicObject.append("flow_type", flowObject.getString("flow_type"));
+                basicObject.append("flow_type", flowObject.getString("flow_type").toLowerCase());
         }
 
         if(flowObject.has("season") && flowObject.get("season") != null) {
             if (!(flowObject.get("season") instanceof String) || flowObject.getString("season").equals("")
-                    || !seasons.contains(flowObject.getString("season")))
+                    || !seasons.contains(flowObject.getString("season").toLowerCase()))
                 throw new RuntimeException("Season Field is not a valid String");
             else
-                basicObject.append("season", flowObject.getString("season"));
+                basicObject.append("season", flowObject.getString("season").toLowerCase());
         }
 
         if (flowObject.has("run_start_date") && flowObject.get("run_start_date") != null) {
