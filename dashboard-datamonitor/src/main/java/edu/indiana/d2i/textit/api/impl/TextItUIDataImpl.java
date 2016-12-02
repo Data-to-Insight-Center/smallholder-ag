@@ -79,6 +79,22 @@ public class TextItUIDataImpl extends TextItUIData {
                 .getEntity(new GenericType<String>() {})).cacheControl(control).build();
 	}
 
+	@POST
+	@Path("/{country}/flows")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response updateFlows(@PathParam("country") String country, String jsonString) {
+		WebResource webResource = resource();
+
+		ClientResponse response = webResource.path(country + "/flows")
+				.accept("application/json")
+				.type("application/json")
+				.post(ClientResponse.class, jsonString);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
+
 	@GET
 	@Path("/{country}/lastweekflows")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -138,6 +154,22 @@ public class TextItUIDataImpl extends TextItUIData {
 				.accept("application/json")
 				.type("application/json")
 				.get(ClientResponse.class);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
+
+	@POST
+	@Path("/{country}/contacts")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response updateContacts(@PathParam("country") String country, String jsonString) {
+		WebResource webResource = resource();
+
+		ClientResponse response = webResource.path(country + "/contacts")
+				.accept("application/json")
+				.type("application/json")
+				.post(ClientResponse.class, jsonString);
 
 		return Response.status(response.getStatus()).entity(response
 				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
