@@ -298,12 +298,7 @@ public class TextItRest {
         }
 
         FindIterable<Document> iter = contactsCollection.find(andQuery);
-        iter.projection(new Document("contacts", 1)
-                .append("uuid", 1).append("name", 1)
-                .append("language", 1).append("phone", 1)
-                .append("group_uuids", 1).append("latitude", 1)
-                .append("longitude", 1).append("camp", 1)
-                .append("modified_on", 1).append("_id", 0));
+        iter.projection(new Document("_id", 0));
         MongoCursor<Document> cursor = iter.iterator();
         JSONArray array = new JSONArray();
         while (cursor.hasNext()) {
