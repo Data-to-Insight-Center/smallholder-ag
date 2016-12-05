@@ -1,6 +1,7 @@
 //var editor; // use a global for the submit and return data rendering in the contact
 var otable;
 var dataTab;
+var textit_prefix = "./api/zambia";
 $(document).ready(function() {
 	$.fn.dataTable.ext.errMode = 'none';
 	
@@ -123,7 +124,7 @@ $(document).ready(function() {
 				$.ajax({
 					type: "POST",
 					//in this method insert the data in your database
-					url: "http://localhost:8080/dashboard-datamonitor/api/zambia/contacts",
+					url: textit_prefix + "/contacts",
 					contentType: "application/json; charset=utf-8",
 					data: JSON.stringify(dataArray),
 					
@@ -142,7 +143,7 @@ $(document).ready(function() {
     $('#contact').DataTable( {
         dom: "Bfrtip",
         ajax: {
-			url: "http://localhost:8080/dashboard-datamonitor/api/zambia/contacts",
+			url: textit_prefix + "/contacts",
             dataSrc : ""
 		},
         columns: [
