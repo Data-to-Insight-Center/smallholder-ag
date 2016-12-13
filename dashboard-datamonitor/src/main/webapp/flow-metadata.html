@@ -15,6 +15,7 @@
 <script type="text/javascript" src="media/js/datatables/editor.bootstrap.min.js"></script> 
 <script type="text/javascript" src="media/js/moment.min.js"></script>
 <script type="text/javascript" src="media/js/flaws.js"></script>  
+<script type="text/javascript" src="media/js/moment-timezone.js"></script>
 
 <link href="media/css/bootstrap.min.css" rel="stylesheet">
 <link href="media/css/font-awesome.min.css" rel="stylesheet">
@@ -25,8 +26,10 @@
 
 <style>
 table.dataTable td > i {
-        margin-left: 0.5em;
-    }
+    margin-left: 0.5em;
+}.uuid_hide { 
+	width: 1% !important;color:#ffffff; display:none;
+}
 </style>
 </head>
 
@@ -41,33 +44,33 @@ table.dataTable td > i {
         <thead>
             <tr>
             	<th></th>
-                <th width="1%">Flow UUID</th>
-                <th width="13%">Flow Name</th>
+                <th>Flow UUID</th>
+                <th width="15%">Flow Name</th>
                 <th style="display:none;">Total Runs</th>
                 <th style="display:none;">Completed Runs</th>
-                <th width="13%">Created Date</th>
+                <th width="15%">Created Date</th>
                 <th style="display:none;">Country</th>
-                <th width="13%">Season<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Planting, Growing, Harvesting, Inter-Season</span></th>
-                <th width="13%">Creator<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Jacob</span></th>
-                <th width="13%">Flow Type<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Test, Pilot, Regular, Unused</span></th> 
-                <th width="13%">Run Start Date<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: 2016-10-15 (yyyy/mm/dd)</span></th>
-                <th width="13%">Run End Date<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: 2016-10-22 (yyyy/mm/dd)</span></th>             
+                <th width="14%">Season<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Planting, Growing, Harvesting, Inter-Season</span></th>
+                <th width="14%">Creator<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Jacob</span></th>
+                <th width="14%">Flow Type<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Regular, Test, Deprecated, Archived</span></th> 
+                <th width="14%">Run Start Date<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: November 27th 2016 (MM DD YYYY)</span></th>
+                <th width="14%">Run End Date<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: December 4th 2016 (MM DD YYYY)</span></th>             
             </tr>
         </thead>
         <tfoot>
             <tr>
             	<th></th>
-                <th width="1%">Flow UUID</th>
-                <th width="13%">Flow Name</th>
+                <th>Flow UUID</th>
+                <th width="15%">Flow Name</th>
                 <th style="display:none;">Total Runs</th>
                 <th style="display:none;">Completed Runs</th>
-                <th width="13%">Created Date</th>
+                <th width="15%">Created Date</th>
                 <th style="display:none;">Country</th>
-                <th width="13%">Season<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Planting, Growing, Harvesting, Inter-Season</span></th>
-                <th width="13%">Creator<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Jacob</span></th>
-                <th width="13%">Flow Type<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Test, Pilot, Regular, Unused</span></th> 
-                <th width="13%">Run Start Date<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: 2016-10-15 (yyyy/mm/dd)</span></th>
-                <th width="13%">Run End Date<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: 2016-10-22 (yyyy/mm/dd)</span></th>              
+                <th width="14%">Season<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Planting, Growing, Harvesting, Inter-Season</span></th>
+                <th width="14%">Creator<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Jacob</span></th>
+                <th width="14%">Flow Type<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Regular, Test, Deprecated, Archived</span></th> 
+                <th width="14%">Run Start Date<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: November 27th 2016 (MM DD YYYY)</span></th>
+                <th width="14%">Run End Date<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: December 4th 2016 (MM DD YYYY)</span></th>              
             </tr>
         </tfoot>
     </table>

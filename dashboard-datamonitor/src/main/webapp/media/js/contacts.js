@@ -16,6 +16,14 @@ $(document).ready(function() {
                 name: "name",
 				type: "readonly"
             }, {
+                label: "Phone No:",
+                name: "phone",
+				type: "readonly"
+            }, {
+                label: "Country:",
+                name: "country",
+				type: "readonly"
+            }, {
                 label: "Date Enrolled:",
                 name: "date_enrolled",
 				type: 'datetime',
@@ -24,7 +32,12 @@ $(document).ready(function() {
             }, {
                 label: "Network:",
                 name: "network",
-				fieldInfo: "Ex: Network-1"
+				fieldInfo: "Ex: Network-1",
+				type: "readonly"
+            }, {
+                label: "Enrollment Status:",
+                name: "enroll_status",
+				fieldInfo: "Ex: Enrolled, Disenrolled"
             }, {
                 label: "Longitude:",
                 name: "longitude",
@@ -60,17 +73,18 @@ $(document).ready(function() {
 				
 				var date_enrolled = $("#DTE_Field_date_enrolled").val();		
 				var latitude = $("#DTE_Field_latitude").val();
-				var network = $("#DTE_Field_network").val();
+				//var network = $("#DTE_Field_network").val();
 				var longitude = $("#DTE_Field_longitude").val();
 				var hh_id = $("#DTE_Field_hh_id").val();
 				var village = $("#DTE_Field_village").val();
 				var camp = $("#DTE_Field_camp").val();
+				var enroll_status = $("#DTE_Field_enroll_status").val();
 				
 				var uuid = $(this).closest('tr').find('td:eq(1)').text();
 				
 				
 				if(date_enrolled==undefined){
-					date_enrolled = $(this).closest('tr').find('td:eq(3)').text();
+					date_enrolled = $(this).closest('tr').find('td:eq(4)').text();
 					
 					if(date_enrolled==""){
 					contact_date_enrolled = "";
@@ -86,18 +100,18 @@ $(document).ready(function() {
 					contact_date_enrolled = contact_date_enrolled_sa.split("T")[0];
 					contact_time_enrolled = contact_date_enrolled_sa.split("T")[1];
 				
-				}if(network==undefined){
-					network = $(this).closest('tr').find('td:eq(4)').text();
+				}if(enroll_status==undefined){
+					enroll_status = $(this).closest('tr').find('td:eq(5)').text();
 				}if(longitude==undefined){
-					longitude = $(this).closest('tr').find('td:eq(5)').text();
+					longitude = $(this).closest('tr').find('td:eq(6)').text();
 				}if(latitude==undefined){
-					latitude = $(this).closest('tr').find('td:eq(6)').text();
+					latitude = $(this).closest('tr').find('td:eq(7)').text();
 				}if(hh_id==undefined){
-					hh_id = $(this).closest('tr').find('td:eq(7)').text();
+					hh_id = $(this).closest('tr').find('td:eq(8)').text();
 				}if(village==undefined){
-					village = $(this).closest('tr').find('td:eq(8)').text();
+					village = $(this).closest('tr').find('td:eq(9)').text();
 				}if(camp==undefined){
-					camp = $(this).closest('tr').find('td:eq(9)').text();
+					camp = $(this).closest('tr').find('td:eq(10)').text();
 				}
 				
 				var dataArray = {};
@@ -105,10 +119,10 @@ $(document).ready(function() {
 				
 				if (latitude != ""){
 					dataArray['latitude'] = latitude;
-				}if (network != ""){
-					dataArray['network'] = network;
 				}if (longitude != ""){
 					dataArray['longitude'] = longitude;
+				}if (enroll_status != ""){
+					dataArray['enroll_status'] = enroll_status;
 				}if (contact_date_enrolled != ""){
 					dataArray['date_enrolled'] = contact_date_enrolled;
 				}if (contact_time_enrolled != ""){
@@ -153,10 +167,21 @@ $(document).ready(function() {
                 className: 'select-checkbox',
                 orderable: false
             },
-			{ data: "uuid"},
+			{ data: "uuid", "sClass":"uuid_hide"},
 			{ data: "name" },
-			{ data: "date_enrolled" },
-			{ data: "network"},
+			{ data: "phone" },
+			{ data: "country", "visible": false },
+			{ data: "date_enrolled",
+			 "render": function (data) {
+				if (data != undefined){
+					var mom_date = moment(data);
+					var new_date = mom_date.tz('Africa/Johannesburg').format('MMMM Do YYYY');
+        			return (new_date);
+					}
+				}
+			},
+			{ data: "network", "visible": false },
+			{ data: "enroll_status" },
 			{ data: "longitude" },
 			{ data: "latitude" },
 			{ data: "hh_id" },

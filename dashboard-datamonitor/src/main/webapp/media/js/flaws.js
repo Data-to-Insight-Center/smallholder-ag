@@ -1,6 +1,7 @@
 //var editor; // use a global for the submit and return data rendering in the contact
 var otable;
 var dataTab;
+
 var textit_prefix = "./api/zambia";
 $(document).ready(function() {
 	$.fn.dataTable.ext.errMode = 'none';
@@ -42,7 +43,7 @@ $(document).ready(function() {
             }, {
                 label: "Flow Type:",
                 name: "flow_type",
-				fieldInfo: "Ex: Test, Pilot, Regular, Unused"
+				fieldInfo: "Ex: Regular, Test, Deprecated, Archived"
             }, {
                 label: 'Run Start Date:',
 				name: 'run_start_date',
@@ -169,17 +170,50 @@ $(document).ready(function() {
                 className: 'select-checkbox',
                 orderable: false
             },
-			{ data: "uuid"},
-			{ data: "name" },
+			{ data: "uuid", "sClass":"uuid_hide"},
+			{ data: "name" ,
+			"render": function (data) {
+        		var start_name = data.split("flow")[0];
+				var end_name = data.split("flow")[1];
+        		return (start_name + "flow" + "</br>" + end_name);
+    			}
+	 		},
 			{ data: "runs", "visible": false},
 			{ data: "completed_runs", "visible": false},
-			{ data: "created_on" },
+			{ data: "created_on",
+			"render": function (data) {
+				if (data != undefined){
+        		var date = new Date(data).toISOString();
+				var mom_date = moment(date);
+				var new_date = mom_date.tz('Africa/Johannesburg').format('MMMM Do YYYY, h:mm:ss a');
+				var final_date = new_date.split(",");
+        		return (final_date[0] + "," + "</br>" + final_date[1]);
+				}
+				
+    			}
+	 		},
 			{ data: "country", "visible": false},
 			{ data: "season" },
 			{ data: "creator" },
 			{ data: "flow_type" },
-			{ data: "run_start_date"},
-			{ data: "run_end_date"}
+			{ data: "run_start_date",
+			"render": function (data) {
+				if (data != undefined){
+				var mom_date = moment(data);
+				var new_date = mom_date.tz('Africa/Johannesburg').format('MMMM Do YYYY');
+        		return (new_date);
+				}
+				}
+			},
+			{ data: "run_end_date",
+			"render": function (data) {
+				if (data != undefined){
+				var mom_date = moment(data);
+				var new_date = mom_date.tz('Africa/Johannesburg').format('MMMM Do YYYY');
+        		return (new_date);
+				}
+				}
+			}
         ],
 		
         select: {

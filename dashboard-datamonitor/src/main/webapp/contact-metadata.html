@@ -15,6 +15,7 @@
 <script type="text/javascript" src="media/js/datatables/editor.bootstrap.min.js"></script> 
 <script type="text/javascript" src="media/js/contacts.js"></script>    
 <script type="text/javascript" src="media/js/moment.min.js"></script>
+<script type="text/javascript" src="media/js/moment-timezone.js"></script>
 
 <link href="media/css/bootstrap.min.css" rel="stylesheet">
 <link href="media/css/font-awesome.min.css" rel="stylesheet">
@@ -25,8 +26,10 @@
 
 <style>
 table.dataTable td > i {
-        margin-left: 0.5em;
-    }
+    margin-left: 0.5em;
+}.uuid_hide { 
+	width: 1% !important;color:#ffffff; display:none;
+}
 </style>
 </head>
 
@@ -41,29 +44,35 @@ table.dataTable td > i {
         <thead>
             <tr>
             	<th></th>
-                <th width="1%">Contact UUID</th>
-                <th width="13%">Contact Name</th>
-                <th width="13%">Date Enrolled<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: 2016-10-15 (yyyy/mm/dd)</span></th>
-                <th width="13%">Network<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Network-1</span></th>
-                <th width="12%">Longitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 27.8493° E</span></th>
-                <th width="12%">Latitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 13.1339° S</span></th>
-                <th width="12%">HH ID<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: hh1</span></th> 
-                <th width="12%">Village<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Zambian Village</span></th>
-                <th width="12%">Camp<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Lusaka</span></th>             
+                <th>Contact UUID</th>
+                <th width="11%">Contact Name</th>
+                <th width="11%">Phone No</th>
+                <th style="display:none;">Country</th>
+                <th width="11%">Date Enrolled<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: December 4th 2016 (MM DD YYYY)</span></th>
+                <th style="display:none;">Network<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Network-1</span></th>
+                <th width="11%">Enrollment Status<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Enrollled, Disenrolled</span></th>
+                <th width="11%">Longitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 27.8493° E</span></th>
+                <th width="11%">Latitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 13.1339° S</span></th>
+                <th width="11%">HH ID<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: hh1</span></th> 
+                <th width="11%">Village<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Zambian Village</span></th>
+                <th width="11%">Camp<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Lusaka</span></th>             
             </tr>
         </thead>
         <tfoot>
             <tr>
             	<th></th>
-                <th width="1%">Contact UUID</th>
-                <th width="13%">Contact Name</th>
-                <th width="13%">Date Enrolled<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: 2016-10-15 (yyyy/mm/dd)</span></th>
-                <th width="13%">Network<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Network-1</span></th>
-                <th width="12%">Longitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 27.8493° E</span></th>
-                <th width="12%">Latitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 13.1339° S</span></th>
-                <th width="12%">HH ID<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: hh1</span></th> 
-                <th width="12%">Village<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Zambian Village</span></th>
-                <th width="12%">Camp<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Lusaka</span></th>            
+                <th>Contact UUID</th>
+                <th width="11%">Contact Name</th>
+                <th width="11%">Phone No</th>
+                <th style="display:none;">Country</th>
+                <th width="11%">Date Enrolled<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: December 4th 2016 (MM DD YYYY)</span></th>
+                <th style="display:none;">Network<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Network-1</span></th>
+                <th width="11%">Enrollment Status<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Enrollled, Disenrolled</span></th>
+                <th width="11%">Longitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 27.8493° E</span></th>
+                <th width="11%">Latitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 13.1339° S</span></th>
+                <th width="11%">HH ID<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: hh1</span></th> 
+                <th width="11%">Village<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Zambian Village</span></th>
+                <th width="11%">Camp<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Lusaka</span></th>            
             </tr>
         </tfoot>
     </table>
