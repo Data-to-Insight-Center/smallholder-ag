@@ -47,6 +47,7 @@ public class TextItRest {
 
     private static ArrayList<String> excludeFlowsMatch = new ArrayList<>();
     private static ArrayList<String> excludeFlows = new ArrayList<>();
+    private static ArrayList<String> textLables = new ArrayList<>();
 
     static {
         PropertyConfigurator.configure(TextItRest.class.getResource("./../log4j.properties"));
@@ -56,6 +57,12 @@ public class TextItRest {
         excludeFlowsMatch.add("join");
         excludeFlowsMatch.add("copy");
         excludeFlowsMatch.add("15-16");
+
+        textLables.add("variety 1");
+        textLables.add("variety 1 of 1");
+        textLables.add("variety 1 of 2");
+        textLables.add("variety 2 of 2");
+        textLables.add("when");
     }
 
     @GET
@@ -717,11 +724,40 @@ public class TextItRest {
             MongoCursor<Document> runsCursor = runsIter.iterator();
 
             Map<Integer, Integer> completedCount = new HashMap<Integer, Integer>();
+            Map<Integer, Integer> respondedCount = new HashMap<Integer, Integer>();
             JSONObject new_flow = new JSONObject();
 
             while (runsCursor.hasNext()) {
                 Document runsDocument = runsCursor.next();
 
+                Date created = null;
+                try {
+                    created = df_Z.parse(runsDocument.getString("created_on"));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+                // check the responded(at least one) count
+                ArrayList valuesArray = (ArrayList) runsDocument.get("values");
+
+                if(valuesArray.size() != 0) {
+                    Date respondedTime = null;
+                    try {
+                        respondedTime = df_SSS.parse(((Document) valuesArray.get(0)).getString("time").substring(0, 23));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    long diff = Math.abs(respondedTime.getTime() - created.getTime());
+                    double diffHours = diff * 1.0 / ( 60 * 60 * 1000);
+                    int hoursTorespond = (int)(Math.ceil(diffHours * 1.0 / 12))*12;
+                    if(respondedCount.get(hoursTorespond) != null) {
+                        respondedCount.put(hoursTorespond, respondedCount.get(hoursTorespond) + 1);
+                    } else {
+                        respondedCount.put(hoursTorespond, 1);
+                    }
+                }
+
+                // check the completed count
                 boolean completed = runsDocument.getBoolean("completed");
 
                 if(!completed)
@@ -739,12 +775,7 @@ public class TextItRest {
                         }
                     }
                 }
-                Date created = null;
-                try {
-                    created = df_Z.parse(runsDocument.getString("created_on"));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+
 
                 Collections.sort(dates);
                 Date last = dates.get(dates.size() - 1);
@@ -783,19 +814,54 @@ public class TextItRest {
                 keyList.addAll(completedCount.keySet());
                 Collections.sort(keyList);
 
-                for(int i = 12 ; i <= keyList.get(keyList.size() -1) ; i = i + 12) {
-                    if(completedCount.get(i) != null) {
-                        completed += completedCount.get(i);
+                if(keyList.size() > 0) {
+                    for (int i = 12; i <= keyList.get(keyList.size() - 1); i = i + 12) {
+                        if (completedCount.get(i) != null) {
+                            completed += completedCount.get(i);
+                        }
+                        JSONObject matrix_object = new JSONObject();
+                        matrix_object.put("abs", completed);
+                        matrix_object.put("perc", Math.round(completed * 100.0 / total_runs));
+                        matrix_object.put("hour", i);
+                        perc_matrix.put(matrix_object);
                     }
-                    JSONObject matrix_object = new JSONObject();
-                    matrix_object.put("abs", completed);
-                    matrix_object.put("perc", Math.round(completed*100.0/total_runs));
-                    matrix_object.put("hour", i);
-                    perc_matrix.put(matrix_object);
                 }
 
 
                 new_flow.put("matrix", perc_matrix);
+            }
+
+            if(total_runs > 0) {
+                JSONArray responded_matrix = new JSONArray();
+                JSONArray nonResponded_matrix = new JSONArray();
+                int responded = 0;
+
+                ArrayList<Integer> keyList = new ArrayList<Integer>();
+                keyList.addAll(respondedCount.keySet());
+                Collections.sort(keyList);
+
+                if(keyList.size() > 0) {
+                    for (int i = 12; i <= keyList.get(keyList.size() - 1); i = i + 12) {
+                        if (respondedCount.get(i) != null) {
+                            responded += respondedCount.get(i);
+                        }
+                        JSONObject responded_matrix_object = new JSONObject();
+                        responded_matrix_object.put("abs", responded);
+                        responded_matrix_object.put("perc", Math.round(responded * 100.0 / total_runs));
+                        responded_matrix_object.put("hour", i);
+                        responded_matrix.put(responded_matrix_object);
+
+                        JSONObject non_responded_matrix_object = new JSONObject();
+                        non_responded_matrix_object.put("abs", total_runs - responded);
+                        non_responded_matrix_object.put("perc", Math.round((total_runs - responded) * 100.0 / total_runs));
+                        non_responded_matrix_object.put("hour", i);
+                        nonResponded_matrix.put(non_responded_matrix_object);
+                    }
+                }
+
+
+                new_flow.put("responded_matrix", responded_matrix);
+                new_flow.put("non_responded_matrix", nonResponded_matrix);
             }
 
             array.put(new_flow);
@@ -1772,8 +1838,10 @@ public class TextItRest {
                             String qVal = category.get("base") != null ? category.getString("base") : category.getString("eng");
                             if (qVal.equals("numeric") && value.containsKey("value")) {
                                 qVal = "" + value.get("value");
+                            } else if (textLables.contains(qLabel) && value.containsKey("text")) {
+                                qVal = "" + value.get("text");
                             }
-                            if (qVal.equalsIgnoreCase("Other") && value.containsKey("value")) {
+                            else if (qVal.equalsIgnoreCase("Other") && value.containsKey("value")) {
                                 qVal += "-" + ("" + value.get("value"));
                             }
                             String week = label;
