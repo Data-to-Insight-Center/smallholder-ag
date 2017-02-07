@@ -1,8 +1,10 @@
 package edu.indiana.d2i.textit.ingest;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.result.UpdateResult;
 import edu.indiana.d2i.textit.utils.MongoDB;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -22,32 +24,27 @@ public class MetadataUpdater {
     static DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
     private SimpleDateFormat df_Z = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private SimpleDateFormat df_dm = new SimpleDateFormat("d MMM");
+    private SimpleDateFormat df_dd = new SimpleDateFormat("yyyy-MM-dd");
+    private SimpleDateFormat df_tt = new SimpleDateFormat("HH:mm:ss.SSS'Z'");
 
-    private static final String FLOWS = "flows";
-    private static final String RUNS = "runs";
-    private static final String CONTACTS = "contacts";
-    private static final String STATS = "stats";
     private String END_DATE;
     private String START_DATE;
-    private String INTERVAL;
     private String EMAILS;
-    private int NO_OF_DAYS;
     private int TEXT_TIME;
     private String COUNTRY;
-    List<String> runsOfFlowsCreated;
+    private String CREATOR;
 
     public MetadataUpdater(Properties properties) {
         this.END_DATE = properties.getProperty("end_date");
         this.START_DATE = properties.getProperty("start_date");
-        this.INTERVAL = properties.getProperty("interval");
         this.EMAILS = properties.getProperty("notification.email.addresses");
-        this.NO_OF_DAYS = Integer.valueOf(properties.getProperty("update_no_of_days"));
         int textTime = 0;
         if (properties.getProperty("text.time") != null) {
             textTime = Integer.parseInt(properties.getProperty("text.time"));
         }
         this.TEXT_TIME = textTime;
-        COUNTRY = properties.getProperty("mongodb.db.name");
+        this.COUNTRY = properties.getProperty("mongodb.db.name");
+        this.CREATOR = properties.getProperty("creator");
         df.setTimeZone(TimeZone.getTimeZone("timezone"));
     }
 
@@ -112,7 +109,7 @@ public class MetadataUpdater {
             throw new RuntimeException("Error : " + args[0] + " is not found!");
         }
 
-        properties.put("interval", args[1]);
+        //properties.put("interval", args[1]);
 
         int no_of_days = 0;
         if(args[1].equals(MongoDB.DAILY)) {
@@ -120,7 +117,7 @@ public class MetadataUpdater {
         } else if (args[1].equals(MongoDB.WEEKLY)) {
             no_of_days = 7;
         }
-        properties.put("update_no_of_days", ""+no_of_days);
+        //properties.put("update_no_of_days", ""+no_of_days);
 
         Date end_date = new Date();
         if(args.length > 2 && args[2] != null && args[2] != "") {
@@ -185,7 +182,6 @@ public class MetadataUpdater {
             System.exit(-1);
         }
 
-
         System.out.println("Update metadata from " + fromDate + " to " + toDate + " in time " + TEXT_TIME);
         Date first = null;
         Date last = null;
@@ -210,9 +206,6 @@ public class MetadataUpdater {
         Date currEnd = c.getTime();
         Date currBeg = null;
 
-        ArrayList<String> weekLabels = new ArrayList<>();
-        //Map<String, ArrayList<String>> weekQuestionLabels = new HashMap<String, ArrayList<String>>();
-
         while(currEnd.getTime() > first.getTime()) {
             Calendar cTemp = Calendar.getInstance();
             cTemp.setTime(currEnd);
@@ -233,20 +226,9 @@ public class MetadataUpdater {
 
             currEnd = new Date(currEnd.getTime() -1);
 
-            Calendar cWeek = Calendar.getInstance();
-            cWeek.setMinimalDaysInFirstWeek(7);
-            cWeek.setTime(currBeg);
-            String label = cWeek.get(Calendar.YEAR) + " W" + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR))
-                    + " : " + df_dm.format(currBeg) + " - " + df_dm.format(currEnd);
-            cWeek.setTime(currEnd);
-            //String nextLabel = cWeek.get(Calendar.YEAR) + " W" + String.format("%02d", cWeek.get(Calendar.WEEK_OF_YEAR))
-            //+ " : " + df_dm.format(currBeg) + " - " + df_dm.format(currEnd);
-            weekLabels.add(label);
-            System.out.println(label);
-            //weekQuestionLabels.put(label, new ArrayList<String>());
+            logger.info("INTERVAL:\t" + currBeg + " - " + currEnd);
 
-            Bson flowsFilter = null; // TODO apply flows filter
-
+            Bson flowsFilter = null;
             ArrayList<Document> flowsIter = null;
             try {
                 flowsIter = edu.indiana.d2i.textit.utils.TextItUtils.getFlowsByDeploymentDate(flowsCollection, runsCollection, flowsFilter, df_Z.format(currBeg), df_Z.format(currEnd));
@@ -254,9 +236,69 @@ public class MetadataUpdater {
                 e.printStackTrace();
             }
 
+            for (Document flowsDocument : flowsIter) {
+                String flow_uuid = (String) flowsDocument.get("uuid");
+                String flow_name = flowsDocument.getString("name");
+                logger.info("\t\t " + flow_name);
+
+                BasicDBObject newFlowDocument = null;
+                try {
+                    newFlowDocument = buildFlowObject(flowsDocument, currBeg, currEnd);
+                } catch (RuntimeException e) {
+                    logger.error(e.getMessage());
+                }
+
+                UpdateResult updateResult = flowsCollection.updateOne(new BasicDBObject("uuid", flow_uuid), newFlowDocument);
+                if(updateResult.wasAcknowledged()) {
+                    logger.info("Flow with UUID " + flow_uuid + " updated successfully");
+                } else {
+                    logger.error("Flow with UUID " + flow_uuid + " couldn't updated successfully");
+                }
+
+            }
+
             currEnd = currBeg;
         }
         return true;
+    }
+
+    private BasicDBObject buildFlowObject(Document flowObject, Date start, Date end) throws RuntimeException {
+
+        String flow_name = flowObject.getString("name").toLowerCase();
+
+        List<String> flowTypes = Arrays.asList("test", "pilot", "regular", "unused");
+        List<String> flowTestTypes = Arrays.asList("test", "copy", "join");
+        List<String> seasons = Arrays.asList("planting", "harvesting", "growing", "inter-season");
+        BasicDBObject basicObject = new BasicDBObject();
+
+        basicObject.append("creator", this.CREATOR);
+
+        String flow_season = "";
+        for (String season : seasons) {
+            if (flow_name.contains(season)) {
+                flow_season = season;
+            }
+        }
+        basicObject.append("season", flow_season);
+
+
+        String flow_type = "regular";
+        for (String testType : flowTestTypes) {
+            if (flow_name.contains(testType)) {
+                flow_type = "test";
+            }
+        }
+        basicObject.append("flow_type", flow_type);
+
+        basicObject.append("run_start_date", df.format(start));
+        basicObject.append("run_end_date", df.format(end));
+        //basicObject.append("run_start_time", flowObject.getString("run_start_time"));
+        //basicObject.append("run_end_time", flowObject.getString("run_end_time"));
+
+        BasicDBObject newFlowDocument = new BasicDBObject();
+        newFlowDocument.append("$set", basicObject);
+
+        return newFlowDocument;
     }
 
 }
