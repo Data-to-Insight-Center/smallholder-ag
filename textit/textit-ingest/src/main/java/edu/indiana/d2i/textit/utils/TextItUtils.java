@@ -1,4 +1,4 @@
-package edu.indiana.d2i.textit.analyze;
+package edu.indiana.d2i.textit.utils;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Created by charmadu on 10/11/16.
  */
-public class AnalyzerUtils {
+public class TextItUtils {
 
     private static SimpleDateFormat df_Z = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private static SimpleDateFormat df_dmmy = new SimpleDateFormat("d MMMMM yyyy");

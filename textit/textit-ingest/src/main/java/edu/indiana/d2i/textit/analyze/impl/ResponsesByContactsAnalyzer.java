@@ -7,7 +7,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import edu.indiana.d2i.textit.analyze.Analyzer;
-import edu.indiana.d2i.textit.analyze.AnalyzerUtils;
+import edu.indiana.d2i.textit.utils.TextItUtils;
 import edu.indiana.d2i.textit.utils.MongoDB;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -154,7 +154,7 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
 
             ArrayList<Document> flowsIter = null;
             try {
-                flowsIter = AnalyzerUtils.getFlowsByDeploymentDate(flowsCollection, runsCollection, flowsFilter, df_Z.format(currBeg), df_Z.format(currEnd));
+                flowsIter = TextItUtils.getFlowsByDeploymentDate(flowsCollection, runsCollection, flowsFilter, df_Z.format(currBeg), df_Z.format(currEnd));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
