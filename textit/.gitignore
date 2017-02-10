@@ -8,7 +8,6 @@ target/
 **/*.iml
 *.ipr
 *.iws
-**/bin
 **/target/
 **/.idea
 .DS_Store
