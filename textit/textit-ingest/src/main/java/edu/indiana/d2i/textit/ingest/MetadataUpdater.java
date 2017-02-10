@@ -3,6 +3,7 @@ package edu.indiana.d2i.textit.ingest;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
 import edu.indiana.d2i.textit.utils.MongoDB;
@@ -26,6 +27,7 @@ public class MetadataUpdater {
     private SimpleDateFormat df_dm = new SimpleDateFormat("d MMM");
     private SimpleDateFormat df_dd = new SimpleDateFormat("yyyy-MM-dd");
     private SimpleDateFormat df_tt = new SimpleDateFormat("HH:mm:ss.SSS'Z'");
+    private SimpleDateFormat df_SSS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
     private String END_DATE;
     private String START_DATE;
@@ -152,6 +154,7 @@ public class MetadataUpdater {
 
         MetadataUpdater metadataUpdater = new MetadataUpdater(properties);
         boolean updated = metadataUpdater.updateFlowMetadata();
+        updated = metadataUpdater.updateContactsMetadata();
 
         if(!updated) {
             logger.error("Failure to update metadata");
@@ -166,7 +169,6 @@ public class MetadataUpdater {
         // TODO from=2016-08-08T11:00:00.000Z&to=2016-08-22T11:00:00.000Z
         MongoDatabase db = MongoDB.getDatabase();
         MongoCollection<Document> flowsCollection = db.getCollection(MongoDB.FLOWS_COLLECTION_NAME);
-        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.CONTACTS_COLLECTION_NAME);
         MongoCollection<Document> runsCollection = db.getCollection(MongoDB.RUNS_COLLECTION_NAME);
 
         int countryCode = 0;
@@ -182,7 +184,7 @@ public class MetadataUpdater {
             System.exit(-1);
         }
 
-        System.out.println("Update metadata from " + fromDate + " to " + toDate + " in time " + TEXT_TIME);
+        logger.info("Update flow metadata from " + fromDate + " to " + toDate + " in time " + TEXT_TIME);
         Date first = null;
         Date last = null;
         try {
@@ -205,6 +207,7 @@ public class MetadataUpdater {
         c.setTime(last);
         Date currEnd = c.getTime();
         Date currBeg = null;
+        int flowCount = 0;
 
         while(currEnd.getTime() > first.getTime()) {
             Calendar cTemp = Calendar.getInstance();
@@ -226,7 +229,7 @@ public class MetadataUpdater {
 
             currEnd = new Date(currEnd.getTime() -1);
 
-            logger.info("INTERVAL:\t" + currBeg + " - " + currEnd);
+            //logger.info("INTERVAL:\t" + currBeg + " - " + currEnd);
 
             Bson flowsFilter = null;
             ArrayList<Document> flowsIter = null;
@@ -239,7 +242,7 @@ public class MetadataUpdater {
             for (Document flowsDocument : flowsIter) {
                 String flow_uuid = (String) flowsDocument.get("uuid");
                 String flow_name = flowsDocument.getString("name");
-                logger.info("\t\t " + flow_name);
+                //logger.info("\t\t " + flow_name);
 
                 BasicDBObject newFlowDocument = null;
                 try {
@@ -250,7 +253,8 @@ public class MetadataUpdater {
 
                 UpdateResult updateResult = flowsCollection.updateOne(new BasicDBObject("uuid", flow_uuid), newFlowDocument);
                 if(updateResult.wasAcknowledged()) {
-                    logger.info("Flow with UUID " + flow_uuid + " updated successfully");
+                    flowCount++;
+                    //logger.info("Flow with UUID " + flow_uuid + " updated successfully");
                 } else {
                     logger.error("Flow with UUID " + flow_uuid + " couldn't updated successfully");
                 }
@@ -259,6 +263,8 @@ public class MetadataUpdater {
 
             currEnd = currBeg;
         }
+
+        logger.info("Number of flows updated : " + flowCount);
         return true;
     }
 
@@ -268,10 +274,11 @@ public class MetadataUpdater {
 
         List<String> flowTypes = Arrays.asList("test", "pilot", "regular", "unused");
         List<String> flowTestTypes = Arrays.asList("test", "copy", "join");
-        List<String> seasons = Arrays.asList("planting", "harvesting", "growing", "inter-season");
+        List<String> seasons = Arrays.asList("planting", "harvest", "growing", "inter-season");
         BasicDBObject basicObject = new BasicDBObject();
 
         basicObject.append("creator", this.CREATOR);
+        basicObject.append("country", this.COUNTRY);
 
         String flow_season = "";
         for (String season : seasons) {
@@ -299,6 +306,66 @@ public class MetadataUpdater {
         newFlowDocument.append("$set", basicObject);
 
         return newFlowDocument;
+    }
+
+
+    private boolean updateContactsMetadata() {
+
+        MongoDatabase db = MongoDB.getDatabase();
+        MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.CONTACTS_COLLECTION_NAME);
+        MongoCollection<Document> runsCollection = db.getCollection(MongoDB.RUNS_COLLECTION_NAME);
+
+        FindIterable<Document> contactsIter = contactsCollection.find();
+        //FindIterable<Document> contactsIter = contactsCollection.find(new BasicDBObject("uuid", ""));
+        MongoCursor<Document> contactsCursor = contactsIter.iterator();
+        int count = 0;
+
+        while (contactsCursor.hasNext()) {
+            Document contactDocument = contactsCursor.next();
+            String contact_id = (String) contactDocument.get("uuid");
+
+            FindIterable<Document> runsIter = runsCollection.find(new BasicDBObject("contact", contact_id));
+            MongoCursor<Document> runsCursor = runsIter.iterator();
+            ArrayList<Date> dates = new ArrayList<Date>();
+            ArrayList<Document> rundDocsArray = new ArrayList<Document>();
+
+            while (runsCursor.hasNext()) {
+                Document runsDocument = runsCursor.next();
+                rundDocsArray.add(runsDocument);
+                Object values = runsDocument.get("values");
+                if (values instanceof ArrayList) {
+                    ArrayList<Document> valuesList = (ArrayList<Document>) values;
+                    if(valuesList.size() > 0) {
+                        try {
+                            dates.add(df_SSS.parse(valuesList.get(valuesList.size() - 1).getString("time").substring(0, 23)));
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+
+            String lastResponded = "N/A";
+            if(dates.size() > 0) {
+                Collections.sort(dates);
+                lastResponded = df_Z.format(dates.get(dates.size() - 1));
+            }
+
+            BasicDBObject basicObject = new BasicDBObject();
+            basicObject.append("lastResponded", lastResponded);
+            BasicDBObject newContactDoc = new BasicDBObject();
+            newContactDoc.append("$set", basicObject);
+            UpdateResult updateResult = contactsCollection.updateOne(new BasicDBObject("uuid", contact_id), newContactDoc);
+            if(updateResult.wasAcknowledged()) {
+                count++;
+                //logger.info("Contact with UUID " + contact_id + " updated successfully");
+            } else {
+                logger.error("Contact with UUID " + contact_id + " couldn't updated successfully");
+            }
+        }
+
+        logger.info("Number of contacts updated : " + count);
+        return true;
     }
 
 }

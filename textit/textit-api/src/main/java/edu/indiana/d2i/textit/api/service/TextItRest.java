@@ -281,11 +281,21 @@ public class TextItRest {
     public Response getAllContacts(@PathParam("country") String country,
                                    @QueryParam("uuid") String contact,
                                    @QueryParam("from") String fromDate,
-                                   @QueryParam("to") String toDate) {
+                                   @QueryParam("to") String toDate,
+                                   @QueryParam("count") int count,
+                                   @QueryParam("lastRespondedFrom") String updatedFrom,
+                                   @QueryParam("lastRespondedTo") String updatedTo,
+                                   @QueryParam("lastRespondedSort") int lastUpdatedSort) {
         control.setNoCache(true);
 
         MongoDatabase db = MongoDB.getMongoClientInstance().getDatabase(country);
         MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.contactsCollectionName);
+
+        if(lastUpdatedSort != 1 && lastUpdatedSort != -1 && lastUpdatedSort != 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JSONObject().put("error", "invalid lastRespondedSort parameter(should be either 1 or -1)").toString())
+                    .cacheControl(control).build();
+        }
 
         BasicDBObject andQuery = new BasicDBObject();
         List<BasicDBObject> obj = new ArrayList<BasicDBObject>();
@@ -297,14 +307,31 @@ public class TextItRest {
             toDate = toDate.replace("+00:00", "Z");
             obj.add(new BasicDBObject("modified_on", new BasicDBObject("$lte", toDate)));
         }
+        if (updatedFrom != null) {
+            updatedFrom = updatedFrom.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("lastResponded", new BasicDBObject("$gte", updatedFrom)));
+        }
+        if (updatedTo != null) {
+            updatedTo = updatedTo.replace("+00:00", "Z");
+            obj.add(new BasicDBObject("lastResponded", new BasicDBObject("$lte", updatedTo)));
+        }
+        if(updatedFrom != null || updatedTo != null || lastUpdatedSort != 0){
+            BasicDBObject lastResponded = new BasicDBObject();
+            lastResponded.append("lastResponded", new BasicDBObject("$ne", "N/A"));
+            obj.add(lastResponded);
+        }
         if (contact != null) {
             obj.add(new BasicDBObject("uuid", contact));
         }
         if (obj.size() != 0) {
             andQuery.put("$and", obj);
         }
+        if(count < 0)
+            count = 0;
+        if(lastUpdatedSort == 0)
+            lastUpdatedSort = 1;
 
-        FindIterable<Document> iter = contactsCollection.find(andQuery);
+        FindIterable<Document> iter = contactsCollection.find(andQuery).sort(new BasicDBObject("lastResponded", lastUpdatedSort)).limit(count);
         iter.projection(new Document("_id", 0));
         MongoCursor<Document> cursor = iter.iterator();
         JSONArray array = new JSONArray();
