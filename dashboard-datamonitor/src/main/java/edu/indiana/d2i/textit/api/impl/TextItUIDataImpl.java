@@ -54,7 +54,7 @@ public class TextItUIDataImpl extends TextItUIData {
 			c.add(Calendar.DATE, -16);
 		}else if (country.equals("zambia")){
 			c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-			c.add(Calendar.DATE, -9);
+			c.add(Calendar.DATE, -7);
 		}
 
 		Date last_country_day = Calendar.getInstance().getTime();
@@ -62,6 +62,22 @@ public class TextItUIDataImpl extends TextItUIData {
 		String start = df_Z.format(before);
 		String end = df_Z.format(last_country_day);
 		return start;
+	}
+
+	public String getLastThisWeek(String country) {
+
+		Calendar c = Calendar.getInstance();
+
+		if (country.equals("kenya")) {
+			c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+			c.add(Calendar.DATE, -16);
+		}else if (country.equals("zambia")){
+			c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+		}
+
+		Date thisweek = c.getTime();
+		String end = df_Z.format(thisweek);
+		return end;
 	}
 
 	@GET
@@ -553,6 +569,24 @@ public class TextItUIDataImpl extends TextItUIData {
 											  @QueryParam("to") String toDate) {
 		WebResource webResource = resource();
 
+		ClientResponse response = webResource.path(country + "/flowcompletion")
+				.queryParam("from", fromDate)
+				.queryParam("to", toDate)
+				.accept("application/json")
+				.type("application/json")
+				.get(ClientResponse.class);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
+
+	@GET
+	@Path("/{country}/lastweekflowcompletion")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAllLastWeekFlowCompletion(@PathParam("country") String country){
+		WebResource webResource = resource();
+		String fromDate = getLastWeek(country);
+		String toDate = getLastThisWeek(country);
 		ClientResponse response = webResource.path(country + "/flowcompletion")
 				.queryParam("from", fromDate)
 				.queryParam("to", toDate)
