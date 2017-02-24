@@ -67,7 +67,7 @@ $(document).ready(function() {
 				//var date_enrolled = $("#DTE_Field_date_enrolled").val();		
 				var latitude = $("#DTE_Field_latitude").val();
 				var province = $("#DTE_Field_province").val();
-				var dist = $("#DTE_Field_district").val();
+				var district = $("#DTE_Field_district").val();
 				var camp = $("#DTE_Field_camp").val();
 				var uid = $("#DTE_Field_uid").val();
 				var longitude = $("#DTE_Field_longitude").val();
