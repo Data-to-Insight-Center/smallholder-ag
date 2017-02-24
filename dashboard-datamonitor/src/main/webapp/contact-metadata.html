@@ -29,20 +29,22 @@ table.dataTable td > i {
     margin-left: 0.5em;
 }.uuid_hide { 
 	width: 1% !important;color:#ffffff; display:none;
+}.h1, .h2, .h3, h1, h2, h3 {
+	margin-top: 5px !important;
+	margin-bottom: 5px !important;
+}body {
+	color: #73879C !important;
 }
 </style>
 </head>
 
 <body>
-<div style="padding:20px;">
-
-<h2 align="center">Manage Contact Metadata - Zambia</h2>
-
-<div id="success" style="padding:15px 10px 10px 0px;"></div>
-
-<div id="failure" style="padding:0px 10px 30px 0px;"></div>
-
-<table id="contact" class="table table-striped table-bordered" cellspacing="0" width="100%" >
+<div style="padding:0px 20px 0px 20px;">
+	<div style="text-align:center;font-size:30px;margin:10px;"><strong>Zambia – Farmer SMS Reporting System</strong></div>
+	<h3 align="center">Manage Contact Metadata</h3>
+	<div id="success" style="padding:15px 10px 10px 0px;"></div>
+	<div id="failure" style="padding:0px 10px 30px 0px;"></div>
+	<table id="contact" class="table table-striped table-bordered" cellspacing="0" width="100%" >
         <thead>
             <tr>
             	<th></th>
@@ -50,14 +52,14 @@ table.dataTable td > i {
                 <th width="11%">Contact Name</th>
                 <th width="11%">Phone No</th>
                 <th style="display:none;">Country</th>
-                <th width="11%">Date Enrolled<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: December 4th 2016 (MM DD YYYY)</span></th>
-                <th style="display:none;">Network<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Network-1</span></th>
-                <th width="11%">Enrollment Status<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Enrollled, Disenrolled</span></th>
-                <th width="11%">Longitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 27.8493° E</span></th>
-                <th width="11%">Latitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 13.1339° S</span></th>
-                <th width="11%">HH ID<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: hh1</span></th> 
-                <th width="11%">Village<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Zambian Village</span></th>
-                <th width="11%">Camp<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Lusaka</span></th>             
+                <th width="11%">Province<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Southern</span></th>
+                <th width="11%">District<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Choma</span></th>
+                <th width="11%">Longitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 27.8493</span></th>
+                <th width="11%">Latitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 13.1339</span></th>
+                <th width="11%">Camp<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Sedumbwe</span></th> 
+                <th width="11%">UID<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 25019</span></th> 
+                <th width="11%">HICPS/COWS<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: HICPS, COWS, BOTH</span></th>
+                           
             </tr>
         </thead>
         <tfoot>
@@ -67,14 +69,13 @@ table.dataTable td > i {
                 <th width="11%">Contact Name</th>
                 <th width="11%">Phone No</th>
                 <th style="display:none;">Country</th>
-                <th width="11%">Date Enrolled<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: December 4th 2016 (MM DD YYYY)</span></th>
-                <th style="display:none;">Network<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Network-1</span></th>
-                <th width="11%">Enrollment Status<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Enrollled, Disenrolled</span></th>
-                <th width="11%">Longitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 27.8493° E</span></th>
-                <th width="11%">Latitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 13.1339° S</span></th>
-                <th width="11%">HH ID<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: hh1</span></th> 
-                <th width="11%">Village<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Zambian Village</span></th>
-                <th width="11%">Camp<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Lusaka</span></th>            
+                <th width="11%">Province<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Southern</span></th>
+                <th width="11%">District<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: Choma</span></th>
+                <th width="11%">Longitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 27.8493</span></th>
+                <th width="11%">Latitude<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 13.1339</span></th>
+                <th width="11%">Camp<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: Sedumbwe</span></th> 
+                <th width="11%">UID<span data-dte-e="msg-info" class="help-block" style="font-size:11px">Ex: 25019</span></th> 
+                <th width="11%">HICPS/COWS<span data-dte-e="msg-info" class="help-block" style="font-size:11px">EX: HICPS, COWS, BOTH</span></th>           
             </tr>
         </tfoot>
     </table>

@@ -24,40 +24,33 @@ $(document).ready(function() {
                 name: "country",
 				type: "readonly"
             }, {
-                label: "Date Enrolled:",
-                name: "date_enrolled",
-				type: 'datetime',
-                format: 'YYYY-MM-DD HH:mm:ss',
-                fieldInfo: 'EX: 03-10-2016 2.30 PM'
+                label: "Province:",
+                name: "province",
+				fieldInfo: "Ex: Southern"
             }, {
-                label: "Network:",
-                name: "network",
-				fieldInfo: "Ex: Network-1",
-				type: "readonly"
-            }, {
-                label: "Enrollment Status:",
-                name: "enroll_status",
-				fieldInfo: "Ex: Enrolled, Disenrolled"
+                label: "District:",
+                name: "district",
+				fieldInfo: "Ex: Choma"
             }, {
                 label: "Longitude:",
                 name: "longitude",
-				fieldInfo: "Ex: 27.8493° E"
+				fieldInfo: "Ex: 27.8493"
             }, {
                 label: "Latitude:",
                 name: "latitude",
-				fieldInfo: "Ex: 13.1339° S"
-            }, {
-                label: "HH ID:",
-                name: "hh_id",
-				fieldInfo: "Ex: hh1"
-            }, {
-                label: "Village:",
-                name: "village",
-				fieldInfo: "Ex: Zambian Village"
+				fieldInfo: "Ex: 13.1339"
             }, {
                 label: "Camp:",
                 name: "camp",
-				fieldInfo: "Ex: Lusaka"
+				fieldInfo: "Ex: Sedumbwe, Masuka"
+            }, {
+                label: "UID:",
+                name: "UID",
+				fieldInfo: "Ex: 25019"
+            }, {
+                label: "HICPS/COWS:",
+                name: "HICPS/COWS",
+				fieldInfo: "Ex: HIPS, COWS"
             }
         ]
     } );
@@ -71,47 +64,31 @@ $(document).ready(function() {
 			
 			$('div .DTE_Form_Buttons').click(function () {			
 				
-				var date_enrolled = $("#DTE_Field_date_enrolled").val();		
+				//var date_enrolled = $("#DTE_Field_date_enrolled").val();		
 				var latitude = $("#DTE_Field_latitude").val();
-				//var network = $("#DTE_Field_network").val();
-				var longitude = $("#DTE_Field_longitude").val();
-				var hh_id = $("#DTE_Field_hh_id").val();
-				var village = $("#DTE_Field_village").val();
+				var province = $("#DTE_Field_province").val();
+				var dist = $("#DTE_Field_district").val();
 				var camp = $("#DTE_Field_camp").val();
-				var enroll_status = $("#DTE_Field_enroll_status").val();
+				var uid = $("#DTE_Field_UID").val();
+				var longitude = $("#DTE_Field_longitude").val();
+				var hicps= $("#DTE_Field_HICPS/COWS").val();
 				
 				var uuid = $(this).closest('tr').find('td:eq(1)').text();
 				
-				
-				if(date_enrolled==undefined){
-					date_enrolled = $(this).closest('tr').find('td:eq(4)').text();
-					
-					if(date_enrolled==""){
-					contact_date_enrolled = "";
-					contact_time_enrolled = "";
-					}else{
-					contact_date_enrolled_sa = new Date(date_enrolled).toISOString();
-					contact_date_enrolled = contact_date_enrolled_sa.split("T")[0];
-					contact_time_enrolled = contact_date_enrolled_sa.split("T")[1];
-					}
-					
-				}else{
-					contact_date_enrolled_sa = new Date(date_enrolled).toISOString();
-					contact_date_enrolled = contact_date_enrolled_sa.split("T")[0];
-					contact_time_enrolled = contact_date_enrolled_sa.split("T")[1];
-				
-				}if(enroll_status==undefined){
-					enroll_status = $(this).closest('tr').find('td:eq(5)').text();
+				if(province==undefined){
+					province = $(this).closest('tr').find('td:eq(4)').text();
+				}if(dist==undefined){
+					dist = $(this).closest('tr').find('td:eq(5)').text();
 				}if(longitude==undefined){
 					longitude = $(this).closest('tr').find('td:eq(6)').text();
 				}if(latitude==undefined){
 					latitude = $(this).closest('tr').find('td:eq(7)').text();
-				}if(hh_id==undefined){
-					hh_id = $(this).closest('tr').find('td:eq(8)').text();
-				}if(village==undefined){
-					village = $(this).closest('tr').find('td:eq(9)').text();
 				}if(camp==undefined){
-					camp = $(this).closest('tr').find('td:eq(10)').text();
+					camp = $(this).closest('tr').find('td:eq(8)').text();
+				}if(uid==undefined){
+					uid = $(this).closest('tr').find('td:eq(9)').text();
+				}if(hicps==undefined){
+					hicps = $(this).closest('tr').find('td:eq(10)').text();
 				}
 				
 				var dataArray = {};
@@ -121,18 +98,16 @@ $(document).ready(function() {
 					dataArray['latitude'] = latitude;
 				}if (longitude != ""){
 					dataArray['longitude'] = longitude;
-				}if (enroll_status != ""){
-					dataArray['enroll_status'] = enroll_status;
-				}if (contact_date_enrolled != ""){
-					dataArray['date_enrolled'] = contact_date_enrolled;
-				}if (contact_time_enrolled != ""){
-					dataArray['contact_time_enrolled'] = contact_time_enrolled;
-				}if (hh_id != ""){
-					dataArray['hh_id'] = hh_id;
-				}if (village != ""){
-					dataArray['village'] = village;
+				}if (province != ""){
+					dataArray['province'] = province;
+				}if (dist != ""){
+					dataArray['dist'] = dist;
 				}if (camp != ""){
 					dataArray['camp'] = camp;
+				}if (uid != ""){
+					dataArray['uid'] = uid;
+				}if (hicps != ""){
+					dataArray['hicps'] = hicps;
 				}
 				
 				$.ajax({
@@ -148,14 +123,13 @@ $(document).ready(function() {
 				});
 			});
 			
-			
-			
 			} }
         } );
     } );
  
     $('#contact').DataTable( {
-        dom: "Bfrtip",
+        dom: "Bflrtip",
+		lengthMenu: [ 10, 50, 100 ],
         ajax: {
 			url: textit_prefix + "/contacts",
             dataSrc : ""
@@ -171,22 +145,13 @@ $(document).ready(function() {
 			{ data: "name" },
 			{ data: "phone" },
 			{ data: "country", "visible": false },
-			{ data: "date_enrolled",
-			 "render": function (data) {
-				if (data != undefined){
-					var mom_date = moment(data);
-					var new_date = mom_date.tz('Africa/Johannesburg').format('MMMM Do YYYY');
-        			return (new_date);
-					}
-				}
-			},
-			{ data: "network", "visible": false },
-			{ data: "enroll_status" },
+			{ data: "province" },
+			{ data: "district" },
 			{ data: "longitude" },
 			{ data: "latitude" },
-			{ data: "hh_id" },
-			{ data: "village"},
-			{ data: "camp"}
+			{ data: "camp" },
+			{ data: "UID"},
+			{ data: "HICPS/COWS"}
         ],
 		
         select: {
@@ -206,7 +171,7 @@ function AjaxUpdateDataSucceeded(result) {
     	$('#success').append( "<span class='alert alert-success'><strong>Success! </strong>" + ' ' +" Metadata field successfully updated" + "<br></span>");
 		setTimeout(function(){
 		   window.location.reload();
-		}, 2000);
+		}, 10000);
 		
     }
 }
@@ -218,6 +183,6 @@ function AjaxUpdateDataFailed(result) {
     $('#failure').append("<span class='alert alert-danger'><strong>Failure! </strong>" + ' ' + result.responseText + "<br></span>");
 	setTimeout(function(){
 		   window.location.reload();
-	}, 2000);
+	}, 10000);
 }
 

@@ -1,0 +1,329 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Question Type | Farmer Response</title>
+    <!-- Font Awesome -->
+    <link href="media/css/font-awesome.min.css" rel="stylesheet">    
+    <link href="media/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="media/css/dataTables.bootstrap.min.css">
+   
+    <script src="media/js/jquery-min.js"></script>    
+	<script type="text/javascript" src="media/js/moment/moment.min.js"></script>
+ 
+	<!-- Include date range picker plugin -->
+	<script type="text/javascript" src="media/js/datepicker/daterangepicker.js"></script>
+	<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker-bs3.css" />
+    <link href="https://cdn.datatables.net/buttons/1.2.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/colreorder/1.3.2/css/dataTables.colReorder.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.8.23/themes/base/jquery-ui.css">
+    <script src="media/js/jquery-ui.js"></script>  
+        
+    <!-- load jquery -->
+    <!-- load datatables js library -->
+    <script type="text/javascript" src="media/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="media/js/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" src="media/js/json2.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/colreorder/1.3.2/js/dataTables.colReorder.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.2.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.2.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/buttons/1.2.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
+    <script type="text/javascript" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js"></script>
+    
+    <style>
+		.h1, .h2, .h3, h1, h2, h3 {
+			margin-top: 5px !important;
+			margin-bottom: 5px !important;
+		}body {
+			color: #73879C !important;
+		}
+	</style>
+</head>
+
+<body style="background-color:#ffffff;">
+       <div style="padding:0px 20px 0px 20px;">
+         <div style="text-align:center;font-size:30px;margin:10px;"><strong>Zambia – Farmer SMS Reporting System</strong></div>
+        <!-- page content -->
+        <div class="right_col" role="main">
+            
+            <div class="row">
+              <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="dashboard_graph x_panel">
+                  <div class="row x_title">
+                    <div class="col-md-6 col-sm-6 col-xs-6">
+                      <h3>Farmers Response Table <small> -  For given question type & time period</small></h3>
+                    </div>
+                    <div class="col-md-6 col-sm-6 col-xs-6">
+                      <div id="ques_response" class=" pull-right" style="background: #fff; cursor: pointer; padding: 10px; border: 1px solid #ccc">
+                        <label for="from">from</label>
+                        <input type="text" id="from" name="from">
+                        <label for="to">to</label>
+                        <input type="text" id="to" name="to">
+                        <label for="qtype">question type</label>
+						<select id="qtype">
+							<option>charcoal</option>
+							<option>coll_fuelwood</option>
+							<option>coll_water</option>
+							<option>expected harvest</option>
+							<option>fertilizer</option>
+							<option>give maize</option>
+							<option>harvest</option>
+							<option>harvest complete</option>
+							<option>kg 1</option>
+							<option>kg 1 of 2</option>
+							<option>kg 2 of 2</option>
+							<option>maize price</option>
+							<option>maize purchase</option>							
+							<option>maize purchased</option>
+							<option>maize sold</option>
+							<option>maize storage</option>
+							<option>meat</option>
+							<option>piecework</option>
+							<option>planting</option>
+							<option>planting complete</option>
+							<option selected="selected">rain</option>
+							<option>receive maize</option>
+							<option>sales amt</option>
+							<option>storage</option>
+							<option>variety 1</option>
+							<option>variety 1 of 2</option>
+							<option>variety 2 of 2</option>
+							<option>variety number</option>
+							<option>weeding</option>							
+							<option>50kg harvest</option>
+						</select>
+                      </div>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <div class="col-md-9 col-sm-9 col-xs-12 col-md-offset-3"  style="padding-top: 5px;">
+                          <button type="submit" class="btn btn-success pull-right" id="saveBtn">Submit</button>
+                        </div>
+                     </div>
+                  </div>
+                    <div class="tab-pane" id="tab-table5">
+						<div id="failure" style="padding:20px;" align="center"></div>
+                        <table id="questionInfoTable" class="table table-striped table-bordered" width="100%" cellspacing="0">
+                        </table>
+                        
+                        <div style="margin-top:50px;"></div>
+                    </div>
+                  <div class="clearfix"></div>
+                </div>
+              </div>
+            </div>   
+		</div>       
+	</div>
+   
+    <script type="text/javascript">
+	$(document).ready(function() {	
+		var qtype = $('#qtype :selected').text();	
+		
+		function AjaxNoDataFailed() {
+			$('#failure').html(""); //Clear error span
+			$('#failure').append("<span class='alert alert-warning' style='align:center;padding:10px;font-size:20px'><strong>Warning! </strong>" + 'No data available for this question type within this time period' + "<br></span>");
+			
+		}
+		
+		function renderTable(xhrdata) {
+		var cols = [];
+		if(xhrdata.length == 0){
+			AjaxNoDataFailed();
+		}else{
+			$('#failure').html(""); //Clear error span
+			var exampleRecord = xhrdata[0];
+
+			var keys = Object.keys(exampleRecord).sort().reverse();;
+
+			keys.forEach(function(k) {
+			  cols.push({
+				title: k,
+				data: k
+				  //optionally do some type detection here for render function
+			  });
+			});
+
+			var table = $('#questionInfoTable').DataTable({
+				columns: cols,
+				dom: 'Blfrtip',
+				lengthMenu: [ 10, 50, 100 ],
+				colReorder: {
+					order: [2,1,0]
+				},
+				buttons: [
+					{
+						extend: 'excel',
+						title: qtype,
+						text:'Download Excel File'
+					}
+				],
+				columnDefs: [
+					{ 
+						visible: false, 
+						targets: 0 
+					}
+				]
+			});
+
+			table.rows.add(xhrdata).draw();
+		}
+
+		}
+		
+		var now = new Date();
+		var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		var lastMonday = new Date(today.setDate(today.getDate()-(today.getDay()-1)%7));
+        var beforeMonday = new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate()-7);
+		
+		tdate = new Date(moment(lastMonday).format('D MMMM YYYY'));
+		tdate_sr = new Date(tdate.setHours(tdate.getHours()+11))
+		tdate_sr_lk = moment(tdate_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
+		
+		fdate = new Date(moment(beforeMonday).format('D MMMM YYYY'));
+		fdate_sr = new Date(fdate.setHours(fdate.getHours()+11))
+		fdate_sr_lk = moment(fdate_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
+		
+		var to_date = tdate_sr_lk + "Z";
+		var from_date = fdate_sr_lk + "Z";
+		//var qtype = "rain";
+
+		//var textit_prefix = "http://localhost:8080/textit-api/zambia";
+		var textit_prefix = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia";
+			
+		//xhr call to retrieve data
+	    var xhrcall = $.ajax(textit_prefix + "/contactresponses2?from=" + from_date + "&to=" + to_date + "&qtype=" + qtype);
+
+	  	//promise syntax to render after xhr completes
+	    xhrcall.done(renderTable);
+		
+
+		$( "#from, #to" ).datepicker({
+				defaultDate: "+1w",
+				changeMonth: true,
+				beforeShowDay: noSunday,
+				minDate: "01/01/2015",
+				maxDate: new Date(),
+				numberOfMonths: 2,
+				onSelect: function( selectedDate ) {
+					if(this.id == 'from'){
+					  var dateMin = $('#from').datepicker("getDate");
+					  var rMin = new Date(dateMin.getFullYear(), dateMin.getMonth(),dateMin.getDate() + 1); 
+					  $('#to').datepicker("option","minDate",rMin);                 
+					}if(this.id == 'to'){
+					  var dateMax = $('#to').datepicker("getDate");
+					  var toMax = new Date(dateMax.getFullYear(), dateMax.getMonth(),dateMax.getDate()-1);
+					  $('#from').datepicker("option","maxDate",toMax);                    
+					}
+					
+				}
+			});
+	
+			function noSunday(date) {
+				var day = date.getDay();
+				return [(day == 1), ''];
+			};
+
+    //Set the initial state of the picker label	
+	$('#from').val(moment(beforeMonday).format('D MMMM YYYY'));
+	$('#to').val(moment(lastMonday).format('D MMMM YYYY'));
+		
+	function wait(ms){
+	   var start = new Date().getTime();
+	   var end = start;
+	   while(end < start + ms) {
+		 end = new Date().getTime();
+	  }
+	}
+	
+		
+	$('#saveBtn').click(function(){	
+		var qtype_click = $('#qtype :selected').text();		
+		
+		function renderTableClick(xhrdata) {
+		var cols = [];
+		if(xhrdata.length == 0){
+			AjaxNoDataFailed();
+		}else{
+			$('#failure').html(""); //Clear error span
+			var exampleRecord = xhrdata[0];
+
+			var keys = Object.keys(exampleRecord).sort().reverse();;
+
+			keys.forEach(function(k) {
+			  cols.push({
+				title: k,
+				data: k
+				  //optionally do some type detection here for render function
+			  });
+			});
+
+			var table = $('#questionInfoTable').DataTable({
+				columns: cols,
+				dom: 'Blfrtip',
+				lengthMenu: [ 10, 50, 100 ],
+				colReorder: {
+					order: [2,1,0]
+				},
+				buttons: [
+					{
+						extend: 'excel',
+						title: qtype_click,
+						text:'Download Excel File'
+					}
+				],
+				columnDefs: [
+					{ 
+						visible: false, 
+						targets: 0 
+					}
+				]
+			});
+
+			table.rows.add(xhrdata).draw();
+		}
+
+		}
+		
+		from_date = $('#from').val();
+		to_date = $('#to').val();		
+		
+		new_end_date = new Date(to_date);
+		new_end_date_sr = new Date(new_end_date.setHours(new_end_date.getHours()+11))
+		new_end_date_sr_lk = moment(new_end_date_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
+		
+		new_start_date = new Date(from_date);
+		new_start_date_sr = new Date(new_start_date.setHours(new_start_date.getHours()+11))
+		new_start_date_sr_lk = moment(new_start_date_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
+				
+		var new_from_date = new_start_date_sr_lk + "Z";
+		var new_to_date = new_end_date_sr_lk + "Z";
+		
+		info_submit_data = [];
+		//var textit_prefix = "http://localhost:8080/textit-api/zambia";
+		var textit_prefix = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia";
+		
+		//xhr call to retrieve data
+		var xhrcall = $.ajax(textit_prefix + "/contactresponses2?from=" + new_from_date + "&to=" + new_to_date + "&qtype=" + qtype_click);
+
+		if(xhrcall.responseText != "[]"){
+			if ($.fn.DataTable.isDataTable( '#questionInfoTable' ) ) {
+					$('#questionInfoTable').DataTable().destroy();	// Destroy dataTable
+  					$('#questionInfoTable').empty();
+				}
+			
+				// empty in case the columns change (Remove DOM elements)
+			xhrcall.done(renderTableClick);
+		}
+		
+	});
+		
+ });
+</script>
+</body>
+</html>

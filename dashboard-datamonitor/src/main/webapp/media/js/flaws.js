@@ -206,14 +206,13 @@ $(document).ready(function() {
 				});
 			});
 			
-			
-			
 			} }
         } );
     } );
  
     $('#flow').DataTable( {
-        dom: "Bfrtip",
+        dom: "Bflrtip",
+		lengthMenu: [ 10, 50, 100 ],
         ajax: {
 			url:  textit_prefix + "/flows",
             dataSrc : ""
@@ -292,7 +291,7 @@ function AjaxUpdateDataSucceeded(result) {
     	$('#success').append( "<span class='alert alert-success'><strong>Success! </strong>" + ' ' +" Metadata field successfully updated" + "<br></span>");
 		setTimeout(function(){
 		   window.location.reload();
-		}, 2000);
+		}, 10000);
 		
     }
 }
@@ -304,7 +303,7 @@ function AjaxUpdateDataFailed(result) {
     $('#failure').append("<span class='alert alert-danger'><strong>Failure! </strong>" + ' ' + result.responseText + "<br></span>");
 	setTimeout(function(){
 		   window.location.reload();
-	}, 2000);
+	}, 10000);
 }
 
 
