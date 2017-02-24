@@ -1,9 +1,11 @@
 package edu.indiana.d2i.textit.utils;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.UpdateResult;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -16,6 +18,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by charmadu on 11/21/16.
@@ -88,108 +92,107 @@ public class MetadataMigrator {
     private static boolean migrateContactsMetadata(String path) throws IOException {
 
         MongoDatabase db = MongoDB.getDatabase();
+
+        String primaryKey = null;
+        String primaryDBKey = null;
+        if(country.equals(ZAMBIA)) {
+            primaryKey = "Phone#";
+            primaryDBKey = "phone";
+        }
+
+        Map<String,String> keytoKeyMap = new HashMap<String,String>();
+        if(country.equals(ZAMBIA)) {
+            keytoKeyMap.put("Lat", "latitude");
+            keytoKeyMap.put("Long", "longitude");
+            keytoKeyMap.put("Province", "province");
+            keytoKeyMap.put("District", "district");
+            keytoKeyMap.put("Camp", "camp");
+            keytoKeyMap.put("UID", "uid");
+            keytoKeyMap.put("HICPS/COWS", "hicps_cows");
+        }
+
+        Map<String,String> keytoReplaceKey = new HashMap<String,String>();
+        if(country.equals(ZAMBIA)) {
+            keytoReplaceKey.put("Name", "name");
+        }
+
         MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.CONTACTS_COLLECTION_NAME);
 
         logger.info("Migrating Contacts Metadata...");
 
         logger.info("Input file name : " + path);
 
-        File csvData = new File("/path/to/csv");
-        CSVParser parser = CSVParser.parse(path, CSVFormat.RFC4180);
         Reader in = new FileReader(path);
         ArrayList<String> notFound= new ArrayList<String>();
         ArrayList<String> multipleRecords= new ArrayList<String>();
         ArrayList<String> nameMis= new ArrayList<String>();
 
         Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
+        int updatedCount = 0;
+
         for (CSVRecord record : records) {
-            String phoneStr = record.get("Phone#");
-            String cvsName = record.get("Name");
+            String phoneStr = record.get(primaryKey);
             String phone = phoneStr.length() >= 9 ? phoneStr.substring(phoneStr.length() - 9, phoneStr.length()) : null;
 
             if (phone == null) {
-                //logger.info(phoneStr + ": Not in correct format");
                 continue;
             }
 
-            long contactsCount = contactsCollection.count(Filters.regex("phone", phone));
+            long contactsCount = contactsCollection.count(Filters.regex(primaryDBKey, phone));
             if (contactsCount == 0) {
-                //logger.info(phone + ": no match found");
                 notFound.add(phone);
                 continue;
             } else if (contactsCount > 1) {
-                //logger.info(phone + ": multiple matches found -> record not updated");
                 multipleRecords.add(phone);
                 continue;
             }
 
-            FindIterable<Document> contactsIter = contactsCollection.find(Filters.regex("phone", phone));
+            FindIterable<Document> contactsIter = contactsCollection.find(Filters.regex(primaryDBKey, phone));
             Document contactsDocument = contactsIter.first();
-            String name = contactsDocument.getString("name");
+            String uuid = contactsDocument.getString("uuid");
 
-            if (StringUtils.isEmpty(name) && !StringUtils.isEmpty(cvsName)) {
-                //logger.info(phone + ": Name mismatch -\"\"- -"+cvsName+"-");
-                nameMis.add(phone + ","+""+","+cvsName+"\n");
-            } else if (!StringUtils.isEmpty(name) && StringUtils.isEmpty(cvsName)) {
-                //logger.info(phone + ": Name mismatch -"+name+"- -\"\"-");
-                nameMis.add(phone + ","+name+","+""+"\n");
-            } else if (StringUtils.isEmpty(name) && StringUtils.isEmpty(cvsName)){
-                //Do nothing
-            } else if(!name.toLowerCase().trim().equals(cvsName.toLowerCase().trim())) {
-                //logger.info(phone + ": Name mismatch -"+name+"- -"+cvsName+"-");
-                nameMis.add(phone + ","+name+","+cvsName+"\n");
+            BasicDBObject basicObject = new BasicDBObject();
+
+            for(String key : keytoKeyMap.keySet()) {
+                basicObject.append(keytoKeyMap.get(key), record.get(key));
+            }
+            BasicDBObject newContactsDocument = new BasicDBObject();
+            newContactsDocument.append("$set", basicObject);
+
+            for(String key : keytoReplaceKey.keySet()) {
+                String dbKey = contactsDocument.getString(keytoReplaceKey.get(key));
+                String cvskey = record.get(key);
+                if (StringUtils.isEmpty(dbKey) && !StringUtils.isEmpty(cvskey)) {
+                    basicObject.append(keytoReplaceKey.get(key), record.get(key));
+                    nameMis.add(phone + "," + "" + "," + cvskey + "\n");
+                } else if (!StringUtils.isEmpty(dbKey) && StringUtils.isEmpty(cvskey)) {
+                    nameMis.add(phone + "," + dbKey + "," + "" + "\n");
+                } else if (StringUtils.isEmpty(dbKey) && StringUtils.isEmpty(cvskey)) {
+                    //Do nothing
+                } else if (!dbKey.toLowerCase().trim().equals(cvskey.toLowerCase().trim())) {
+                    nameMis.add(phone + "," + dbKey + "," + cvskey + "\n");
+                }
+            }
+
+            UpdateResult updateResult = contactsCollection.updateOne(new BasicDBObject("uuid", uuid), newContactsDocument);
+            if(updateResult.wasAcknowledged()) {
+                updatedCount++;
+            } else {
+                logger.error("Contact with UUID " + uuid + " couldn't updated successfully");
             }
 
         }
 
+        logger.info("Number of contacts updated : " + updatedCount);
+
         System.out.println("============Not Matched=============");
         System.out.println(notFound);
-        System.out.println("============Multiple Matched=============");
+        System.out.println("============Multiple Matches=============");
         System.out.println(multipleRecords);
-        System.out.println("============Name Mismatch=============");
-        System.out.println(nameMis);
+        //System.out.println("============Name Mismatch=============");
+        //System.out.println(nameMis);
 
         logger.info("Done migrating Contacts Metadata...");
         return true;
     }
-
-    /*private BasicDBObject buildContactsObject(Document contactsObj) throws RuntimeException {
-
-        String flow_name = flowObject.getString("name").toLowerCase();
-
-        List<String> flowTypes = Arrays.asList("test", "pilot", "regular", "unused");
-        List<String> flowTestTypes = Arrays.asList("test", "copy", "join");
-        List<String> seasons = Arrays.asList("planting", "harvest", "growing", "inter-season");
-        BasicDBObject basicObject = new BasicDBObject();
-
-        basicObject.append("creator", this.CREATOR);
-        basicObject.append("country", this.COUNTRY);
-
-        String flow_season = "";
-        for (String season : seasons) {
-            if (flow_name.contains(season)) {
-                flow_season = season;
-            }
-        }
-        basicObject.append("season", flow_season);
-
-
-        String flow_type = "regular";
-        for (String testType : flowTestTypes) {
-            if (flow_name.contains(testType)) {
-                flow_type = "test";
-            }
-        }
-        basicObject.append("flow_type", flow_type);
-
-        basicObject.append("run_start_date", df.format(start));
-        basicObject.append("run_end_date", df.format(end));
-        //basicObject.append("run_start_time", flowObject.getString("run_start_time"));
-        //basicObject.append("run_end_time", flowObject.getString("run_end_time"));
-
-        BasicDBObject newFlowDocument = new BasicDBObject();
-        newFlowDocument.append("$set", basicObject);
-
-        return newFlowDocument;
-    }*/
 }
