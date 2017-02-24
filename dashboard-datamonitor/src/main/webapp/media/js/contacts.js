@@ -69,26 +69,26 @@ $(document).ready(function() {
 				var province = $("#DTE_Field_province").val();
 				var dist = $("#DTE_Field_district").val();
 				var camp = $("#DTE_Field_camp").val();
-				var uid = $("#DTE_Field_UID").val();
+				var UID = $("#DTE_Field_UID").val();
 				var longitude = $("#DTE_Field_longitude").val();
-				var hicps= $("#DTE_Field_HICPS/COWS").val();
+				var HICPS_COWS= $("#DTE_Field_HICPS/COWS").val();
 				
 				var uuid = $(this).closest('tr').find('td:eq(1)').text();
 				
 				if(province==undefined){
 					province = $(this).closest('tr').find('td:eq(4)').text();
-				}if(dist==undefined){
-					dist = $(this).closest('tr').find('td:eq(5)').text();
+				}if(district==undefined){
+					district = $(this).closest('tr').find('td:eq(5)').text();
 				}if(longitude==undefined){
 					longitude = $(this).closest('tr').find('td:eq(6)').text();
 				}if(latitude==undefined){
 					latitude = $(this).closest('tr').find('td:eq(7)').text();
 				}if(camp==undefined){
 					camp = $(this).closest('tr').find('td:eq(8)').text();
-				}if(uid==undefined){
-					uid = $(this).closest('tr').find('td:eq(9)').text();
-				}if(hicps==undefined){
-					hicps = $(this).closest('tr').find('td:eq(10)').text();
+				}if(UID==undefined){
+					UID = $(this).closest('tr').find('td:eq(9)').text();
+				}if(HICPS_COWS==undefined){
+					HICPS_COWS = $(this).closest('tr').find('td:eq(10)').text();
 				}
 				
 				var dataArray = {};
@@ -100,14 +100,14 @@ $(document).ready(function() {
 					dataArray['longitude'] = longitude;
 				}if (province != ""){
 					dataArray['province'] = province;
-				}if (dist != ""){
-					dataArray['dist'] = dist;
+				}if (district != ""){
+					dataArray['district'] = district;
 				}if (camp != ""){
 					dataArray['camp'] = camp;
-				}if (uid != ""){
-					dataArray['uid'] = uid;
-				}if (hicps != ""){
-					dataArray['hicps'] = hicps;
+				}if (UID != ""){
+					dataArray['UID'] = UID;
+				}if (HICPS_COWS != ""){
+					dataArray['HICPS/COWS'] = HICPS_COWS;
 				}
 				
 				$.ajax({
