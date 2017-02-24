@@ -45,11 +45,11 @@ $(document).ready(function() {
 				fieldInfo: "Ex: Sedumbwe, Masuka"
             }, {
                 label: "UID:",
-                name: "UID",
+                name: "uid",
 				fieldInfo: "Ex: 25019"
             }, {
                 label: "HICPS/COWS:",
-                name: "HICPS/COWS",
+                name: "hicps_cows",
 				fieldInfo: "Ex: HIPS, COWS"
             }
         ]
@@ -69,9 +69,9 @@ $(document).ready(function() {
 				var province = $("#DTE_Field_province").val();
 				var dist = $("#DTE_Field_district").val();
 				var camp = $("#DTE_Field_camp").val();
-				var UID = $("#DTE_Field_UID").val();
+				var uid = $("#DTE_Field_uid").val();
 				var longitude = $("#DTE_Field_longitude").val();
-				var HICPS_COWS= $("#DTE_Field_HICPS/COWS").val();
+				var hicps_cows= $("#DTE_Field_hicps_cows").val();
 				
 				var uuid = $(this).closest('tr').find('td:eq(1)').text();
 				
@@ -85,10 +85,10 @@ $(document).ready(function() {
 					latitude = $(this).closest('tr').find('td:eq(7)').text();
 				}if(camp==undefined){
 					camp = $(this).closest('tr').find('td:eq(8)').text();
-				}if(UID==undefined){
-					UID = $(this).closest('tr').find('td:eq(9)').text();
-				}if(HICPS_COWS==undefined){
-					HICPS_COWS = $(this).closest('tr').find('td:eq(10)').text();
+				}if(uid==undefined){
+					uid = $(this).closest('tr').find('td:eq(9)').text();
+				}if(hicps_cows==undefined){
+					hicps_cows = $(this).closest('tr').find('td:eq(10)').text();
 				}
 				
 				var dataArray = {};
@@ -104,10 +104,10 @@ $(document).ready(function() {
 					dataArray['district'] = district;
 				}if (camp != ""){
 					dataArray['camp'] = camp;
-				}if (UID != ""){
-					dataArray['UID'] = UID;
-				}if (HICPS_COWS != ""){
-					dataArray['HICPS/COWS'] = HICPS_COWS;
+				}if (uid != ""){
+					dataArray['uid'] = uid;
+				}if (hicps_cows != ""){
+					dataArray['hicps_cows'] = hicps_cows;
 				}
 				
 				$.ajax({
@@ -150,8 +150,8 @@ $(document).ready(function() {
 			{ data: "longitude" },
 			{ data: "latitude" },
 			{ data: "camp" },
-			{ data: "UID"},
-			{ data: "HICPS/COWS"}
+			{ data: "uid"},
+			{ data: "hicps_cows"}
         ],
 		
         select: {
