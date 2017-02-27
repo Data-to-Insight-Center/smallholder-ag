@@ -1,0 +1,16 @@
+ward_1_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_2_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_3_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_5_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_8_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_9_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_10_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_12_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_13_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_15_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_17_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_16_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_19_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_18_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_21_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
+ward_20_numSeedHH_100_AgYear_2011_allocation_0_.txt,WI_CMZR003,7,0.1
