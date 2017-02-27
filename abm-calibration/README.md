@@ -1,2 +1,2 @@
 # smallholder-ag/abm-calibration
-The code contain the calibration method for GA and SA
+This package contain the Agent-Based Model Calibration Methods including Genetic Algorithm and Simulated Annealing s
