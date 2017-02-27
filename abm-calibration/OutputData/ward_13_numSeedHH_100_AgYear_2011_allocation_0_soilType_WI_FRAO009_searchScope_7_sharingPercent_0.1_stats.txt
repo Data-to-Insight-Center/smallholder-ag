@@ -1,0 +1,29 @@
+## simulation parameters
+total_number_HH: 4071
+num_seed_HH: 100
+current_year: 2012
+soilType: WI_FRAO009
+search_scope (maximal labor sharing scope to each direction, 100m): 7
+labor_sharing_pecent (top/bottom percent of household to exchange labor): 0.1
+monthly_food_consum (food consumption per person, kg): 7
+labor_land_ratio_to_weed (minimal adult equivalent per ha land to be able to weed): 2
+## production summary
+total yield (kg): 14023961
+avg yield (kg/ha): 3128.9515841142347
+## outputs
+report file: OutputData/ward_13_numSeedHH_100_AgYear_2011_allocation_0_soilType_WI_FRAO009_searchScope_7_sharingPercent_0.1_stats.txt
+yield map file: 0
+labor sharing map file: 0
+## labor exchange stats
+number of HHs that want labor but did not find labor:407
+number of HHs that want labor and found labor:264
+number of HHs that want to provide labor but did not provide labor:669
+number of HHs that want to provide labor and provided labor:222
+number of HHs that has OP0001:275
+number of HHs that uses HY0001:3796
+## land allocation stats
+total area of Ag land: 4482
+area of Ag land that is not allocated: 0
+num of HHs that cannot find unoccupied land nearby: 11
+num of HHs that are not allocated any land: 866
+land deficit: 3568
