@@ -1,9 +1,9 @@
 library(jsonlite)
 
-#host <- "http://localhost:8080/textit-api/zambia/"
-host <- "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia/"
-from_date <- "2017-02-06T12:00:00.000Z"
-to_date <- "2017-02-13T11:59:59.592Z"
+host <- "http://localhost:8080/textit-api/zambia/"
+#host <- "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia/"
+from_date <- "2017-02-13T12:00:00.000Z"
+to_date <- "2017-02-20T11:59:59.592Z"
 
 time_period <- paste(strsplit(from_date, "T")[[1]][1], strsplit(to_date, "T")[[1]][1], sep=" to ")
 

@@ -171,7 +171,7 @@ function AjaxUpdateDataSucceeded(result) {
     	$('#success').append( "<span class='alert alert-success'><strong>Success! </strong>" + ' ' +" Metadata field successfully updated" + "<br></span>");
 		setTimeout(function(){
 		   window.location.reload();
-		}, 10000);
+		}, 2000);
 		
     }
 }
@@ -183,6 +183,6 @@ function AjaxUpdateDataFailed(result) {
     $('#failure').append("<span class='alert alert-danger'><strong>Failure! </strong>" + ' ' + result.responseText + "<br></span>");
 	setTimeout(function(){
 		   window.location.reload();
-	}, 10000);
+	}, 2000);
 }
 

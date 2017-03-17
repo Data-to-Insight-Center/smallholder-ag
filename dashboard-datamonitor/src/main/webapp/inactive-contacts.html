@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Question Type | Farmer Response</title>
+    <title>Contacts | Active/Inactive Contacts</title>
     <!-- Font Awesome -->
     <link href="media/css/font-awesome.min.css" rel="stylesheet">    
     <link href="media/css/bootstrap.min.css" rel="stylesheet">
@@ -48,6 +48,8 @@
 		 font-size:23px !important;
 		}
 	</style>
+	
+	
 </head>
 
 <body style="background-color:#ffffff;">
@@ -92,48 +94,13 @@
                 <div class="dashboard_graph x_panel">
                   <div class="row x_title">
                     <div class="col-md-6 col-sm-6 col-xs-6">
-                      <h3>Farmers Response Table <small> -  For given question type & time period</small></h3>
+                      <h3>Inactive Farmers Table <small> -  For a given time period</small></h3>
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-6">
-                      <div id="ques_response" class=" pull-right" style="background: #fff; cursor: pointer; padding: 10px; border: 1px solid #ccc">
-                        <label for="from">from</label>
-                        <input type="text" id="from" name="from">
-                        <label for="to">to</label>
+                      <div id="contact_response" class=" pull-right" style="background: #fff; cursor: pointer; padding: 10px;">
+						<label for="to">Last Response Date</br><span style="font-size: 10px;">(select a date to see the list of farmers who didn't respond till now)</span></label>
                         <input type="text" id="to" name="to">
-                        <label for="qtype">question type</label>
-						<select id="qtype">
-							<option>charcoal</option>
-							<option>coll_fuelwood</option>
-							<option>coll_water</option>
-							<option>expected harvest</option>
-							<option>fertilizer</option>
-							<option>give maize</option>
-							<option>harvest</option>
-							<option>harvest complete</option>
-							<option>kg 1</option>
-							<option>kg 1 of 2</option>
-							<option>kg 2 of 2</option>
-							<option>maize price</option>
-							<option>maize purchase</option>							
-							<option>maize purchased</option>
-							<option>maize sold</option>
-							<option>maize storage</option>
-							<option>meat</option>
-							<option>piecework</option>
-							<option>planting</option>
-							<option>planting complete</option>
-							<option selected="selected">rain</option>
-							<option>receive maize</option>
-							<option>sales amt</option>
-							<option>storage</option>
-							<option>variety 1</option>
-							<option>variety 1 of 2</option>
-							<option>variety 2 of 2</option>
-							<option>variety number</option>
-							<option>weeding</option>							
-							<option>50kg harvest</option>
-						</select>
-                      </div>
+                      </div>                      
                     </div>
                     <hr>
                     <div class="form-group">
@@ -144,7 +111,7 @@
                   </div>
                     <div class="tab-pane" id="tab-table5">
 						<div id="failure" style="padding:20px;" align="center"></div>
-                        <table id="questionInfoTable" class="table table-striped table-bordered" width="100%" cellspacing="0">
+                        <table id="contactInfoTable" class="table table-striped table-bordered" width="100%" cellspacing="0">
                         </table>
                         
                         <div style="margin-top:50px;"></div>
@@ -158,11 +125,10 @@
    
     <script type="text/javascript">
 	$(document).ready(function() {	
-		var qtype = $('#qtype :selected').text();	
 		
 		function AjaxNoDataFailed() {
 			$('#failure').html(""); //Clear error span
-			$('#failure').append("<span class='alert alert-warning' style='align:center;padding:10px;font-size:20px'><strong>Warning! </strong>" + 'No data available for this question type within this time period' + "<br></span>");
+			$('#failure').append("<span class='alert alert-warning' style='align:center;padding:10px;font-size:20px'><strong>Warning! </strong>" + 'No data available for a given time period' + "<br></span>");
 			
 		}
 		
@@ -174,7 +140,7 @@
 			$('#failure').html(""); //Clear error span
 			var exampleRecord = xhrdata[0];
 
-			var keys = Object.keys(exampleRecord).sort().reverse();;
+			var keys = Object.keys(exampleRecord);
 
 			keys.forEach(function(k) {
 			  cols.push({
@@ -184,24 +150,63 @@
 			  });
 			});
 
-			var table = $('#questionInfoTable').DataTable({
+			var table = $('#contactInfoTable').DataTable({
 				columns: cols,
 				dom: 'Blfrtip',
 				lengthMenu: [ 10, 50, 100 ],
-				colReorder: {
-					order: [2,1,0]
-				},
+				order: [ 7, "asc" ],
 				buttons: [
 					{
 						extend: 'excel',
-						title: qtype,
-						text:'Download Excel File'
+						title: "inactive_contacts",
+						text:'Download Excel File',
+						exportOptions: {
+						columns: [4,5,7,11]
+					}
 					}
 				],
 				columnDefs: [
 					{ 
 						visible: false, 
 						targets: 0 
+					},
+					{ 
+						visible: false, 
+						targets: 1 
+					},
+					{ 
+						visible: false, 
+						targets: 2 
+					},
+					{ 
+						visible: false, 
+						targets: 3 
+					},
+					{ 
+						visible: false, 
+						targets: 6 
+					},
+					{
+                		type : "datetime",
+						render: function ( data, type, row ) {
+								var mom_date = moment(data);
+								var new_date = mom_date.format('YYYY-MM-DD h:mm A');
+    							return new_date;
+						},
+						targets: 7,
+						dateFormat: "yy-mm-dd"
+					},
+					{ 
+						visible: false, 
+						targets: 8 
+					},
+					{ 
+						visible: false, 
+						targets: 9 
+					},
+					{ 
+						visible: false, 
+						targets: 10 
 					}
 				]
 			});
@@ -212,48 +217,36 @@
 		}
 		
 		var now = new Date();
-		var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-		var lastMonday = new Date(today.setDate(today.getDate()-(today.getDay()-1)%7));
-        var beforeMonday = new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate()-7);
+		var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());		
+        var last_month = new Date(today.getFullYear(), today.getMonth()-1, today.getDate());
 		
-		tdate = new Date(moment(lastMonday).format('D MMMM YYYY'));
+		tdate = new Date(moment(last_month).format('D MMMM YYYY'));
 		tdate_sr = new Date(tdate.setHours(tdate.getHours()+11))
 		tdate_sr_lk = moment(tdate_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
 		
-		fdate = new Date(moment(beforeMonday).format('D MMMM YYYY'));
-		fdate_sr = new Date(fdate.setHours(fdate.getHours()+11))
-		fdate_sr_lk = moment(fdate_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
-		
 		var to_date = tdate_sr_lk + "Z";
-		var from_date = fdate_sr_lk + "Z";
-		//var qtype = "rain";
 
 		//var textit_prefix = "http://localhost:8080/textit-api/zambia";
 		var textit_prefix = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia";
 			
 		//xhr call to retrieve data
-	    var xhrcall = $.ajax(textit_prefix + "/contactresponses2?from=" + from_date + "&to=" + to_date + "&qtype=" + qtype);
+	    var xhrcall = $.ajax(textit_prefix + "/contacts?lastRespondedSort=1&lastRespondedTo=" + to_date);
 
 	  	//promise syntax to render after xhr completes
 	    xhrcall.done(renderTable);
 		
 
-		$( "#from, #to" ).datepicker({
+		$( "#to" ).datepicker({
 				defaultDate: "+1w",
 				changeMonth: true,
 				beforeShowDay: noSunday,
-				minDate: "01/01/2015",
+				minDate: "01/01/2014",
 				maxDate: new Date(),
 				numberOfMonths: 2,
 				onSelect: function( selectedDate ) {
-					if(this.id == 'from'){
-					  var dateMin = $('#from').datepicker("getDate");
-					  var rMin = new Date(dateMin.getFullYear(), dateMin.getMonth(),dateMin.getDate() + 1); 
-					  $('#to').datepicker("option","minDate",rMin);                 
-					}if(this.id == 'to'){
+					if(this.id == 'to'){
 					  var dateMax = $('#to').datepicker("getDate");
 					  var toMax = new Date(dateMax.getFullYear(), dateMax.getMonth(),dateMax.getDate()-1);
-					  $('#from').datepicker("option","maxDate",toMax);                    
 					}
 					
 				}
@@ -265,8 +258,7 @@
 			};
 
     //Set the initial state of the picker label	
-	$('#from').val(moment(beforeMonday).format('D MMMM YYYY'));
-	$('#to').val(moment(lastMonday).format('D MMMM YYYY'));
+	$('#to').val(moment(last_month).format('D MMMM YYYY'));
 		
 	function wait(ms){
 	   var start = new Date().getTime();
@@ -277,9 +269,7 @@
 	}
 	
 		
-	$('#saveBtn').click(function(){	
-		var qtype_click = $('#qtype :selected').text();		
-		
+	$('#saveBtn').click(function(){
 		function renderTableClick(xhrdata) {
 		var cols = [];
 		if(xhrdata.length == 0){
@@ -288,7 +278,7 @@
 			$('#failure').html(""); //Clear error span
 			var exampleRecord = xhrdata[0];
 
-			var keys = Object.keys(exampleRecord).sort().reverse();;
+			var keys = Object.keys(exampleRecord);
 
 			keys.forEach(function(k) {
 			  cols.push({
@@ -298,24 +288,63 @@
 			  });
 			});
 
-			var table = $('#questionInfoTable').DataTable({
+			var table = $('#contactInfoTable').DataTable({
 				columns: cols,
 				dom: 'Blfrtip',
+				order: [ 7, "asc" ],
 				lengthMenu: [ 10, 50, 100 ],
-				colReorder: {
-					order: [2,1,0]
-				},
 				buttons: [
 					{
 						extend: 'excel',
-						title: qtype_click,
-						text:'Download Excel File'
+						title: "inactive_contacts",
+						text:'Download Excel File',
+						exportOptions: {
+						columns: [4,5,7,11]
+					}
 					}
 				],
 				columnDefs: [
 					{ 
 						visible: false, 
 						targets: 0 
+					},
+					{ 
+						visible: false, 
+						targets: 1 
+					},
+					{ 
+						visible: false, 
+						targets: 2 
+					},
+					{ 
+						visible: false, 
+						targets: 3 
+					},
+					{ 
+						visible: false, 
+						targets: 6 
+					},
+					{
+                		type : "datetime",
+						render: function ( data, type, row ) {
+								var mom_date = moment(data);
+								var new_date = mom_date.format('YYYY-MM-DD h:mm A');
+    							return new_date;
+						},
+						targets: 7,
+						dateFormat: "yy-mm-dd"
+					},
+					{ 
+						visible: false, 
+						targets: 8 
+					},
+					{ 
+						visible: false, 
+						targets: 9 
+					},
+					{ 
+						visible: false, 
+						targets: 10 
 					}
 				]
 			});
@@ -325,29 +354,24 @@
 
 		}
 		
-		from_date = $('#from').val();
+		
 		to_date = $('#to').val();		
 		
 		new_end_date = new Date(to_date);
 		new_end_date_sr = new Date(new_end_date.setHours(new_end_date.getHours()+11))
 		new_end_date_sr_lk = moment(new_end_date_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
 		
-		new_start_date = new Date(from_date);
-		new_start_date_sr = new Date(new_start_date.setHours(new_start_date.getHours()+11))
-		new_start_date_sr_lk = moment(new_start_date_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
-				
-		var new_from_date = new_start_date_sr_lk + "Z";
 		var new_to_date = new_end_date_sr_lk + "Z";
 		
 		info_submit_data = [];
 		
 		//xhr call to retrieve data
-		var xhrcall = $.ajax(textit_prefix + "/contactresponses2?from=" + new_from_date + "&to=" + new_to_date + "&qtype=" + qtype_click);
+		var xhrcall = $.ajax(textit_prefix + "/contacts?lastRespondedSort=1&lastRespondedTo=" + new_to_date);
 
 		if(xhrcall.responseText != "[]"){
-			if ($.fn.DataTable.isDataTable( '#questionInfoTable' ) ) {
-					$('#questionInfoTable').DataTable().destroy();	// Destroy dataTable
-  					$('#questionInfoTable').empty();
+			if ($.fn.DataTable.isDataTable( '#contactInfoTable' ) ) {
+					$('#contactInfoTable').DataTable().destroy();	// Destroy dataTable
+  					$('#contactInfoTable').empty();
 				}
 			
 				// empty in case the columns change (Remove DOM elements)
