@@ -251,8 +251,8 @@
          var textit_prefix = "./api/zambia";
          
          /* Inactive Farmers - for last month*/
-         var textit_prefix_api = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia"
-         //var textit_prefix_api = "http://localhost:8080/textit-api/zambia";
+         //var textit_prefix_api = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia"
+         var textit_prefix_api = "http://localhost:8080/textit-api/zambia";
          var now = new Date();
          var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
          var last_respond_date = new Date(today.getFullYear(), today.getMonth()-1, today.getDate());
@@ -344,8 +344,8 @@
       <script>
          $(document).ready(function() { 
          	var textit_prefix = "./api/zambia";	
-			var textit_prefix_api = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia"
-         	//var textit_prefix_api = "http://localhost:8080/textit-api/zambia";
+			//var textit_prefix_api = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia"
+         	var textit_prefix_api = "http://localhost:8080/textit-api/zambia";
          	var now = new Date();
          	var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
          	var lastMonday = new Date(today.setDate(today.getDate()-(today.getDay()-1)%7));
@@ -414,11 +414,11 @@
          
          		for (f in sdata){
          			
-         				if (sdata[f].total_runs != 0){
-         			for (var j=0; j<14; j++){
+         			if (sdata[f].total_runs != 0){
+         				for (var j=0; j<14; j++){
          					if(j % 2 == 1){
          						k = j/2-1/2;
-         						if (sdata[f].matrix[j] != undefined){
+         						if (sdata[f].responded_matrix[j] != undefined){
          							
          							non_response_array.push({"label" : days[k], "y" : sdata[f].non_responded_matrix[j].perc, "cat_name" : "No answer at all"});
          
@@ -534,11 +534,11 @@
          
          		for (f in sdata){
          			
-         				if (sdata[f].total_runs != 0){
-         			for (var j=0; j<14; j++){
+         			if (sdata[f].total_runs != 0){
+         				for (var j=0; j<14; j++){
          					if(j % 2 == 1){
          						k = j/2-1/2;
-         						if (sdata[f].matrix[j] != undefined){
+         						if (sdata[f].responded_matrix[j] != undefined){
          
          							non_response_array.push({"label" : days[k], "y" : sdata[f].non_responded_matrix[j].perc, "cat_name" : "No answer at all"});
          
@@ -768,7 +768,7 @@
          						mat_len = s2data[g].matrix.length - 1
          						non_mat_len = s2data[g].non_responded_matrix.length - 1
          						atl_mat_len = s2data[g].responded_matrix.length - 1
-         						if (s2data[f].matrix[g] != undefined){
+         						if (s2data[g].matrix[mat_len] != undefined){
          
          							graph2_non_response_array.push({"label" : week_com, "y" : s2data[g].non_responded_matrix[non_mat_len].abs, "cat_name" : "No answer at all"});
          
