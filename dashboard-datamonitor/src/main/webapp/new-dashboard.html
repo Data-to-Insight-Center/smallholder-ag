@@ -26,31 +26,35 @@
       <script src="media/js/jquery-ui.js"></script>
       <style type="text/css">
          .count{
-         font-size:18px !important;
+         	font-size:18px !important;
          }h2{
-         font-size:23px !important;
+         	font-size:23px !important;
          }h2.weather {
-         font-size:18px !important;
+         	font-size:18px !important;
          }.today p{
-         font-size:13px !important;
+         	font-size:13px !important;
          }.tile_stats_count .count {
-         line-height:20px !important;
+         	line-height:20px !important;
          }.row {
-         margin-top:-12px !important;
+         	margin-top:-12px !important;
          }h2.analysis {
-         font-size:28px !important;
+         	font-size:28px !important;
          }.x_title span {
-         color: #5A738E !important;
-         }
+         	color: #5A738E !important;
+		 }hr{
+			margin-top: 0px !important;
+		 }.nav > li > a {
+			padding: 8px 12px 8px 12px !important;
+		 }
       </style>
    </head>
-   <body style="background-color:#ffffff;">
+   <body style="background-color:#ffffff;padding:0px 20px 0px 20px;">
       <div>
-         <div style="text-align:center;;font-size:30px;margin:10px;"><strong>Zambia – Farmer SMS Data</strong></div>
+         <div style="text-align:center;font-size:26px;margin:2px;"><strong>Zambia – Farmer SMS Data</strong></div>
          <!-- page content -->
          <div class="right_col" role="main"  style="margin:0 auto">
             <div>
-               <ul class="nav nav-tabs" role="tablist" style="font-size:18px;">
+               <ul class="nav nav-tabs" role="tablist" style="font-size:16px;">
                   <li class="active">
                      <a href="#tab-top-table1" data-toggle="tab">Zambia</a>
                   </li>
@@ -66,7 +70,7 @@
                            <div class="x_content">
                               <div>
                                  <div>
-                                    <ul class="nav nav-tabs" role="tablist" style="font-size:15px">
+                                    <ul class="nav nav-tabs" role="tablist" style="font-size:14px">
                                        <li class="active">
                                           <a href="#tab-table1" data-toggle="tab">Monitoring</a>
                                        </li>
@@ -76,22 +80,22 @@
                                     </ul>
                                     <div class="tab-content">
                                        <div class="tab-pane active" id="tab-table1">
-                                          <h3 style="text-align:center;padding:20px 0px 40px 0px;">Weekly Overview <span class="count_top" id="lastweek" style="font-size:13px"></span></h3>
+                                          <h3 style="text-align:center;padding:0px 0px 10px 0px;font-size:20px">Weekly Overview <span class="count_top" id="lastweek" style="font-size:13px"></span></h3>
                                           <!-- top tiles -->
                                           <div class="row tile_count">
                                              <div class="col-md-6 col-sm-6 col-xs-6 tile_stats_count" style="text-align:center">
                                                 <span class="count_top" style="font-size:15px;font-weight:600;">Flows Overview</span>
-                                                <div style="text-align:center;margin:10px;"><span class="count_top" style="font-size:13px"> Total Flows  :  </span><span class="count blue" id="total_flows_count"></span></div>
-                                                <div style="text-align:center;margin:10px;"><span class="count_top" style="font-size:13px"> Open Flows  :  </span><span class="count blue" id="open_flows_count"></span></div>
-                                                <div style="text-align:center;margin:10px;"><span class="count_top" style="font-size:13px"> Started Last Week <span class="count_top" id="lastweek1"></span> <br>Flows  :  </span><span class="count blue" id="last_week_comp_flow_count"></span></div>
-                                                <div style="text-align:center;margin:10px;"><span class="count_top" style="font-size:13px"> Resend Flows  :  </span><span class="count blue" id="last_week_comp_resend_flow_count"></span></div>
+                                                <div style="text-align:center;"><span class="count_top" style="font-size:13px"> Total Flows  :  </span><span class="count blue" id="total_flows_count"></span></div>
+                                                <div style="text-align:center;"><span class="count_top" style="font-size:13px"> Open Flows  :  </span><span class="count blue" id="open_flows_count"></span></div>
+                                                <div style="text-align:center;"><span class="count_top" style="font-size:13px"> Started Last Week <span class="count_top" id="lastweek1"></span> <br>Flows  :  </span><span class="count blue" id="last_week_comp_flow_count"></span></div>
+                                                <div style="text-align:center;"><span class="count_top" style="font-size:13px"> Resend Flows  :  </span><span class="count blue" id="last_week_comp_resend_flow_count"></span></div>
                                              </div>
                                              <div class="col-md-6 col-sm-6 col-xs-6 tile_stats_count" style="text-align:center">
                                                 <span class="count_top" style="font-size:15px;font-weight:600;">Respondents(Contact) Overview</span>
-                                                <div style="text-align:center;margin:10px;"><span class="count_top" style="font-size:13px"> Total Contacts  :  </span><span class="count blue" id="total_user_count"></span></div>
-                                                <div style="text-align:center;margin:10px;"><span class="count_top" style="font-size:13px"> Active Last Week <span class="count_top" id="lastweek2"></span>  :  </span><span class="count blue" id="active_last_week"></span></div>
-                                                <div style="text-align:center;margin:10px;"><span class="count_top" style="font-size:13px"> Inactive Last Week <span class= "count_top" id="lastweek3"></span>  :  </span><span class="count blue" id="inactive_last_week"></span></div>
-                                                <div style="text-align:center;margin:10px;"><span class="count_top" style="font-size:13px"> No response for a month <span class= "count_top" id="lastweek4"></span>  :  </span><span class="count blue" id="no_response_last_month"></span></div>
+                                                <div style="text-align:center;"><span class="count_top" style="font-size:13px"> Total Contacts  :  </span><span class="count blue" id="total_user_count"></span></div>
+                                                <div style="text-align:center;"><span class="count_top" style="font-size:13px"> Active Last Week <span class="count_top" id="lastweek2"></span>  :  </span><span class="count blue" id="active_last_week"></span></div>
+                                                <div style="text-align:center;"><span class="count_top" style="font-size:13px"> Inactive Last Week <span class= "count_top" id="lastweek3"></span>  :  </span><span class="count blue" id="inactive_last_week"></span></div>
+                                                <div style="text-align:center;"><span class="count_top" style="font-size:13px"> No response for a month <span class= "count_top" id="lastweek4"></span>  :  </span><span class="count blue" id="no_response_last_month"></span></div>
                                              </div>
                                           </div>
                                           <hr>
@@ -102,7 +106,7 @@
                                                 <div class="dashboard_graph x_panel">
                                                    <div class="row x_title">
                                                       <div class="col-md-5">
-                                                         <h3>Daily run completion rate <span class="count_top" id="lastweek6" style="font-size:11px"></span></h3>
+                                                         <h3 style="font-size:20px">Daily run completion rate <span class="count_top" id="lastweek6" style="font-size:11px"></span></h3>
                                                       </div>
                                                       <div class="col-md-7">
                                                          <div id="reportrange1" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 0px;">
@@ -128,7 +132,7 @@
                                                 <div class="dashboard_graph x_panel">
                                                    <div class="row x_title">
                                                       <div class="col-md-5">
-                                                         <h3>Flow completion rate <span class="count_top" id="lastweek5" style="font-size:11px"></span></h3>
+                                                         <h3 style="font-size:20px">Flow completion rate <span class="count_top" id="lastweek5" style="font-size:11px"></span></h3>
                                                       </div>
                                                       <div class="col-md-7">
                                                          <div id="reportrange2" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 0px;">
