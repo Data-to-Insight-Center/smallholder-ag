@@ -251,8 +251,8 @@
          var textit_prefix = "./api/zambia";
          
          /* Inactive Farmers - for last month*/
-         //var textit_prefix_api = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia"
-         var textit_prefix_api = "http://localhost:8080/textit-api/zambia";
+         var textit_prefix_api = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia"
+         //var textit_prefix_api = "http://localhost:8080/textit-api/zambia";
          var now = new Date();
          var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
          var last_respond_date = new Date(today.getFullYear(), today.getMonth()-1, today.getDate());
@@ -344,8 +344,8 @@
       <script>
          $(document).ready(function() { 
          	var textit_prefix = "./api/zambia";	
-			//var textit_prefix_api = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia"
-         	var textit_prefix_api = "http://localhost:8080/textit-api/zambia";
+			var textit_prefix_api = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia"
+         	//var textit_prefix_api = "http://localhost:8080/textit-api/zambia";
          	var now = new Date();
          	var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
          	var lastMonday = new Date(today.setDate(today.getDate()-(today.getDay()-1)%7));
