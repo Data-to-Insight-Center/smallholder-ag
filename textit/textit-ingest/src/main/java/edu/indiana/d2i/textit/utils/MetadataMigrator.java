@@ -99,6 +99,14 @@ public class MetadataMigrator {
             primaryKey = "Phone#";
             primaryDBKey = "phone";
         }
+        //if(country.equals(KENYA)) { //Contacts_metadata_kenya_2.csv
+        //    primaryKey = "UUID";
+        //    primaryDBKey = "uuid";
+        //}
+        if(country.equals(KENYA)) { //Contacts_metadata_kenya_1.csv
+            primaryKey = "UID";
+            primaryDBKey = "fields.uid";
+        }
 
         Map<String,String> keytoKeyMap = new HashMap<String,String>();
         if(country.equals(ZAMBIA)) {
@@ -110,10 +118,37 @@ public class MetadataMigrator {
             keytoKeyMap.put("UID", "uid");
             keytoKeyMap.put("HICPS/COWS", "hicps_cows");
         }
+        //if(country.equals(KENYA)) { // Contacts_metadata_kenya_2.csv
+        //    keytoKeyMap.put("CWP", "cwp");
+        //    keytoKeyMap.put("WRUA", "wrua");
+        //    keytoKeyMap.put("cwp member?", "cwp_member");
+        //    keytoKeyMap.put("1 Sept 16 enrolled?", "1_sep_16_enrolled");
+        //    keytoKeyMap.put("Latitude", "latitude");
+        //    keytoKeyMap.put("Longitude", "longitude");
+        //}
+        if(country.equals(KENYA)) { // Contacts_metadata_kenya_1.csv
+            keytoKeyMap.put("CWP_ID", "cwp_id");
+            keytoKeyMap.put("WRUA_ID", "wrua_id");
+            keytoKeyMap.put("ltime", "ltime");
+            keytoKeyMap.put("altitude", "altitude");
+            keytoKeyMap.put("x_proj", "x_proj");
+            keytoKeyMap.put("y_proj", "y_proj");
+            keytoKeyMap.put("ident", "ident");
+        }
 
         Map<String,String> keytoReplaceKey = new HashMap<String,String>();
         if(country.equals(ZAMBIA)) {
             keytoReplaceKey.put("Name", "name");
+        }
+        //if(country.equals(KENYA)) { // Contacts_metadata_kenya_2.csv
+        //    keytoReplaceKey.put("Locid", "fields.locid");
+        //    keytoReplaceKey.put("Uid", "fields.uid");
+        //}
+        if(country.equals(KENYA)) { // Contacts_metadata_kenya_1.csv
+            keytoReplaceKey.put("WRUA", "wrua");
+            keytoReplaceKey.put("CWP", "cwp");
+            keytoReplaceKey.put("Latitude", "latitude");
+            keytoReplaceKey.put("Longitude", "longitude");
         }
 
         MongoCollection<Document> contactsCollection = db.getCollection(MongoDB.CONTACTS_COLLECTION_NAME);
@@ -131,23 +166,26 @@ public class MetadataMigrator {
         int updatedCount = 0;
 
         for (CSVRecord record : records) {
-            String phoneStr = record.get(primaryKey);
-            String phone = phoneStr.length() >= 9 ? phoneStr.substring(phoneStr.length() - 9, phoneStr.length()) : null;
+            String primaryKeyStr = record.get(primaryKey);
+            String primaryKeycsv = primaryKeyStr;
+            if(country.equals(ZAMBIA)) {// since its a phone number
+                primaryKeycsv = primaryKeyStr.length() >= 9 ? primaryKeyStr.substring(primaryKeyStr.length() - 9, primaryKeyStr.length()) : null;
+            }
 
-            if (phone == null) {
+            if (primaryKeycsv == null) {
                 continue;
             }
 
-            long contactsCount = contactsCollection.count(Filters.regex(primaryDBKey, phone));
+            long contactsCount = contactsCollection.count(Filters.regex(primaryDBKey, primaryKeycsv));
             if (contactsCount == 0) {
-                notFound.add(phone);
+                notFound.add(primaryKeycsv);
                 continue;
             } else if (contactsCount > 1) {
-                multipleRecords.add(phone);
+                multipleRecords.add(primaryKeycsv);
                 continue;
             }
 
-            FindIterable<Document> contactsIter = contactsCollection.find(Filters.regex(primaryDBKey, phone));
+            FindIterable<Document> contactsIter = contactsCollection.find(Filters.regex(primaryDBKey, primaryKeycsv));
             Document contactsDocument = contactsIter.first();
             String uuid = contactsDocument.getString("uuid");
 
@@ -160,17 +198,30 @@ public class MetadataMigrator {
             newContactsDocument.append("$set", basicObject);
 
             for(String key : keytoReplaceKey.keySet()) {
-                String dbKey = contactsDocument.getString(keytoReplaceKey.get(key));
+                String dbKey;
+                String tempKey = keytoReplaceKey.get(key);
+                if (tempKey.contains(".")) {
+                    String[] array = tempKey.split("\\.");
+                    Document obj = contactsDocument;
+                    for(int i = 0 ; i < array.length -1 ; i++) {
+                        obj = (Document) contactsDocument.get(array[i]);
+                    }
+                    dbKey = obj.getString(array[array.length -1]);
+                } else {
+                    dbKey = contactsDocument.getString(keytoReplaceKey.get(key));
+                }
                 String cvskey = record.get(key);
                 if (StringUtils.isEmpty(dbKey) && !StringUtils.isEmpty(cvskey)) {
                     basicObject.append(keytoReplaceKey.get(key), record.get(key));
-                    nameMis.add(phone + "," + "" + "," + cvskey + "\n");
+                    nameMis.add(primaryKeycsv + "," + "" + "," + cvskey + "\n");
                 } else if (!StringUtils.isEmpty(dbKey) && StringUtils.isEmpty(cvskey)) {
-                    nameMis.add(phone + "," + dbKey + "," + "" + "\n");
+                    nameMis.add(primaryKeycsv + "," + dbKey + "," + "" + "\n");
                 } else if (StringUtils.isEmpty(dbKey) && StringUtils.isEmpty(cvskey)) {
                     //Do nothing
                 } else if (!dbKey.toLowerCase().trim().equals(cvskey.toLowerCase().trim())) {
-                    nameMis.add(phone + "," + dbKey + "," + cvskey + "\n");
+                    nameMis.add(primaryKeycsv + "," + dbKey + "," + cvskey + "==not_matched\n");
+                } else if (dbKey.toLowerCase().trim().equals(cvskey.toLowerCase().trim())) {
+                    nameMis.add(primaryKeycsv + "," + dbKey + "," + cvskey + "==matched\n");
                 }
             }
 
@@ -189,7 +240,7 @@ public class MetadataMigrator {
         System.out.println(notFound);
         System.out.println("============Multiple Matches=============");
         System.out.println(multipleRecords);
-        //System.out.println("============Name Mismatch=============");
+        System.out.println("============Name Mismatch=============");
         //System.out.println(nameMis);
 
         logger.info("Done migrating Contacts Metadata...");
