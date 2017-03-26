@@ -14,7 +14,19 @@ public class SimulatedAnnealing {
 	/*
 	 * fitness evaluation function
 	 */
-	public static double eval(int A, double[][] gene) {
+		public static double eval(int A, double[][] gene) {
+		return evalWithCombineAll(A, gene);
+	}
+	
+	public static double evalWithCombineAll(int A, double[][] gene)  {
+		double lowestTenPercentageKLYD = evalLowestTenPercentage(A, gene);
+		double evalAvgYD = evalAvgYield(A, gene, 2011, 1826);
+		double evalSdYD = evalSd(A, gene, 2011, 1826);
+		double totalYD =  lowestTenPercentageKLYD + evalAvgYD + evalSdYD;
+		
+		return totalYD;
+	}
+	public static double evalAllPercentage(int A, double[][] gene) {
 		double[] breaks = { 0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000,
 				9000 };
 		int[] counts = { 1015, 714, 496, 166, 134, 63, 40, 16, 26, 4 };
@@ -29,6 +41,24 @@ public class SimulatedAnnealing {
 		}
 
 		return evalKLDivergence(A, gene, 2011, dist, breaks);
+	}
+	
+	public static double evalLowestTenPercentage(int A, double[][] gene) {
+		double[] breaks = { 0, 100, 200, 300, 400, 500, 600, 700, 800,
+				900 };
+		double endpoint = 1000;
+		int[] counts = { 78, 91, 80, 134, 81, 131, 141, 122, 49, 108 };
+		int totalCount = 0;
+		for (int n : counts) {
+			totalCount += n;
+		}
+
+		double[] dist = new double[counts.length];
+		for (int i = 0; i < counts.length; i++) {
+			dist[i] = counts[i] * 1.0 / totalCount;
+		}
+	
+		return evalLastTenPersentKLDivergence(A, gene, 2011, dist, breaks, endpoint);
 	}
 
 	public static double evalAvgYield(int A, double[][] gene, int year,
@@ -86,7 +116,33 @@ public class SimulatedAnnealing {
 
 		return 0;
 	}
+	
+	public static double evalLastTenPersentKLDivergence(int A, double[][] gene, int year,
+			double[] distribution, double[] breaks, double endPoint) {
+		int soilIndex = (int) gene[A][0];
+		double localToHybridRatio = gene[A][1];
+		double pDayStd = gene[A][2];
+		int randomSeed = (int) gene[A][3];
 
+		try {
+			GeneticAlgorithmInterface.initializeModel(localToHybridRatio,
+					soilIndex, pDayStd, year, randomSeed);
+			GeneticAlgorithmInterface.runSim();
+			double klDiv = GeneticAlgorithmInterface.getLowestTenPercentage(year,
+					GeneticAlgorithmInterface.getSoilTypes()[soilIndex],
+					distribution, breaks, endPoint);
+			return klDiv;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return Double.MAX_VALUE;
+	}
+	
 	public static double evalKLDivergence(int A, double[][] gene, int year,
 			double[] distribution, double[] breaks) {
 		int soilIndex = (int) gene[A][0];
