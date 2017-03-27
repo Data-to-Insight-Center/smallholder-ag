@@ -444,8 +444,8 @@
 						var table = $(table_name).DataTable({
 							columns: cols,
 							dom: 'Blfrtip',
-							lengthMenu: [ 10, 50, 100, 500, 1000, 3000],
-							pageLength: 3000,
+							lengthMenu:[[10, 25, 100, -1], [10, 25, 100, "All"]],
+							pageLength: -1,
 							colReorder: {
 								order: [2,1,0]
 							},
