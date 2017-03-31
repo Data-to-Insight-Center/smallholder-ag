@@ -143,7 +143,8 @@ public class SimulatedAnnealing {
 		return gene;
 	}
 	*/
-	public static double[][] generateNeighborPoint(double[][] prevGene) {
+
+	 public static double[][] generateNeighborPoint(double[][] prevGene) {
 		double[][] gene = new double[1][4];
 		
 		//random change on gene 0
@@ -190,6 +191,8 @@ public class SimulatedAnnealing {
 		
 		return gene;
 	}
+	
+
 	public static void main(String[] args) {
 		long startTime = new Date().getTime();
 	
@@ -206,7 +209,8 @@ public class SimulatedAnnealing {
 		startPoint[0][2] = 0.001 + rd.nextDouble() * (0.167 - 0.001); // std dev 0.001 - 0.167
 		startPoint[0][3] = rd.nextInt(); // random seeds
 		//get current fitness score
-		double fittnessScoreOfCurrentPoint = eval(0, startPoint);
+		//double fittnessScoreOfCurrentPoint = eval(0, startPoint);
+		double fittnessScoreOfCurrentPoint = 0.0;
 		//keep running until temperature lower down to 1	
 		while(temp > 1) {
 			System.out.println("Current Run:"+numOfRun+"");
@@ -218,7 +222,8 @@ public class SimulatedAnnealing {
 				continue;
 			}
 			//get new fitness score
-			double fittnessScoreOfNewPoint = eval(0, newPoint);
+			//double fittnessScoreOfNewPoint = eval(0, newPoint);
+			double fittnessScoreOfNewPoint = 1.0;
 			if(fittnessScoreOfNewPoint > fittnessScoreOfCurrentPoint) {
 				startPoint = newPoint;
 				fittnessScoreOfCurrentPoint = fittnessScoreOfNewPoint;

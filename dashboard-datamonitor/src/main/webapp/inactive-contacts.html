@@ -113,7 +113,7 @@
                   </div>
                     <div class="tab-pane" id="tab-table5">
 						<div id="failure" style="padding:20px;" align="center"></div>
-                        <table id="contactInfoTable" class="table table-striped table-bordered" width="100%" cellspacing="0">
+                        <table id="inactive_contactInfoTable" class="table table-striped table-bordered" width="100%" cellspacing="0">
                         </table>
                         
                         <div style="margin-top:50px;"></div>
@@ -152,7 +152,7 @@
 			  });
 			});
 
-			var table = $('#contactInfoTable').DataTable({
+			var table = $('#inactive_contactInfoTable').DataTable({
 				columns: cols,
 				dom: 'Blfrtip',
 				lengthMenu: [ 10, 50, 100 ],
@@ -290,7 +290,7 @@
 			  });
 			});
 
-			var table = $('#contactInfoTable').DataTable({
+			var table = $('#inactive_contactInfoTable').DataTable({
 				columns: cols,
 				dom: 'Blfrtip',
 				order: [ 7, "asc" ],
@@ -371,9 +371,9 @@
 		var xhrcall = $.ajax(textit_prefix + "/contacts?lastRespondedSort=1&lastRespondedTo=" + new_to_date);
 
 		if(xhrcall.responseText != "[]"){
-			if ($.fn.DataTable.isDataTable( '#contactInfoTable' ) ) {
-					$('#contactInfoTable').DataTable().destroy();	// Destroy dataTable
-  					$('#contactInfoTable').empty();
+			if ($.fn.DataTable.isDataTable( '#inactive_contactInfoTable' ) ) {
+					$('#inactive_contactInfoTable').DataTable().destroy();	// Destroy dataTable
+  					$('#inactive_contactInfoTable').empty();
 				}
 			
 				// empty in case the columns change (Remove DOM elements)
