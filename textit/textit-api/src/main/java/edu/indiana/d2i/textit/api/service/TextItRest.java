@@ -1677,6 +1677,7 @@ public class TextItRest {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getResponsesByContacts2(@PathParam("country") String country,
                                             @QueryParam("qtype") List<String> qType,
+                                            @QueryParam("contactsField") List<String> contactsField,
                                             @QueryParam("from") String fromDate,
                                             @QueryParam("to") String toDate) {
 
@@ -1918,6 +1919,11 @@ public class TextItRest {
             }
             if (contactDoc != null && contactDoc.containsKey("phone")) {
                 contactObj.put("phone", contactDoc.get("phone"));
+            }
+            for(String field : contactsField) {
+                if (contactDoc != null && contactDoc.containsKey(field)) {
+                    contactObj.put(field, contactDoc.get(field));
+                }
             }
             contactObj.put("uuid", contact);
             if(qType != null && qType.size() != 0) {
