@@ -134,7 +134,7 @@ public class MongoDB {
             index.put("uuid", 1);
             flowsCollection.createIndex(index);
         }
-        flowsCollection.replaceOne(new Document("uuid", uuid), Document.parse(flow),
+        flowsCollection.updateOne(new Document("uuid", uuid), new Document("$set", Document.parse(flow)),
                 (new UpdateOptions()).upsert(true));
     }
 
@@ -145,7 +145,7 @@ public class MongoDB {
             index.put("uuid", 1);
             contactsCollection.createIndex(index);
         }
-        contactsCollection.replaceOne(new Document("uuid", uuid), Document.parse(contacts),
+        contactsCollection.updateOne(new Document("uuid", uuid), new Document("$set", Document.parse(contacts)),
                 (new UpdateOptions()).upsert(true));
     }
 
