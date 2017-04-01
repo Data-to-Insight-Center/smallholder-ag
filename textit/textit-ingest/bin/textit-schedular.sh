@@ -3,6 +3,7 @@ display_help() {
     echo "Usage: $0 -c <config_file> --weekly|--daily [-day|-hour]" >&2
     echo
     echo "   -c, --config   Config file path. ex: conf/global_zambia.properties"
+    echo "   -sr, --script  Script to schedule ex: bin/start-ingestor.sh"
     echo "   -w, --weekly   Run the TextIt Ingest script weekly"
     echo "   -dw, --day     Day of the week the script should run on[0-6]"
     echo "   -hdw, --hDayW  Hour of the Day of the week the script should run on[0-23]"
@@ -16,6 +17,9 @@ while :
 do
     case "$1" in
       -c | --config)    config_file="$2"
+                        shift 2
+                        ;;
+      -sr | --script)   script="$2"
                         shift 2
                         ;;
       -h | --help)      display_help
@@ -100,7 +104,7 @@ bin=`dirname "$this"`
 bin=`cd "$bin"; pwd`
 HOME=`cd "$bin"; cd ..; pwd`
 
-start_script=$bin"/start-ingestor.sh"
+start_script=$HOME"/"$script
 log_file=$HOME"/cron_log.txt"
 config_file_path=$HOME"/"$config_file
 
