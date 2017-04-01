@@ -39,11 +39,40 @@ Run the bin/textit-schedular.sh script in bin/ folder as follows;</br>
 
 This will create two cron jobs.</br>
 In Zambia the runs are created after 1pm Zambia time(11am GMT) on every Monday. Therefore the first cron job will run the script weekly on Monday at 7am local time(11am GMT) in local servers to collect data in Zambia.</br>
-In Kenya the runs are created after 9am Zambia time(6am GMT) on every Saturday. Therefore the second cron job will run the script weekly on Saturday at 2am local time(6am GMT) in local servers to collect data in Kenya.</br>
+In Kenya the runs are created after 9am Kenya time(6am GMT) on every Saturday. Therefore the second cron job will run the script weekly on Saturday at 2am local time(6am GMT) in local servers to collect data in Kenya.</br>
 
 Script parameters:</br>
 -c    : configuration file path</br>
 -sr   : script to schedule ex: bin/start-ingestor.sh</br>
+-w/-d : a flag to indiacate whether the script is going to run weekly or daily</br>
+-dw   : if script runs weekly, which day the script should run on ( 0-6 : Sunday-Saturday)</br>
+-hdw  : if script runs weekly, which hour of the day of the week the script should run on[0-23]</br>
+-hd   : if the script runs daily, which hour the script should run on ( 0 - 23)</br>
+-s    : customized start date for data collection (ex: 2016-06-27)
+-h    : help
+
+Steps to setup the metadata updating cronjob:
+--------------
+The metadata updating script updates the metadata of flows and contacts. For example it updates "lastRespondedDate" of contacts and several metadata fields in flows. 
+
+1. Move to the textit-ingest/target/deploy/ directory
+
+2. Add correct values for token in two configuration files;</br>
+<code>conf/metaUpdater_zambia.properties</code></br>
+<code>conf/metaUpdater_kenya.properties</code>
+
+3. Schedule the Cron Jobs</br>
+Run the bin/textit-schedular.sh script in bin/ folder as follows;</br>
+<code>sh bin/textit-schedular.sh -sr bin/metadata-updater.sh -c conf/metaUpdater_zambia.properties -w -dw 1 -hdw 12</code></br>
+<code>sh bin/textit-schedular.sh -sr bin/metadata-updater.sh -c conf/metaUpdater_kenya.properties -w -dw 6 -hdw 7</code></br>
+
+This will create two cron jobs.</br>
+The first cron job will run the metadata updator script weekly on Monday at 12pm local time(4pm GMT), which is 5 hours after collecting TextIt data of Zambia.</br>
+The second cron job will run the metadata updator script weekly on Saturday at 7am local time(11am GMT), which is 5 hours after collecting TextIt data of Kenya.</br>
+
+Script parameters:</br>
+-c    : configuration file path</br>
+-sr   : script to schedule ex: bin/metadata-updater.sh</br>
 -w/-d : a flag to indiacate whether the script is going to run weekly or daily</br>
 -dw   : if script runs weekly, which day the script should run on ( 0-6 : Sunday-Saturday)</br>
 -hdw  : if script runs weekly, which hour of the day of the week the script should run on[0-23]</br>
