@@ -252,7 +252,7 @@
          
          /* Inactive Farmers - for last month*/
          var textit_prefix_api = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia"
-         // var textit_prefix_api = "http://localhost:8080/textit-api/zambia";
+         //var textit_prefix_api = "http://localhost:8080/textit-api/zambia";
          var now = new Date();
          var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
          var last_respond_date = new Date(today.getFullYear(), today.getMonth()-1, today.getDate());
@@ -372,7 +372,7 @@
          	var from_date = fdate_sr_lk + "Z";
          	var last_week_flows = [];
 			 
-			var lat_from_date = "2015-01-01T12:00:00.000Z";
+			var lat_from_date = "2015-12-01T12:00:00.000Z";
          	
          	Date.prototype.getWeek = function() {
          	var onejan = new Date(this.getFullYear(), 0, 1);
@@ -382,13 +382,12 @@
          	var weekNumber = (beforeMonday).getWeek();
          	
          	$.ajax({
-                		//url: textit_prefix_api + "/flowcompletion?from=" + from_date + "&to=" + to_date,
-						url: textit_prefix_api + "/flowcompletion",
-                		success: function (fdata) {
-                		for (i in fdata) {
-         					last_week_flows.push({"flow_name":fdata[i].flow_name, "uuid":fdata[i].uuid, "deployed_on":fdata[i].deployed_on});
-                		}
-							
+				//url: textit_prefix_api + "/flowcompletion?from=" + from_date + "&to=" + to_date,
+				url: textit_prefix_api + "/flowcompletion?from=" + lat_from_date + "&to=" + to_date,
+				success: function (fdata) {
+				for (i in fdata) {
+					last_week_flows.push({"flow_name":fdata[i].flow_name, "uuid":fdata[i].uuid, "deployed_on":fdata[i].deployed_on});
+				}							
 							
 				var date_sort_desc = function (date1, date2) {
 				  if (new Date(date1.deployed_on) > new Date(date2.deployed_on)) return -1;
