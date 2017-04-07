@@ -22,8 +22,7 @@
     <link href="https://cdn.datatables.net/buttons/1.2.2/css/buttons.dataTables.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/colreorder/1.3.2/css/dataTables.colReorder.min.css" rel="stylesheet">
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.8.23/themes/base/jquery-ui.css">
-    <script src="media/js/jquery-ui.js"></script> 
-    <script src="media/js/JSExcel.js" type="text/javascript"></script> 
+    <script src="media/js/jquery-ui.js"></script>  
         
     <!-- load jquery -->
     <!-- load datatables js library -->
@@ -37,16 +36,6 @@
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
     <script type="text/javascript" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js"></script>
     
-   
-    <link href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css"
-        rel="stylesheet" type="text/css" />
-    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.3/js/bootstrap.min.js"></script>
-    <link href="http://cdn.rawgit.com/davidstutz/bootstrap-multiselect/master/dist/css/bootstrap-multiselect.css"
-        rel="stylesheet" type="text/css" />
-    <script src="http://cdn.rawgit.com/davidstutz/bootstrap-multiselect/master/dist/js/bootstrap-multiselect.js"
-        type="text/javascript"></script>
-        
-   
     <style>
 		.h1, .h2, .h3, h1, h2, h3 {
 			margin-top: 5px !important;
@@ -72,9 +61,9 @@
                   <li class="active">
                      <a href="new-dashboard.html">Zambia</a>
                   </li>
-                  <li>
+                  <!--<li>
                      <a href="new-dashboard.html">Kenya</a>
-                  </li>
+                  </li>-->
                </ul>
 			 </div>
 		</div>
@@ -108,65 +97,44 @@
                       <h3 style="font-size: 22px">Farmers Response Table <small> -  For given question type & time period</small></h3>
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-6">
-                      <div id="ques_response" class=" pull-right" style="background: #fff; cursor: pointer; padding: 10px; border: 1px solid #ccc">                        
-                        <label for="qtype">question type</label>
-						<select id="qtype" multiple="multiple">
-							<optgroup label="Planting">
-								<option value="kg 1 - planting">kg 1</option>
-								<option value="kg1 of 2 - planting">kg 1 of 2</option>
-								<option value="kg 2 of 2 - planting">kg 2 of 2</option>
-								<option value="maize storage - planting">maize storage</option>
-								<option value="planting - planting">planting</option>
-								<option value="planting complete - planting">planting complete</option>
-								<option value="rain - planting">rain</option>
-								<option value="variety 1 - planting">variety 1</option>
-								<option value="variety 1 of 2 - planting">variety 1 of 2</option>
-								<option value="variety 2 of 2 - planting">variety 2 of 2</option>
-								<option value="variety number - planting">variety number</option>
-							</optgroup>
-							<optgroup label="Growing Flow1">
-								<option value="rain - growing flow1" selected="selected">rain</option>
-								<option value="expected harvest - growing flow1">expected harvest</option>
-								<option value="fertilizer - growing flow1">fertilizer</option>
-								<option value="piecework - growing flow1">piecework</option>
-								<option value="storage - growing flow1">storage</option>
-								<option value="weeding - growing flow1">weeding</option>
-							</optgroup>
-							<optgroup label="Growing Flow2">
-								<option value="rain - growing flow2">rain</option>
-								<option value="expected harvest - growing flow2">expected harvest</option>
-								<option value="storage - growing flow2">storage</option>
-								<option value="charcoal - growing flow2">charcoal</option>
-								<option value="coll_fuelwood - growing flow2">coll_fuelwood</option>
-								<option value="coll_water - growing flow2">coll_water</option>
-							</optgroup>   
-							<optgroup label="Harvest">
-								<option value="storage - harvest">storage</option>
-								<option value="charcoal - harvest">charcoal</option>
-								<option value="coll_fuelwood - harvest">coll_fuelwood</option>
-								<option value="coll_water - harvest">coll_water</option>
-								<option value="50kg harvest - harvest">50kg harvest</option>
-								<option value="harvest - harvest">harvest</option>
-								<option value="harvest complete - harvest">harvest complete</option>
-							</optgroup>
-							<optgroup label="Inter-Season Flow1">
-								<option value="maize price - inter season flow1">maize price</option>
-								<option value="maize purchase - inter season flow1">maize purchase</option>							
-								<option value="maize purchased - inter season flow1">maize purchased</option>
-								<option value="maize sold - inter season flow1">maize sold</option>
-								<option value="sales amt - inter season flow1">sales amt</option>
-							</optgroup>
-							<optgroup label="Inter-Season Flow2">
-								<option value="give maize - inter season flow2">give maize</option>
-								<option value="meat - inter season flow2">meat</option>
-								<option value="receive maize - inter season flow2">receive maize</option>
-								<option value="piecework - inter season flow2">piecework</option>
-							</optgroup>
-						</select>  
-                     	<label for="from">from</label>
+                      <div id="ques_response" class=" pull-right" style="background: #fff; cursor: pointer; padding: 10px; border: 1px solid #ccc">
+                        <label for="from">from</label>
                         <input type="text" id="from" name="from">
                         <label for="to">to</label>
-                        <input type="text" id="to" name="to">                   
+                        <input type="text" id="to" name="to">
+                        <label for="qtype">question type</label>
+						<select id="qtype">
+							<option>charcoal</option>
+							<option>coll_fuelwood</option>
+							<option>coll_water</option>
+							<option>expected harvest</option>
+							<option>fertilizer</option>
+							<option>give maize</option>
+							<option>harvest</option>
+							<option>harvest complete</option>
+							<option>kg 1</option>
+							<option>kg 1 of 2</option>
+							<option>kg 2 of 2</option>
+							<option>maize price</option>
+							<option>maize purchase</option>							
+							<option>maize purchased</option>
+							<option>maize sold</option>
+							<option>maize storage</option>
+							<option>meat</option>
+							<option>piecework</option>
+							<option>planting</option>
+							<option>planting complete</option>
+							<option selected="selected">rain</option>
+							<option>receive maize</option>
+							<option>sales amt</option>
+							<option>storage</option>
+							<option>variety 1</option>
+							<option>variety 1 of 2</option>
+							<option>variety 2 of 2</option>
+							<option>variety number</option>
+							<option>weeding</option>							
+							<option>50kg harvest</option>
+						</select>
                       </div>
                     </div>
                     <hr>
@@ -176,68 +144,10 @@
                         </div>
                      </div>
                   </div>
-					
                     <div class="tab-pane" id="tab-table5">
-                    	<div id="down_single_excel" class="pull-right" style="padding-top: 20px;"></div>
 						<div id="failure" style="padding:20px;" align="center"></div>
-						<table id="questionInfoTable0" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable1" class="table table-striped table-bordered" width="100%" cellspacing="0">
+                        <table id="questionInfoTable" class="table table-striped table-bordered" width="100%" cellspacing="0">
                         </table>
-                        <table id="questionInfoTable2" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable3" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable4" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable5" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable6" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable7" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable8" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable9" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable10" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable11" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable12" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable13" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable14" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable15" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable16" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable17" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable18" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable19" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable20" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable21" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable22" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable23" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable24" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable25" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable26" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable27" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable28" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable29" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable30" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable31" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable32" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable33" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable34" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable35" class="table table-striped table-bordered" width="100%" cellspacing="0">
-                        </table>
-                        <table id="questionInfoTable36" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable37" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable38" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable39" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
-                        <table id="questionInfoTable40" class="table table-striped table-bordered" width="100%" cellspacing="0"></table>
                         
                         <div style="margin-top:50px;"></div>
                     </div>
@@ -249,15 +159,8 @@
 	</div>
    
     <script type="text/javascript">
-	$(document).ready(function() {
-		
+	$(document).ready(function() {	
 		var qtype = $('#qtype :selected').text();	
-		
-		
-		$('#qtype').multiselect({
-            enableClickableOptGroups: true,
-			includeSelectAllOption: true
-        });
 		
 		function AjaxNoDataFailed() {
 			$('#failure').html(""); //Clear error span
@@ -283,7 +186,7 @@
 			  });
 			});
 
-			var table = $('#questionInfoTable0').DataTable({
+			var table = $('#questionInfoTable').DataTable({
 				columns: cols,
 				dom: 'Blfrtip',
 				lengthMenu: [ 10, 50, 100 ],
@@ -294,12 +197,12 @@
 					{
 						extend: 'excel',
 						title: qtype,
-						text: 'Download Excel File - ' + qtype
+						text:'Download Excel File'
 					}
 				],
 				columnDefs: [
 					{ 
-						visible: true, 
+						visible: false, 
 						targets: 0 
 					}
 				]
@@ -334,13 +237,7 @@
 	    var xhrcall = $.ajax(textit_prefix + "/contactresponses2?from=" + from_date + "&to=" + to_date + "&qtype=" + qtype);
 
 	  	//promise syntax to render after xhr completes
-		if(xhrcall.responseText != "[]"){
-			if ($.fn.DataTable.isDataTable("#questionInfoTable0") ) {
-					$("#questionInfoTable0").DataTable().destroy();	// Destroy dataTable
-					$("#questionInfoTable0").empty();
-				}
 	    xhrcall.done(renderTable);
-		}
 		
 
 		$( "#from, #to" ).datepicker({
@@ -369,149 +266,99 @@
 				return [(day == 1), ''];
 			};
 
-		//Set the initial state of the picker label	
-		$('#from').val(moment(beforeMonday).format('D MMMM YYYY'));
-		$('#to').val(moment(lastMonday).format('D MMMM YYYY'));
+    //Set the initial state of the picker label	
+	$('#from').val(moment(beforeMonday).format('D MMMM YYYY'));
+	$('#to').val(moment(lastMonday).format('D MMMM YYYY'));
+		
+	function wait(ms){
+	   var start = new Date().getTime();
+	   var end = start;
+	   while(end < start + ms) {
+		 end = new Date().getTime();
+	  }
+	}
+	
+		
+	$('#saveBtn').click(function(){	
+		var qtype_click = $('#qtype :selected').text();		
+		
+		function renderTableClick(xhrdata) {
+		var cols = [];
+		if(xhrdata.length == 0){
+			AjaxNoDataFailed();
+		}else{
+			$('#failure').html(""); //Clear error span
+			var exampleRecord = xhrdata[0];
 
-		function wait(ms){
-		   var start = new Date().getTime();
-		   var end = start;
-		   while(end < start + ms) {
-			 end = new Date().getTime();
-		  }
+			var keys = Object.keys(exampleRecord).sort().reverse();;
+
+			keys.forEach(function(k) {
+			  cols.push({
+				title: k,
+				data: k
+				  //optionally do some type detection here for render function
+			  });
+			});
+
+			var table = $('#questionInfoTable').DataTable({
+				columns: cols,
+				dom: 'Blfrtip',
+				lengthMenu: [ 10, 50, 100 ],
+				colReorder: {
+					order: [2,1,0]
+				},
+				buttons: [
+					{
+						extend: 'excel',
+						title: qtype_click,
+						text:'Download Excel File'
+					}
+				],
+				columnDefs: [
+					{ 
+						visible: false, 
+						targets: 0 
+					}
+				]
+			});
+
+			table.rows.add(xhrdata).draw();
+		}
+
 		}
 		
+		from_date = $('#from').val();
+		to_date = $('#to').val();		
 		
-		$('#qtype').multiselect({
-                includeSelectAllOption: true
-            });
-		$('#saveBtn').click(function () {
-			var selected = $("#qtype option:selected");
-			var message = [];
-			selected.each(function () {
-				message.push($(this).text());
-			});
-			
-			$("#questionInfoTable0").DataTable().destroy();	// Destroy dataTable
-			$("#questionInfoTable0").empty();
-			
-			var table_len = [];
-			for(tlen=0; tlen<message.length; tlen++){
-				table_len.push("'" + "questionInfoTable" + tlen + "'");
-				//$("#questionInfoTable" + tlen).DataTable().destroy();	// Destroy dataTable
-				//$("#questionInfoTable"+ tlen).empty();
-			}
-			
-			var qtype_len = [];
-			selected.each(function () {
-				qtype_len.push("'" + $(this).val() + "'");
-			});
-			
-			var qtype_message = [];
-			selected.each(function () {
-				qtype_message.push($(this).val());
-			});
-			
-			alert(message);
-			alert(table_len);
-			
-			multi_tables = table_len;
-			//multi_qtype = ["'rain'","'storage'"];
-			multi_qtype = qtype_len;
-			file_name = "'QuestionResponses - Zambia.xls'";
-			file_type = "'Excel'";
-			document.getElementById("down_single_excel").innerHTML='<button style="background-color:#428bca;border:#428bca" class="btn btn-success buttons-excel buttons-html5" onclick="tablesToExcel(['+multi_tables+'], ['+multi_qtype+'], '+file_name+', '+file_type+')">Download Single Excel File</button>';
-						
-			
-			function renderTableClick(xhrdata, table_name, table_title) {
-					var cols = [];
-					if(xhrdata.length == 0){
-						AjaxNoDataFailed();
-					}else{
-						$('#failure').html(""); //Clear error span
-						var exampleRecord = xhrdata[0];
+		new_end_date = new Date(to_date);
+		new_end_date_sr = new Date(new_end_date.setHours(new_end_date.getHours()+11))
+		new_end_date_sr_lk = moment(new_end_date_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
+		
+		new_start_date = new Date(from_date);
+		new_start_date_sr = new Date(new_start_date.setHours(new_start_date.getHours()+11))
+		new_start_date_sr_lk = moment(new_start_date_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
+				
+		var new_from_date = new_start_date_sr_lk + "Z";
+		var new_to_date = new_end_date_sr_lk + "Z";
+		
+		info_submit_data = [];
+		
+		//xhr call to retrieve data
+		var xhrcall = $.ajax(textit_prefix + "/contactresponses2?from=" + new_from_date + "&to=" + new_to_date + "&qtype=" + qtype_click);
 
-						var keys = Object.keys(exampleRecord).sort().reverse();;
-
-						keys.forEach(function(k) {
-						  cols.push({
-							title: k,
-							data: k
-							  //optionally do some type detection here for render function
-						  });
-						});
-						
-						var table = $(table_name).DataTable({
-							columns: cols,
-							dom: 'Blfrtip',
-							lengthMenu:[[10, 25, 100, -1], [10, 25, 100, "All"]],
-							pageLength: -1,
-							colReorder: {
-								order: [2,1,0]
-							},
-							buttons: [
-								{
-									extend: 'excel',
-									title: table_title,
-									text:'Download Excel File - ' + table_title
-								}
-							],
-							columnDefs: [
-								{ 
-									visible: true, 
-									targets: 0 
-								}
-							]
-						});
-
-						table.rows.add(xhrdata).draw();
-					}
-					}
-
-					from_date = $('#from').val();
-					to_date = $('#to').val();		
-
-					new_end_date = new Date(to_date);
-					new_end_date_sr = new Date(new_end_date.setHours(new_end_date.getHours()+11))
-					new_end_date_sr_lk = moment(new_end_date_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
-
-					new_start_date = new Date(from_date);
-					new_start_date_sr = new Date(new_start_date.setHours(new_start_date.getHours()+11))
-					new_start_date_sr_lk = moment(new_start_date_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
-
-					var new_from_date = new_start_date_sr_lk + "Z";
-					var new_to_date = new_end_date_sr_lk + "Z";
-
-					info_submit_data = [];
-			
-					
-					for(mlen=0; mlen<qtype_message.length; mlen++){
-					table_id = "#questionInfoTable" + mlen;
-					tbl_title = qtype_message[mlen];
-					ques_type = qtype_message[mlen].split(" -")[0];	
-						
-					/* Note that the whole content variable is just a string */
-					
-						
-					
-					//xhr call to retrieve data
-					$.ajaxSetup({async: false});
-					var xhrcall = $.ajax(textit_prefix + "/contactresponses2?from=" + new_from_date + "&to=" + new_to_date + "&qtype=" + ques_type);
-					
-					if(xhrcall.responseText != "[]"){
-						if ($.fn.DataTable.isDataTable(table_id) ) {
-								$(table_id).DataTable().destroy();	// Destroy dataTable
-								$(table_id).empty();
-							}
-							// empty in case the columns change (Remove DOM elements)
-							renderTableClick(xhrdata=xhrcall.responseJSON, table_name=table_id, table_title=tbl_title);					
-					}			
-					
+		if(xhrcall.responseText != "[]"){
+			if ($.fn.DataTable.isDataTable( '#questionInfoTable' ) ) {
+					$('#questionInfoTable').DataTable().destroy();	// Destroy dataTable
+  					$('#questionInfoTable').empty();
 				}
-		});
+			
+				// empty in case the columns change (Remove DOM elements)
+			xhrcall.done(renderTableClick);
+		}
+		
+	});
 		
  });
 </script>
 </body>
 </html>
-

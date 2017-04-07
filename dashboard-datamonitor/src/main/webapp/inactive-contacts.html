@@ -63,9 +63,9 @@
                   <li class="active">
                      <a href="new-dashboard.html">Zambia</a>
                   </li>
-                  <li>
+                  <!--<li>
                      <a href="new-dashboard.html">Kenya</a>
-                  </li>
+                  </li>-->
                </ul>
 			 </div>
 		</div>
@@ -135,59 +135,27 @@
 		}
 		
 		function renderTable(xhrdata) {
-		var cols = [];
 		if(xhrdata.length == 0){
 			AjaxNoDataFailed();
 		}else{
 			$('#failure').html(""); //Clear error span
 			var exampleRecord = xhrdata[0];
-
-			var keys = Object.keys(exampleRecord);
-
-			keys.forEach(function(k) {
-			  cols.push({
-				title: k,
-				data: k
-				  //optionally do some type detection here for render function
-			  });
-			});
-
+			
+			cols1 = [{data:"phone", title:"phone"}, {data:"name", title:"name"}, {data:"lastResponded", title:"lastResponded"}, {data:"uuid", title:"uuid"}];
+			
 			var table = $('#inactive_contactInfoTable').DataTable({
-				columns: cols,
+				columns: cols1,
 				dom: 'Blfrtip',
 				lengthMenu: [ 10, 50, 100 ],
-				order: [ 7, "asc" ],
+				order: [ 2, "asc" ],
 				buttons: [
 					{
 						extend: 'excel',
 						title: "inactive_contacts",
-						text:'Download Excel File',
-						exportOptions: {
-						columns: [4,5,7,11]
-					}
+						text:'Download Excel File',						
 					}
 				],
 				columnDefs: [
-					{ 
-						visible: false, 
-						targets: 0 
-					},
-					{ 
-						visible: false, 
-						targets: 1 
-					},
-					{ 
-						visible: false, 
-						targets: 2 
-					},
-					{ 
-						visible: false, 
-						targets: 3 
-					},
-					{ 
-						visible: false, 
-						targets: 6 
-					},
 					{
                 		type : "datetime",
 						render: function ( data, type, row ) {
@@ -195,27 +163,14 @@
 								var new_date = mom_date.format('YYYY-MM-DD h:mm A');
     							return new_date;
 						},
-						targets: 7,
+						targets: 2,
 						dateFormat: "yy-mm-dd"
-					},
-					{ 
-						visible: false, 
-						targets: 8 
-					},
-					{ 
-						visible: false, 
-						targets: 9 
-					},
-					{ 
-						visible: false, 
-						targets: 10 
 					}
+					
 				]
 			});
-
 			table.rows.add(xhrdata).draw();
 		}
-
 		}
 		
 		var now = new Date();
@@ -227,17 +182,14 @@
 		tdate_sr_lk = moment(tdate_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
 		
 		var to_date = tdate_sr_lk + "Z";
-
 		//var textit_prefix = "http://localhost:8080/textit-api/zambia";
 		var textit_prefix = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia";
 			
 		//xhr call to retrieve data
 	    var xhrcall = $.ajax(textit_prefix + "/contacts?lastRespondedSort=1&lastRespondedTo=" + to_date);
-
 	  	//promise syntax to render after xhr completes
 	    xhrcall.done(renderTable);
 		
-
 		$( "#to" ).datepicker({
 				defaultDate: "+1w",
 				changeMonth: true,
@@ -258,7 +210,6 @@
 				var day = date.getDay();
 				return [(day == 1), ''];
 			};
-
     //Set the initial state of the picker label	
 	$('#to').val(moment(last_month).format('D MMMM YYYY'));
 		
@@ -273,59 +224,25 @@
 		
 	$('#saveBtn').click(function(){
 		function renderTableClick(xhrdata) {
-		var cols = [];
 		if(xhrdata.length == 0){
 			AjaxNoDataFailed();
 		}else{
 			$('#failure').html(""); //Clear error span
 			var exampleRecord = xhrdata[0];
-
-			var keys = Object.keys(exampleRecord);
-
-			keys.forEach(function(k) {
-			  cols.push({
-				title: k,
-				data: k
-				  //optionally do some type detection here for render function
-			  });
-			});
-
+			cols1 = [{data:"phone", title:"phone"}, {data:"name", title:"name"}, {data:"lastResponded", title:"lastResponded"}, {data:"uuid", title:"uuid"}];
 			var table = $('#inactive_contactInfoTable').DataTable({
-				columns: cols,
+				columns: cols1,
 				dom: 'Blfrtip',
-				order: [ 7, "asc" ],
 				lengthMenu: [ 10, 50, 100 ],
+				order: [ 2, "asc" ],
 				buttons: [
 					{
 						extend: 'excel',
 						title: "inactive_contacts",
-						text:'Download Excel File',
-						exportOptions: {
-						columns: [4,5,7,11]
-					}
+						text:'Download Excel File',						
 					}
 				],
 				columnDefs: [
-					{ 
-						visible: false, 
-						targets: 0 
-					},
-					{ 
-						visible: false, 
-						targets: 1 
-					},
-					{ 
-						visible: false, 
-						targets: 2 
-					},
-					{ 
-						visible: false, 
-						targets: 3 
-					},
-					{ 
-						visible: false, 
-						targets: 6 
-					},
 					{
                 		type : "datetime",
 						render: function ( data, type, row ) {
@@ -333,27 +250,14 @@
 								var new_date = mom_date.format('YYYY-MM-DD h:mm A');
     							return new_date;
 						},
-						targets: 7,
+						targets: 2,
 						dateFormat: "yy-mm-dd"
-					},
-					{ 
-						visible: false, 
-						targets: 8 
-					},
-					{ 
-						visible: false, 
-						targets: 9 
-					},
-					{ 
-						visible: false, 
-						targets: 10 
 					}
+					
 				]
 			});
-
 			table.rows.add(xhrdata).draw();
 		}
-
 		}
 		
 		
@@ -369,7 +273,6 @@
 		
 		//xhr call to retrieve data
 		var xhrcall = $.ajax(textit_prefix + "/contacts?lastRespondedSort=1&lastRespondedTo=" + new_to_date);
-
 		if(xhrcall.responseText != "[]"){
 			if ($.fn.DataTable.isDataTable( '#inactive_contactInfoTable' ) ) {
 					$('#inactive_contactInfoTable').DataTable().destroy();	// Destroy dataTable
