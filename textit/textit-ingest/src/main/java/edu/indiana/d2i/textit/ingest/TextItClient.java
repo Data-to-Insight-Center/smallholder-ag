@@ -13,6 +13,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -56,13 +57,14 @@ public final class TextItClient {
 		private final int expectedCount;
 		private AtomicInteger finishedCount = new AtomicInteger(0);
 
-		private String flowParam = "?flow_uuid=";
+		private String flowParam = "?flow=";
 
 		class Worker implements Runnable {
 			@Override
 			public void run() {
 				String flowid = null;
-				while ((flowid = queue.poll()) != null) {
+                logger.info("Downloading runs for created/updated flows");
+                while ((flowid = queue.poll()) != null) {
 					try {
 
 						URL target = new URL(GET_RUNS_URL.toString()
@@ -80,7 +82,7 @@ public final class TextItClient {
                                         List<Object> results = (List<Object>) data.get("results");
                                         for (Object result : results) {
                                             Map<Object, Object> map = (Map<Object, Object>) result;
-                                            runsOfFlowsCreated.add((int) map.get("run") + "");
+                                            runsOfFlowsCreated.add((int) map.get("id") + "");
                                         }
 										ObjectMapper objectMapper = new ObjectMapper();
 										objectMapper
@@ -175,7 +177,7 @@ public final class TextItClient {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected List<String> getFlowIDs() throws IOException {
+	protected List<String> getCreatedFlowIDs() throws IOException, ParseException {
 		final List<String> res = new ArrayList<String>();
 
         int no_of_days_before = 7;
@@ -184,16 +186,19 @@ public final class TextItClient {
 		final String timestamp_now = df.format(new DateTime(END_DATE)
 				.toDate());
 
-		logger.info("No of Days : " + timestamp_prev + " to " + timestamp_now);
+		logger.info("Downloading created flows for : " + timestamp_prev + " to " + timestamp_now);
         URL target = null;
-        target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp_prev
+       /* target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp_prev
                     + "T" + TEXT_TIME + "&&" + "before=" + timestamp_now
-                    + "T" + TEXT_TIME);
+                    + "T" + TEXT_TIME);*/
+        target = new URL(GET_FLOWS_URL.toString());
+        String time_now = timestamp_now + "T" + TEXT_TIME;
+        String time_prev = timestamp_prev + "T" + TEXT_TIME;
 
         final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
 				+ timestamp_now.replace("-", "_");
 
-        utils.processData(target, new TextItUtils.IJsonProcessor() {
+        utils.processFlowData(target, time_now, time_prev, new TextItUtils.IJsonProcessor() {
             @Override
             public void process(Map<String, Object> data, int pageNum)
                     throws IOException {
@@ -218,14 +223,57 @@ public final class TextItClient {
         return res;
 	}
 
+    @SuppressWarnings("unchecked")
+    protected List<String> getUpdatedFlowIDs(final List<String> res) throws IOException {
+
+        final String timestamp_prev = df.format(new DateTime(START_DATE).toDate());
+        final String timestamp_now = df.format(new DateTime(END_DATE).toDate());
+
+        logger.info("Downloading updated flows for : " + timestamp_prev + " to " + timestamp_now);
+        URL target = null;
+        target = new URL(GET_FLOWS_URL.toString() + "?after=" + timestamp_prev
+                + "T" + TEXT_TIME + "&&" + "before=" + timestamp_now
+                + "T" + TEXT_TIME);
+
+        final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
+                + timestamp_now.replace("-", "_");
+
+        utils.processData(target, new TextItUtils.IJsonProcessor() {
+            @Override
+            public void process(Map<String, Object> data, int pageNum)
+                    throws IOException {
+                List<Object> results = (List<Object>) data.get("results");
+                for (Object result : results) {
+                    Map<Object, Object> map = (Map<Object, Object>) result;
+                    if (map.get("uuid") != null && !res.contains(map.get("uuid"))) {
+                        res.add((String) map.get("uuid"));
+                    }
+                }
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.writeValue(
+                        Paths.get(
+                                OUTPUT_DIRECTORY + "/" + FLOWS,
+                                String.format("%s-%d-updated-" + FLOWS + ".json",
+                                        timestamp_final, pageNum)).toFile(),
+                        data);
+
+            }
+        });
+
+        return res;
+    }
+
 	@SuppressWarnings("unchecked")
 	protected List<String> getContactInfo() throws IOException {
 		final List<String> res = new ArrayList<String>();
+        final int[] contactsCount = {0};
 
 		final String timestamp_prev = df.format(new DateTime(START_DATE).toDate());
 		final String timestamp_now = df.format(new DateTime(END_DATE).toDate());
 
-		URL target = new URL(GET_CONTACTS_URL.toString() + "?after="
+        logger.info("Downloading updated contacts for : " + timestamp_prev + " to " + timestamp_now);
+
+        URL target = new URL(GET_CONTACTS_URL.toString() + "?after="
 				+ timestamp_prev + "T" + TEXT_TIME + "&&" + "before=" + timestamp_now
 				+ "T" + TEXT_TIME);
 		final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
@@ -236,6 +284,7 @@ public final class TextItClient {
 			public void process(Map<String, Object> data, int pageNum)
 					throws IOException {
 				List<Object> results = (List<Object>) data.get("results");
+                contactsCount[0] += results.size();
 				for (Object result : results) {
 					Map<Object, Object> map = (Map<Object, Object>) result;
 					if (map.get("uuid") != null) {
@@ -249,41 +298,19 @@ public final class TextItClient {
 								String.format("%s-%d-" + CONTACTS + ".json",
 										timestamp_final, pageNum)).toFile(),
 						data);
-
-                if (pageNum == 1) {
-                    ObjectMapper objectMapper2 = new ObjectMapper();
-                    File statFile = Paths.get(OUTPUT_DIRECTORY + "/" + CONTACTS,
-                            String.format("%s-" + STATS + ".json", timestamp_final)).toFile();
-                    Map<String, Object> exsistingVals = new HashMap<String, Object>();
-                    if(statFile.exists()) {
-                        exsistingVals = objectMapper2.readValue(statFile, Map.class);
-                    }
-                    exsistingVals.put(MongoDB.UPDATED, data.get("count"));
-                    exsistingVals.put(MongoDB.FROM_DATE, timestamp_prev);
-                    exsistingVals.put(MongoDB.TO_DATE, timestamp_now);
-                    exsistingVals.put(MongoDB.DATE, df.format(new Date()));
-                    exsistingVals.put(MongoDB.INTERVAL, INTERVAL);
-                    objectMapper2.writeValue(statFile, exsistingVals);
-                }
 			}
 		});
 
-
-        utils.processDataOnce(new URL(GET_CONTACTS_URL.toString()), new TextItUtils.IJsonProcessor() {
-            @Override
-            public void process(Map<String, Object> data, int pageNum)
-                    throws IOException {
-                ObjectMapper objectMapper = new ObjectMapper();
-                File statFile = Paths.get(OUTPUT_DIRECTORY + "/" + CONTACTS,
-                        String.format("%s-" + STATS + ".json", timestamp_final)).toFile();
-                Map<String, Object> exsistingVals = new HashMap<String, Object>();
-                if(statFile.exists()) {
-                    exsistingVals = objectMapper.readValue(statFile, Map.class);
-                }
-                exsistingVals.put(MongoDB.TOTAL, data.get("count"));
-                objectMapper.writeValue(statFile, exsistingVals);
-            }
-        });
+        ObjectMapper objectMapper = new ObjectMapper();
+        File statFile = Paths.get(OUTPUT_DIRECTORY + "/" + CONTACTS,
+                String.format("%s-" + STATS + ".json", timestamp_final)).toFile();
+        Map<String, Object> statValues = new HashMap<String, Object>();
+        statValues.put(MongoDB.UPDATED, contactsCount[0]);
+        statValues.put(MongoDB.FROM_DATE, timestamp_prev);
+        statValues.put(MongoDB.TO_DATE, timestamp_now);
+        statValues.put(MongoDB.DATE, df.format(new Date()));
+        statValues.put(MongoDB.INTERVAL, INTERVAL);
+        objectMapper.writeValue(statFile, statValues);
 
 		return res;
 	}
@@ -297,12 +324,13 @@ public final class TextItClient {
         final String timestamp_prev = df.format(new DateTime(START_DATE).toDate());
         final String timestamp_now = df.format(new DateTime(END_DATE).toDate());
 
+        logger.info("Downloading updated runs for : " + timestamp_prev + " to " + timestamp_now);
+
         URL target = new URL(GET_RUNS_URL.toString() + "?after="
                 + timestamp_prev + "T" + TEXT_TIME + "&&" + "before=" + timestamp_now
                 + "T" + TEXT_TIME);
         final String timestamp_final = timestamp_prev.replace("-", "_") + "-"
                 + timestamp_now.replace("-", "_");
-        logger.info("Downloading updated runs for : " + timestamp_final);
 
         utils.processData(target, new TextItUtils.IJsonProcessor() {
             @Override
@@ -311,22 +339,17 @@ public final class TextItClient {
                 List<Object> results = (List<Object>) data.get("results");
                 for (Object result : results) {
                     Map<Object, Object> map = (Map<Object, Object>) result;
-                    if (map.get("run") != null) {
-                        runs.add((int) map.get("run") + "");
-                        String flowId = (String) map.get("flow_uuid");
-                        if(!flows.contains(flowId)) {
-                            flows.add(flowId);
+                    if (map.get("id") != null) {
+                        runs.add((int) map.get("id") + "");
+                        if (map.get("flow") != null) {
+                            Map<Object, Object> flowObj = (Map<Object, Object>)map.get("flow");
+                            String flowId = (String) flowObj.get("uuid");
+                            if(!flows.contains(flowId)) {
+                                flows.add(flowId);
+                            }
                         }
                     }
                 }
-                /*ObjectMapper objectMapper = new ObjectMapper();
-                objectMapper.writeValue(
-                        Paths.get(
-                                OUTPUT_DIRECTORY + "/" + RUNS,
-                                String.format("%s-%d-" + RUNS + ".json",
-                                        timestamp_final, pageNum)).toFile(),
-                        data);*/
-
             }
         });
 
@@ -346,36 +369,25 @@ public final class TextItClient {
         final String timestamp_final = timestamp_prev.replace("-", "_") + "-" + timestamp_now.replace("-", "_");
         logger.info("Downloading modified " + dataType + " for : " + timestamp_final);
 
-        int count = 1;
-        int page = 1;
-        String url = urlPrefix + "?";
-        for(String id : idList) {
-            url += queryParamName + "=" + id + "&";
-            if(count%TextItMaxDataCount == 0 || count == idList.size()) {
-                URL queryUrl = new URL(url);
-                final int pageCount = page;
+        for (final String id : idList) {
+            String url = urlPrefix + "?" + queryParamName + "=" + id;
+            URL queryUrl = new URL(url);
+            utils.processData(queryUrl, new TextItUtils.IJsonProcessor() {
+                @Override
+                public void process(Map<String, Object> data, int pageNum)
+                        throws IOException {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.writeValue(
+                            Paths.get(
+                                    OUTPUT_DIRECTORY + "/" + dataType,
+                                    String.format("%s-%s-" + dataType + ".json",
+                                            timestamp_final, id)).toFile(),
+                            data);
 
-                utils.processData(queryUrl, new TextItUtils.IJsonProcessor() {
-                    @Override
-                    public void process(Map<String, Object> data, int pageNum)
-                            throws IOException {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        objectMapper.writeValue(
-                                Paths.get(
-                                        OUTPUT_DIRECTORY + "/" + dataType,
-                                        String.format("%s-%d-" + dataType + ".json",
-                                                timestamp_final, pageCount)).toFile(),
-                                data);
-
-                    }
-                });
-
-
-                page++;
-                url = urlPrefix + "?";
-            }
-            count++;
+                }
+            });
         }
+
         return true;
     }
 
@@ -397,7 +409,7 @@ public final class TextItClient {
 		String outputDir = properties.getProperty(
 				"outputdir", "./output");
 		String textitEpr = properties.getProperty("textit.epr",
-				"https://textit.in/api/v1");
+				"https://textit.in/api/v2");
 		String timezone = properties.getProperty("timezone");
 		int no_of_days = Integer.valueOf(properties
 				.getProperty("download_no_of_days"));
@@ -435,7 +447,8 @@ public final class TextItClient {
         statusObject.put(MongoDB.TYPE, FLOWS);
         List<String> createdFlows = null;
         try {
-            createdFlows = getFlowIDs(); // download flows created for the period
+            createdFlows = getCreatedFlowIDs(); // download flows created for the period
+            createdFlows = getUpdatedFlowIDs(createdFlows); // download flows updated for the period
         } catch (Exception e) {
             logger.error(e.getMessage());
             statusObject.put(MongoDB.STATUS, MongoDB.FAILURE);
@@ -489,7 +502,7 @@ public final class TextItClient {
                 // this leaves only the updated runs which do not belongs to the flows of previous week
                 flowsOfUpdatedRuns.removeAll(createdFlows); // this leaves only the updated flows that were not created in previous week
 
-                getModifiedData(GET_RUNS_URL.toString(), updatedRuns, "run", RUNS); // get modified runs
+                getModifiedData(GET_RUNS_URL.toString(), updatedRuns, "id", RUNS); // get modified runs
                 getModifiedData(GET_FLOWS_URL.toString(), flowsOfUpdatedRuns, "uuid", FLOWS); // get modfied flows
             }
         } catch (Exception e) {

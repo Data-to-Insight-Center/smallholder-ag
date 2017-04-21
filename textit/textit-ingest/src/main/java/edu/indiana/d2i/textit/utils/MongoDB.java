@@ -9,7 +9,6 @@ import com.mongodb.gridfs.GridFSInputFile;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.bson.Document;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -156,20 +155,18 @@ public class MongoDB {
         contactsStatCollection.insertOne(Document.parse(contacts));
     }
 
-    public static void addRun(String flow_uuid, String contact, String runs) {
+    public static void addRun(long id, String runs) {
         if(runsCollection == null) {
             runsCollection = database.getCollection(RUNS_COLLECTION_NAME);
-            BasicDBObject index = new BasicDBObject();
             //index.put("flow_uuid", 1);
             //index.put("contact", 1);
-            index.put("run", 1);
-            runsCollection.createIndex(index);
+            BasicDBObject index_id = new BasicDBObject();
+            index_id.put("id", 1);
+            runsCollection.createIndex(index_id);
         }
         //BasicDBObject query = new BasicDBObject("flow_uuid", flow_uuid).append("contact", contact);
         //runsCollection.replaceOne(query, Document.parse(runs), (new UpdateOptions()).upsert(true));
-
-        JSONObject run = new JSONObject(runs);
-        runsCollection.replaceOne(new Document("run", run.getLong("run")), Document.parse(runs),
+        runsCollection.replaceOne(new Document("id", id), Document.parse(runs),
                 (new UpdateOptions()).upsert(true));
     }
 

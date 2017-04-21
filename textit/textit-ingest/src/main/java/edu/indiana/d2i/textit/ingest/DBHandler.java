@@ -143,9 +143,13 @@ public class DBHandler {
                 JSONArray runsArray = runs.getJSONArray("results");
                 for(int i=0 ; i < runsArray.length() ; i++){
                     JSONObject run = runsArray.getJSONObject(i);
-                    MongoDB.addRun(run.getString("flow_uuid"), run.getString("contact")
-                            , runsArray.getJSONObject(i).toString());
+                    MongoDB.addRun(run.getInt("id"), runsArray.getJSONObject(i).toString());
                 }
+            }
+        }
+        if (directoryListing != null) {
+            for (File child : directoryListing) {
+                Files.deleteIfExists(Paths.get(out_dir + "/" + child.getName()));
             }
         }
         return true;
@@ -170,6 +174,11 @@ public class DBHandler {
                 }
             }
         }
+        if (directoryListing != null) {
+            for (File child : directoryListing) {
+                Files.deleteIfExists(Paths.get(out_dir + "/" + child.getName()));
+            }
+        }
         return true;
     }
 
@@ -192,6 +201,11 @@ public class DBHandler {
                 }
             }
         }
+        if (directoryListing != null) {
+            for (File child : directoryListing) {
+                Files.deleteIfExists(Paths.get(out_dir + "/" + child.getName()));
+            }
+        }
 
         directoryListing = dir.listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
@@ -205,7 +219,11 @@ public class DBHandler {
                 MongoDB.addContactStat(contacts.toString());
             }
         }
-
+        if (directoryListing != null) {
+            for (File child : directoryListing) {
+                Files.deleteIfExists(Paths.get(out_dir + "/" + child.getName()));
+            }
+        }
         return true;
     }
 }

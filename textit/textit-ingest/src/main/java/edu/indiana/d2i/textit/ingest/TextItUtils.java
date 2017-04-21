@@ -16,10 +16,13 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public final class TextItUtils {
 	private static Logger logger = Logger.getLogger(TextItUtils.class);
+    private SimpleDateFormat df_SSS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
 	public static interface IJsonProcessor {
 		public void process(Map<String, Object> data, int pageNum)
@@ -53,7 +56,7 @@ public final class TextItUtils {
                     new URL(next).toString()) : new HttpGet(
                     startPointer.toString());
             request.addHeader("Authorization", "Token " + TOKEN);
-            logger.info("Request URL : "
+            logger.info("\tRequest URL : "
                     + request.getURI().toString() + " for " + TIMEZONE);
 
             CloseableHttpResponse response = httpclient.execute(request);
@@ -90,6 +93,73 @@ public final class TextItUtils {
 			}
 		} while (next != null);
 	}
+
+    public void processFlowData(URL startPointer, String timeNow, String timePrev, IJsonProcessor processor)
+            throws IOException, ParseException {
+        String next = null;
+        int pageNum = 1;
+        Date now = df_SSS.parse(timeNow);
+        Date prev = df_SSS.parse(timePrev);
+        Date last = null;
+
+        do {
+            HttpGet request = (next != null) ? new HttpGet(
+                    new URL(next).toString()) : new HttpGet(
+                    startPointer.toString());
+            request.addHeader("Authorization", "Token " + TOKEN);
+            logger.info("\tRequest URL : "
+                    + request.getURI().toString() + " for " + TIMEZONE);
+
+            CloseableHttpResponse response = httpclient.execute(request);
+            try {
+                StatusLine statusLine = response.getStatusLine();
+                HttpEntity entity = response.getEntity();
+                if (statusLine.getStatusCode() >= 300) {
+                    logger.error("Error is " + new HttpResponseException(statusLine.getStatusCode(),
+                            statusLine.getReasonPhrase()));
+                    throw new HttpResponseException(statusLine.getStatusCode(),
+                            statusLine.getReasonPhrase());
+                }
+                if (entity == null) {
+                    logger.error(new ClientProtocolException(
+                            "Response contains no content"));
+                    throw new ClientProtocolException(
+                            "Response contains no content");
+                }
+
+                InputStream stream = entity.getContent();
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS,
+                        true);
+                Map<String, Object> data = mapper.readValue(stream, Map.class);
+                next = (data.get("next") != null) ? next = (String) data
+                        .get("next") : null;
+
+                if (data.get("results") != null) {
+                    List<Object> flows = (List<Object>) data.get("results");
+                    List<Integer> removeIndexes = new ArrayList<Integer>();
+                    for(int i = 0 ; i < flows.size() ; i ++) {
+                        LinkedHashMap flow = (LinkedHashMap)flows.get(i);
+                        String dateString = (String)flow.get("created_on");
+                        dateString = dateString.substring(0, dateString.lastIndexOf(".") + 4);
+                        Date date = df_SSS.parse(dateString);
+                        if(date.before(prev) || date.after(now)) {
+                            removeIndexes.add(i);
+                        }
+                        if((i == flows.size() - 1) && (prev.after(date)))
+                            next = null;
+                    }
+                    for(int j = removeIndexes.size() - 1 ; j >= 0 ; j--) {
+                        flows.remove((int)removeIndexes.get(j));
+                    }
+                    processor.process(data, pageNum++);
+                }
+                stream.close();
+            } finally {
+                response.close();
+            }
+        } while (next != null);
+    }
 
     public void processDataOnce(URL startPointer, IJsonProcessor processor) throws IOException {
         HttpGet request = new HttpGet(startPointer.toString());

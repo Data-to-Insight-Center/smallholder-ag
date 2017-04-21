@@ -88,9 +88,9 @@ public class TestTextItClient {
 	}
 	
 	@Test
-	public void testGetFlowIDs() throws IOException {
+	public void testGetFlowIDs() throws IOException, ParseException {
 		TextItClient client = TextItClient.createClient(properties);
-		List<String> flowIDs = client.getFlowIDs();
+		List<String> flowIDs = client.getCreatedFlowIDs();
 		
 		Assert.assertEquals(2, flowIDs.size());
 		for (int i = 0; i < flowIDs.size(); i++) {
@@ -99,9 +99,9 @@ public class TestTextItClient {
 	}
 	
 	@Test
-	public void testGetRuns() throws IOException {
+	public void testGetRuns() throws IOException, ParseException {
 		TextItClient client = TextItClient.createClient(properties);
-		List<String> flowIDs = client.getFlowIDs();
+		List<String> flowIDs = client.getCreatedFlowIDs();
 		client.downloadData(null, flowIDs);
 		
 		// TODO: check the directory
