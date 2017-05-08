@@ -105,6 +105,7 @@ public class TextItRest {
     }
 
 
+    //TODO
     @POST
     @Path("/{country}/flows")
     @Produces(MediaType.APPLICATION_JSON)
@@ -232,6 +233,8 @@ public class TextItRest {
     public Response getAllRuns(@PathParam("country") String country,
                                @QueryParam("contact") String contactId,
                                @QueryParam("flowId") String flowId,
+                               @QueryParam("id") int id,
+                               @QueryParam("count") int count,
                                @QueryParam("from") String fromDate,
                                @QueryParam("to") String toDate) {
         control.setNoCache(true);
@@ -250,23 +253,22 @@ public class TextItRest {
             obj.add(new BasicDBObject("created_on", new BasicDBObject("$lte", toDate)));
         }
         if (flowId != null) {
-            obj.add(new BasicDBObject("flow_uuid", flowId));
+            obj.add(new BasicDBObject("flow.uuid", flowId));
         }
         if (contactId != null) {
-            obj.add(new BasicDBObject("contact", contactId));
+            obj.add(new BasicDBObject("contact.uuid", contactId));
+        }
+        if (id > 0) {
+            obj.add(new BasicDBObject("id", id));
         }
         if (obj.size() != 0) {
             andQuery.put("$and", obj);
         }
+        if(count < 0)
+            count = 0;
 
-        FindIterable<Document> iter = runsCollection.find(andQuery);
-        iter.projection(new Document("runs", 1)
-                .append("flow_uuid", 1).append("flow", 1)
-                .append("contact", 1).append("run", 1)
-                .append("created_on", 1).append("modified_on", 1)
-                .append("completed", 1).append("expires_on", 1)
-                .append("steps", 1).append("values", 1)
-                .append("_id", 0));
+        FindIterable<Document> iter = runsCollection.find(andQuery).limit(count);
+        iter.projection(new Document("_id", 0));
         MongoCursor<Document> cursor = iter.iterator();
         JSONArray array = new JSONArray();
         while (cursor.hasNext()) {
@@ -341,6 +343,7 @@ public class TextItRest {
         return Response.ok(array.toString()).cacheControl(control).build();
     }
 
+    //TODO
     @POST
     @Path("/{country}/contacts")
     @Produces(MediaType.APPLICATION_JSON)
@@ -447,6 +450,7 @@ public class TextItRest {
     }
 
 
+    //TODO
     @GET
     @Path("/{country}/contactstats")
     @Produces(MediaType.APPLICATION_JSON)
@@ -488,7 +492,8 @@ public class TextItRest {
         return Response.ok(array.toString()).cacheControl(control).build();
     }
 
-    @GET
+    //TODO
+   /* @GET
     @Path("/{country}/all")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllData(@PathParam("country") String country,
@@ -718,6 +723,7 @@ public class TextItRest {
 
         return Response.ok(array.toString()).cacheControl(control).build();
     }
+*/
 
     @GET
     @Path("/{country}/flowcompletion")
@@ -745,7 +751,7 @@ public class TextItRest {
             String flow_uuid = (String) flowsDocument.get("uuid");
 
             BasicDBObject runsQuery = new BasicDBObject();
-            runsQuery.put("flow_uuid", flow_uuid);
+            runsQuery.put("flow.uuid", flow_uuid);
 
             FindIterable<Document> runsIter = runsCollection.find(runsQuery);
             MongoCursor<Document> runsCursor = runsIter.iterator();
@@ -765,12 +771,16 @@ public class TextItRest {
                 }
 
                 // check the responded(at least one) count
-                ArrayList valuesArray = (ArrayList) runsDocument.get("values");
+                Document valuesMap = (Document) runsDocument.get("values");
 
-                if(valuesArray.size() != 0) {
+                if(valuesMap.size() != 0) {
                     Date respondedTime = null;
+
+                    Iterator keySet = valuesMap.keySet().iterator();
+                    String key = (String) keySet.next();
+
                     try {
-                        respondedTime = df_SSS.parse(((Document) valuesArray.get(0)).getString("time").substring(0, 23));
+                        respondedTime = df_SSS.parse(((Document) valuesMap.get(key)).getString("time").substring(0, 23));
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
@@ -785,18 +795,18 @@ public class TextItRest {
                 }
 
                 // check the completed count
-                boolean completed = runsDocument.getBoolean("completed");
+                String completed = runsDocument.getString("exit_type");
 
-                if(!completed)
+                if(!"completed".equals(completed))
                     continue;
 
-                Object ques = runsDocument.get("steps");
+                Object ques = runsDocument.get("path");
                 ArrayList<Date> dates = new ArrayList<Date>();
                 if (ques instanceof ArrayList) {
                     ArrayList<Document> steps = (ArrayList<Document>) ques;
                     for (Document step : steps) {
                         try {
-                            dates.add(df_SSS.parse(step.getString("left_on").substring(0, 23)));
+                            dates.add(df_SSS.parse(step.getString("time").substring(0, 23)));
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
@@ -816,7 +826,12 @@ public class TextItRest {
                 }
             }
 
-            int total_runs = flowsDocument.getInteger("runs");
+            Document runsStats = (Document) flowsDocument.get("runs");
+            int expired_runs = (int) runsStats.get("expired");
+            int interrupted_runs = (int) runsStats.get("interrupted");
+            int active_runs = (int) runsStats.get("active");
+            int completed_runs = (int) runsStats.get("completed");
+            int total_runs = expired_runs + interrupted_runs + active_runs + completed_runs;
 
             new_flow.put("flow_name", flowsDocument.getString("name"));
             new_flow.put("created_on", flowsDocument.getString("created_on"));
@@ -830,7 +845,7 @@ public class TextItRest {
             }
             new_flow.put("uuid", flow_uuid);
             new_flow.put("total_runs", total_runs);
-            new_flow.put("completed_runs", flowsDocument.getInteger("completed_runs"));
+            new_flow.put("completed_runs", completed_runs);
             new_flow.put("expires", flowsDocument.getInteger("expires"));
 
             if(total_runs > 0) {
@@ -897,6 +912,7 @@ public class TextItRest {
         return Response.ok(array.toString()).cacheControl(control).build();
     }
 
+    //TODO
     @GET
     @Path("/{country}/flowresponse")
     @Produces(MediaType.APPLICATION_JSON)
@@ -1034,6 +1050,7 @@ public class TextItRest {
         return Response.ok(array.toString()).cacheControl(control).build();
     }
 
+    //TODO
     @GET
     @Path("/{country}/questionanalysis")
     @Produces(MediaType.APPLICATION_JSON)
@@ -1177,6 +1194,7 @@ public class TextItRest {
         return Response.ok(array.toString()).cacheControl(control).build();
     }
 
+    //TODO
     @GET
     @Path("/{country}/filesize")
     @Produces(MediaType.APPLICATION_JSON)
@@ -1272,7 +1290,7 @@ public class TextItRest {
     }
 
 
-    @GET
+/*    @GET
     @Path("/{country}/questioninfo")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getQeutstionInfo(@PathParam("country") String country,
@@ -1590,9 +1608,10 @@ public class TextItRest {
         }
 
         return Response.ok(array.toString()).cacheControl(control).build();
-    }
+    }*/
 
 
+    //TODO
     @GET
     @Path("/{country}/contactresponses")
     @Produces(MediaType.APPLICATION_JSON)
@@ -1769,8 +1788,8 @@ public class TextItRest {
             weekLabels.add(label);
 
             Bson flowsFilter = null;
-            if(qType != null)
-                flowsFilter = Filters.in("rulesets.label", qType);
+            //if(qType != null) // since v2 flows do not have question types
+            //    flowsFilter = Filters.in("rulesets.label", qType);
 
             ArrayList<Document> flowsIter = null;
             try {
@@ -1818,7 +1837,7 @@ public class TextItRest {
 
                 System.out.println("--");
 
-                List<String> qUuid = new ArrayList<String>();
+                /*List<String> qUuid = new ArrayList<String>(); // since v2 flows do not have question types
                 Object rulesets = flowsDocument.get("rulesets");
                 if (rulesets instanceof ArrayList) {
                     ArrayList<Document> rulesetsArray = (ArrayList<Document>) rulesets;
@@ -1827,29 +1846,42 @@ public class TextItRest {
                             qUuid.add(rule.getString("node"));
                         }
                     }
+                }*/
+
+                ArrayList<Bson> typeExists = new ArrayList<Bson>();
+                List<String> qTypeStr = new ArrayList<>();
+                for(String type : qType) {
+                    qTypeStr.add(type.replace(' ', '_'));
+                    typeExists.add(Filters.exists("values." + type.replace(' ', '_'), true));
                 }
 
+
                 BasicDBObject runsQuery = new BasicDBObject();
-                runsQuery.put("flow_uuid", flow_uuid);
+                runsQuery.put("flow.uuid", flow_uuid);
                 //FindIterable<Document> runsIter = runsCollection.find(runsQuery);
-                FindIterable<Document> runsIter = runsCollection.find(Filters.and(runsQuery, Filters.in("values.node", qUuid)));
+                FindIterable<Document> runsIter = runsCollection.find(Filters.and(runsQuery, Filters.or(typeExists)));
                 runsIter.projection(new Document("_id", 0));
                 MongoCursor<Document> runsCursor = runsIter.iterator();
 
                 while (runsCursor.hasNext()) {
                     Document runsDocument = runsCursor.next();
-                    Object values = runsDocument.get("values");
-                    String contact = (String) runsDocument.get("contact");
-                    if (values instanceof ArrayList) {
-                        ArrayList<Document> valuesArray = (ArrayList<Document>) values;
-                        for (Document value : valuesArray) {
-                            Document category = (Document) value.get("category");
+                    Document values = (Document) runsDocument.get("values");
+                    String contact = (String)((Document) runsDocument.get("contact")).get("uuid");
+                    //if (values instanceof ArrayList) {
+                      //  ArrayList<Document> valuesArray = (ArrayList<Document>) values;
+                        for (String qStr : qTypeStr) {
+
+                            if(!values.containsKey(qStr))
+                                continue;
+
+                            Document value = (Document) values.get(qStr);
+                            //Document category = (Document) value.get("category");
                             //String date = null;
 
-                            String qLabel = (String) value.get("label");
-                            String qNode = (String) value.get("node");
-                            if(qUuid.size() != 0 && !qUuid.contains(qNode))
-                                continue;
+                            String qLabel = qStr.replace("_", " ");
+                            //String qNode = (String) value.get("node");
+                            //if(qUuid.size() != 0 && !qUuid.contains(qNode))
+                            //    continue;
 
                             Date dateZ = null;
                             try {
@@ -1863,14 +1895,15 @@ public class TextItRest {
                                 continue;
                             }
 
-                            String qVal = category.get("base") != null ? category.getString("base") : category.getString("eng");
-                            if (qVal.equals("numeric") && value.containsKey("value")) {
+                            String category = (String) value.get("category");
+                            String qVal = category;
+                            if (category.equals("numeric") && value.containsKey("value")) {
                                 qVal = "" + value.get("value");
-                            } else if (textLables.contains(qLabel) && value.containsKey("text")) {
-                                qVal = "" + value.get("text");
+                            } else if (textLables.contains(qLabel) && value.containsKey("value")) {
+                                qVal = "" + value.get("value");
                             }
-                            else if (qVal.equalsIgnoreCase("Other") && value.containsKey("value")) {
-                                qVal += "-" + ("" + value.get("value"));
+                            else if (category.equalsIgnoreCase("Other") && value.containsKey("value")) {
+                                qVal = "Other-" + ("" + value.get("value"));
                             }
                             String week = label;
 
@@ -1902,7 +1935,7 @@ public class TextItRest {
                                 qMap.put(contact, qObject);
                             }
                         }
-                    }
+                   // }
                 }
             }
 
@@ -1917,8 +1950,8 @@ public class TextItRest {
             if (contactDoc != null && contactDoc.containsKey("name")) {
                 contactObj.put("name", contactDoc.get("name"));
             }
-            if (contactDoc != null && contactDoc.containsKey("phone")) {
-                contactObj.put("phone", contactDoc.get("phone"));
+            if (getPhoneOfContact(contactDoc) != null) {
+                contactObj.put("phone", getPhoneOfContact(contactDoc));
             }
             for(String field : contactsField) {
                 if (contactDoc != null && contactDoc.containsKey(field)) {
@@ -2003,7 +2036,7 @@ public class TextItRest {
                 String flow_uuid = (String) flowsDocument.get("uuid");
 
                 BasicDBObject runsQuery = new BasicDBObject();
-                runsQuery.put("flow_uuid", flow_uuid);
+                runsQuery.put("flow.uuid", flow_uuid);
                 FindIterable<Document> runsIter = runsCollection.find(runsQuery);
                 flowsIter.projection(new Document("created_on", 1).append("_id", 0));
                 MongoCursor<Document> runsCursor = runsIter.iterator();
@@ -2036,6 +2069,18 @@ public class TextItRest {
         }
 
         return flows;
+    }
+
+
+    private String getPhoneOfContact(Document contact) {
+        if(!contact.containsKey("urns") || contact.get("urns") == null || ((ArrayList)contact.get("urns")).isEmpty())
+            return null;
+        ArrayList<String> urns = (ArrayList<String>) contact.get("urns");
+        for(String urn : urns) {
+            if(urn.contains("tel:"))
+                return urn.replace("tel:", "");
+        }
+        return null;
     }
 
     class stringToIntComp implements Comparator<String> {

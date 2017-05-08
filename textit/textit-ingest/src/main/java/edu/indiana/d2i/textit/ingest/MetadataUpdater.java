@@ -324,7 +324,7 @@ public class MetadataUpdater {
             Document contactDocument = contactsCursor.next();
             String contact_id = (String) contactDocument.get("uuid");
 
-            FindIterable<Document> runsIter = runsCollection.find(new BasicDBObject("contact", contact_id));
+            FindIterable<Document> runsIter = runsCollection.find(new BasicDBObject("contact.uuid", contact_id));
             MongoCursor<Document> runsCursor = runsIter.iterator();
             ArrayList<Date> dates = new ArrayList<Date>();
             ArrayList<Document> rundDocsArray = new ArrayList<Document>();
@@ -332,15 +332,21 @@ public class MetadataUpdater {
             while (runsCursor.hasNext()) {
                 Document runsDocument = runsCursor.next();
                 rundDocsArray.add(runsDocument);
-                Object values = runsDocument.get("values");
-                if (values instanceof ArrayList) {
-                    ArrayList<Document> valuesList = (ArrayList<Document>) values;
-                    if(valuesList.size() > 0) {
-                        try {
-                            dates.add(df_SSS.parse(valuesList.get(valuesList.size() - 1).getString("time").substring(0, 23)));
-                        } catch (ParseException e) {
-                            e.printStackTrace();
+                Document values = (Document)runsDocument.get("values");
+                Set<String> keys = values.keySet();
+                if (keys.size() > 0) {
+                    int index = 1;
+                    for(String key : keys) {
+                        if(index == keys.size()) {
+                            try {
+
+                                dates.add(df_SSS.parse(((Document)values.get(key)).getString("time").substring(0, 23)));
+
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
                         }
+                        index++;
                     }
                 }
             }
