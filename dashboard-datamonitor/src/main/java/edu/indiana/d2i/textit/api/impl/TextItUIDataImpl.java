@@ -564,14 +564,10 @@ public class TextItUIDataImpl extends TextItUIData {
 	@GET
 	@Path("/{country}/flowcompletion")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getFlowCompletionAnalysis(@PathParam("country") String country,
-											  @QueryParam("from") String fromDate,
-											  @QueryParam("to") String toDate) {
+	public Response getFlowCompletionAnalysis(@PathParam("country") String country) {
 		WebResource webResource = resource();
 
 		ClientResponse response = webResource.path(country + "/flowcompletion")
-				.queryParam("from", fromDate)
-				.queryParam("to", toDate)
 				.accept("application/json")
 				.type("application/json")
 				.get(ClientResponse.class);
@@ -588,6 +584,118 @@ public class TextItUIDataImpl extends TextItUIData {
 		String fromDate = getLastWeek(country);
 		String toDate = getLastThisWeek(country);
 		ClientResponse response = webResource.path(country + "/flowcompletion")
+				.queryParam("from", fromDate)
+				.queryParam("to", toDate)
+				.accept("application/json")
+				.type("application/json")
+				.get(ClientResponse.class);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
+
+	@GET
+	@Path("/{country}/givenflowidflowcompletion")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getFlowCompletionByFlowId(@PathParam("country") String country,
+											  @QueryParam("flowId") String flowId){
+		WebResource webResource = resource();
+		ClientResponse response = webResource.path(country + "/flowcompletion")
+				.queryParam("flowId", flowId)
+				.accept("application/json")
+				.type("application/json")
+				.get(ClientResponse.class);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
+
+	@GET
+	@Path("/{country}/giventimeflowcompletion")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getFlowCompletionGivenTime(@PathParam("country") String country,
+											   @QueryParam("from") String fromDate,
+											   @QueryParam("to") String toDate){
+		WebResource webResource = resource();
+		ClientResponse response = webResource.path(country + "/flowcompletion")
+				.queryParam("from", fromDate)
+				.queryParam("to", toDate)
+				.accept("application/json")
+				.type("application/json")
+				.get(ClientResponse.class);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
+
+	@GET
+	@Path("/{country}/giventimeactivecontacts")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAllActiveContactsGivenTime(@PathParam("country") String country,
+												  @QueryParam("lastRespondedSort") int lastUpdatedSort,
+											      @QueryParam("lastRespondedFrom") String updatedFrom,
+												  @QueryParam("lastRespondedTo") String updatedTo){
+		WebResource webResource = resource();
+		ClientResponse response = webResource.path(country + "/contacts")
+				.queryParam("lastRespondedSort", String.valueOf(lastUpdatedSort))
+				.queryParam("lastRespondedFrom", updatedFrom)
+				.queryParam("lastRespondedTo", updatedTo)
+				.accept("application/json")
+				.type("application/json")
+				.get(ClientResponse.class);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
+
+	@GET
+	@Path("/{country}/inactivecontacts")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAllInactiveContactsGivenTime(@PathParam("country") String country,
+												    @QueryParam("lastRespondedSort") int lastUpdatedSort,
+												    @QueryParam("lastRespondedTo") String updatedTo){
+		WebResource webResource = resource();
+		ClientResponse response = webResource.path(country + "/contacts")
+				.queryParam("lastRespondedSort", String.valueOf(lastUpdatedSort))
+				.queryParam("lastRespondedTo", updatedTo)
+				.accept("application/json")
+				.type("application/json")
+				.get(ClientResponse.class);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
+
+	@GET
+	@Path("/{country}/countinactivecontacts")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAllInactiveContactsByCount(@PathParam("country") String country,
+												  @QueryParam("count") int count,
+												  @QueryParam("lastRespondedSort") int lastUpdatedSort,
+												  @QueryParam("lastRespondedTo") String updatedTo){
+		WebResource webResource = resource();
+		ClientResponse response = webResource.path(country + "/contacts")
+				.queryParam("count", String.valueOf(count))
+				.queryParam("lastRespondedSort", String.valueOf(lastUpdatedSort))
+				.queryParam("lastRespondedTo", updatedTo)
+				.accept("application/json")
+				.type("application/json")
+				.get(ClientResponse.class);
+
+		return Response.status(response.getStatus()).entity(response
+				.getEntity(new GenericType<String>() {})).cacheControl(control).build();
+	}
+
+	@GET
+	@Path("/{country}/qtyperesponses")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAllQuestionTypeResponses(@PathParam("country") String country,
+												@QueryParam("qtype") String qType,
+												@QueryParam("from") String fromDate,
+												@QueryParam("to") String toDate){
+		WebResource webResource = resource();
+		ClientResponse response = webResource.path(country + "/contactresponses2")
+				.queryParam("qtype", qType)
 				.queryParam("from", fromDate)
 				.queryParam("to", toDate)
 				.accept("application/json")

@@ -327,11 +327,10 @@
 		var from_date = fdate_sr_lk + "Z";
 		//var qtype = "rain";
 
-		//var textit_prefix = "http://localhost:8080/textit-api/zambia";
-		var textit_prefix = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia";
+		var textit_prefix = "./api/zambia";
 			
 		//xhr call to retrieve data
-	    var xhrcall = $.ajax(textit_prefix + "/contactresponses2?from=" + from_date + "&to=" + to_date + "&qtype=" + qtype);
+	    var xhrcall = $.ajax(textit_prefix + "/qtyperesponses?from=" + from_date + "&to=" + to_date + "&qtype=" + qtype);
 
 	  	//promise syntax to render after xhr completes
 		if(xhrcall.responseText != "[]"){
@@ -493,7 +492,7 @@
 					
 					//xhr call to retrieve data
 					$.ajaxSetup({async: false});
-					var xhrcall = $.ajax(textit_prefix + "/contactresponses2?from=" + new_from_date + "&to=" + new_to_date + "&qtype=" + ques_type);
+					var xhrcall = $.ajax(textit_prefix + "/qtyperesponses?from=" + new_from_date + "&to=" + new_to_date + "&qtype=" + ques_type);
 					
 					if(xhrcall.responseText != "[]"){
 						if ($.fn.DataTable.isDataTable(table_id) ) {

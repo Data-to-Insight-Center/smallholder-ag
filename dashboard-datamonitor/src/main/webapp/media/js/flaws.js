@@ -73,7 +73,7 @@ $(document).ready(function() {
 				type: "readonly"
             }, {
                 label: "Total Runs:",
-                name: "runs",
+                name: "total_runs",
 				type: "readonly"
             }, {
                 label: "Completed Runs:",
@@ -82,7 +82,16 @@ $(document).ready(function() {
             }, {
                 label: "Created Date:",
                 name: "created_on",
-				type: "readonly"
+				type: "readonly",
+				fieldInfo: 'EX: 2017-05-08 05:40 PM',
+				render: function (name) {
+				if (name !== undefined){
+        		var date = new Date(name).toISOString();
+				var mom_date = moment(date);
+				var new_date = mom_date.tz('Africa/Johannesburg').format('YYYY-MM-DD hh:mm A');
+				return new_date;
+				}
+				}
             }, {
                 label: "Country:",
                 name: "country",
@@ -103,14 +112,14 @@ $(document).ready(function() {
                 label: 'Run Start Date:',
 				name: 'run_start_date',
                 type: 'datetime',
-                format: 'YYYY-MM-DD HH:mm:ss',
-                fieldInfo: 'EX: 03-10-2016 2.30 PM'
+                format: 'YYYY-MM-DD',
+                fieldInfo: 'EX: 2017-05-01'
             }, {
                 label: 'Run End Date:',
                 name: 'run_end_date',
                 type: 'datetime',
-                format: "YYYY-MM-DD HH:mm:ss",
-                fieldInfo: 'EX: 09-10-2016 11.55 PM'
+                format: "YYYY-MM-DD",
+                fieldInfo: 'EX: 2017-05-08'
             }
         ]
     } );
@@ -240,10 +249,10 @@ $(document).ready(function() {
 				if (data != undefined){
         		var date = new Date(data).toISOString();
 				var mom_date = moment(date);
-				var new_date = mom_date.tz('Africa/Johannesburg').format('YYYY MMMM Do, h:mm a');
+				var new_date = mom_date.tz('Africa/Johannesburg').format('YYYY-MM-DD hh:mm A');
 				var final_date = new_date.split(",");
-        		return (final_date[0] + "," + final_date[1]);
-					//return new_date;
+        		//return (final_date[0] + "," + final_date[1]);
+					return new_date;
 				}
 				
     			}
@@ -257,7 +266,7 @@ $(document).ready(function() {
 			 "render": function (data) {
 				if (data != undefined){
 				var mom_date = moment(data);
-				var new_date = mom_date.tz('Africa/Johannesburg').format('YYYY MMMM Do');
+				var new_date = mom_date.tz('Africa/Johannesburg').format('YYYY-MM-DD');
         		return (new_date);
 				}
 				}
@@ -267,7 +276,7 @@ $(document).ready(function() {
 			 "render": function (data) {
 				if (data != undefined){
 				var mom_date = moment(data);
-				var new_date = mom_date.tz('Africa/Johannesburg').format('YYYY MMMM Do');
+				var new_date = mom_date.tz('Africa/Johannesburg').format('YYYY-MM-DD');
         		return (new_date);
 				}
 				}
