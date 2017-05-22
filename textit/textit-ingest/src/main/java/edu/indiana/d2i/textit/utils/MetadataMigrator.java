@@ -97,16 +97,16 @@ public class MetadataMigrator {
         String primaryDBKey = null;
         if(country.equals(ZAMBIA)) {
             primaryKey = "Phone#";
-            primaryDBKey = "phone";
+            primaryDBKey = "urns.0";
         }
-        //if(country.equals(KENYA)) { //Contacts_metadata_kenya_2.csv
-        //    primaryKey = "UUID";
-        //    primaryDBKey = "uuid";
-        //}
-        if(country.equals(KENYA)) { //Contacts_metadata_kenya_1.csv
+        if(country.equals(KENYA)) { //Contacts_metadata_kenya_2.csv
+            primaryKey = "UUID";
+            primaryDBKey = "uuid";
+        }
+        /*if(country.equals(KENYA)) { //Contacts_metadata_kenya_1.csv
             primaryKey = "UID";
             primaryDBKey = "fields.uid";
-        }
+        }*/
 
         Map<String,String> keytoKeyMap = new HashMap<String,String>();
         if(country.equals(ZAMBIA)) {
@@ -118,15 +118,15 @@ public class MetadataMigrator {
             keytoKeyMap.put("UID", "uid");
             keytoKeyMap.put("HICPS/COWS", "hicps_cows");
         }
-        //if(country.equals(KENYA)) { // Contacts_metadata_kenya_2.csv
-        //    keytoKeyMap.put("CWP", "cwp");
-        //    keytoKeyMap.put("WRUA", "wrua");
-        //    keytoKeyMap.put("cwp member?", "cwp_member");
-        //    keytoKeyMap.put("1 Sept 16 enrolled?", "1_sep_16_enrolled");
-        //    keytoKeyMap.put("Latitude", "latitude");
-        //    keytoKeyMap.put("Longitude", "longitude");
-        //}
-        if(country.equals(KENYA)) { // Contacts_metadata_kenya_1.csv
+        if(country.equals(KENYA)) { // Contacts_metadata_kenya_2.csv
+            keytoKeyMap.put("CWP", "cwp");
+            keytoKeyMap.put("WRUA", "wrua");
+            keytoKeyMap.put("cwp member?", "cwp_member");
+            keytoKeyMap.put("1 Sept 16 enrolled?", "1_sep_16_enrolled");
+            keytoKeyMap.put("Latitude", "latitude");
+            keytoKeyMap.put("Longitude", "longitude");
+        }
+        /*if(country.equals(KENYA)) { // Contacts_metadata_kenya_1.csv
             keytoKeyMap.put("CWP_ID", "cwp_id");
             keytoKeyMap.put("WRUA_ID", "wrua_id");
             keytoKeyMap.put("ltime", "ltime");
@@ -134,7 +134,7 @@ public class MetadataMigrator {
             keytoKeyMap.put("x_proj", "x_proj");
             keytoKeyMap.put("y_proj", "y_proj");
             keytoKeyMap.put("ident", "ident");
-        }
+        }*/
 
         Map<String,String> keytoReplaceKey = new HashMap<String,String>();
         if(country.equals(ZAMBIA)) {

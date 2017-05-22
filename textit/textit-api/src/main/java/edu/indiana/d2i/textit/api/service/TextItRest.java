@@ -105,7 +105,6 @@ public class TextItRest {
     }
 
 
-    //TODO
     @POST
     @Path("/{country}/flows")
     @Produces(MediaType.APPLICATION_JSON)
@@ -151,7 +150,7 @@ public class TextItRest {
     private BasicDBObject buildFlowObject(JSONObject flowObject) throws RuntimeException {
 
         List<String> flowTypes = Arrays.asList("test", "pilot", "regular", "unused");
-        List<String> seasons = Arrays.asList("planting", "harvesting", "growing", "inter-season");
+        List<String> seasons = Arrays.asList("planting", "harvest", "growing", "inter-season");
         BasicDBObject basicObject = new BasicDBObject();
 
         if(flowObject.has("creator") && flowObject.get("creator") != null) {
@@ -338,12 +337,13 @@ public class TextItRest {
         MongoCursor<Document> cursor = iter.iterator();
         JSONArray array = new JSONArray();
         while (cursor.hasNext()) {
-            array.put(new JSONObject(cursor.next().toJson()));
+            Document contactDoc = cursor.next();
+            contactDoc.put("phone", getPhoneOfContact(contactDoc));
+            array.put(new JSONObject(contactDoc.toJson()));
         }
         return Response.ok(array.toString()).cacheControl(control).build();
     }
 
-    //TODO
     @POST
     @Path("/{country}/contacts")
     @Produces(MediaType.APPLICATION_JSON)
