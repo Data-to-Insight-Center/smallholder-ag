@@ -86,7 +86,16 @@ Steps to deploy the tesxtit-ingest-api in tomcat:
 1. Copy the textit-api/target/textit-api.war into TOMCAT_HOME/webapps/ directory</br>
 <code>cp textit-api/target/textit-api.war TOMCAT_HOME/webapps/</code>
 
-2. Start the server.
+2. Add correct values to the following configuration file</br>
+<code>TOMCAT_HOME/webapps/textit-api/WEB-INF/classes/edu/indiana/d2i/textit/api/utils/default.properties</code></br>
+
+3. If you need to enable authentication add following configuration to the TOMCAT_HOME/conf/tomcat-users.xml file</br>
+```html
+<role rolename="smallag"/>
+<user username="smallag" password="password" roles="smallag"/>
+```
+
+4. Start the tomcat server.
 
 Now the TextIT Ingest API should be accessible through the following URL.
 <code>http://[tomcat_host]:[tomcat_port]/textit-api</code>
