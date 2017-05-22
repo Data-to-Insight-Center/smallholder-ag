@@ -415,15 +415,13 @@
 			 
 		 
 		 /* Inactive Farmers - for last three months*/
-		 var textit_prefix_api = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia"
-	     //var textit_prefix_api = "http://localhost:8080/textit-api/zambia";
 		 var now = new Date();
          var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 		 var last_respond_date = new Date(today.getFullYear(), today.getMonth()-12, today.getDate());
          var last_respond_to_date = moment(last_respond_date).format("YYYY-MM-DDTHH:mm:ss.SSS");
 		 var last_three_month_output = "Last three months"
          $.ajax({
-         url: textit_prefix_api + "/contacts?count=10&lastRespondedSort=1&lastRespondedTo=" + last_respond_to_date,
+         url: textit_prefix + "/countinactivecontacts?count=10&lastRespondedSort=1&lastRespondedTo=" + last_respond_to_date,
          success: function (lrcdata) {
          var total_lrc_contacts = lrcdata.length;
          output = '<div class="x_title"><h2>Inactive Farmers <small> -  ' + last_three_month_output + '</small></h2><div class="clearfix"></div></div><ul class="list-unstyled top_profiles scroll-view">';
@@ -752,7 +750,7 @@
          	/* New code for first graph - Farmers Response Rate - over time */
          
          	$.ajax({
-         		url: textit_prefix + "/flowcompletion?from=" + new_from_date + "&to=" + new_to_date,
+         		url: textit_prefix + "/giventimeflowcompletion?from=" + new_from_date + "&to=" + new_to_date,
          		success: function (frdata) {
          
          		flow_steps_correct_final_data = [];
@@ -1408,7 +1406,7 @@
          var new_to_date = new_end_date_sr_lk + "Z";
          
          $.ajax({
-         		url: textit_prefix + "/flowcompletion?from=" + new_from_date + "&to=" + new_to_date,
+         		url: textit_prefix + "/giventimeflowcompletion?from=" + new_from_date + "&to=" + new_to_date,
          		success: function (frdata) {
          
          		response_final_data = [];

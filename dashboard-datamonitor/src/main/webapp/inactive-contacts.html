@@ -160,7 +160,7 @@
                 		type : "datetime",
 						render: function ( data, type, row ) {
 								var mom_date = moment(data);
-								var new_date = mom_date.format('YYYY-MM-DD h:mm A');
+								var new_date = mom_date.format('YYYY-MM-DD hh:mm A');
     							return new_date;
 						},
 						targets: 2,
@@ -182,11 +182,10 @@
 		tdate_sr_lk = moment(tdate_sr).format("YYYY-MM-DDTHH:mm:ss.SSS");
 		
 		var to_date = tdate_sr_lk + "Z";
-		//var textit_prefix = "http://localhost:8080/textit-api/zambia";
-		var textit_prefix = "http://smallholderag-test.d2i.indiana.edu:8080/textit-api/zambia";
+		var textit_prefix = "./api/zambia";
 			
 		//xhr call to retrieve data
-	    var xhrcall = $.ajax(textit_prefix + "/contacts?lastRespondedSort=1&lastRespondedTo=" + to_date);
+	    var xhrcall = $.ajax(textit_prefix + "/inactivecontacts?lastRespondedSort=1&lastRespondedTo=" + to_date);
 	  	//promise syntax to render after xhr completes
 	    xhrcall.done(renderTable);
 		
@@ -247,7 +246,7 @@
                 		type : "datetime",
 						render: function ( data, type, row ) {
 								var mom_date = moment(data);
-								var new_date = mom_date.format('YYYY-MM-DD h:mm A');
+								var new_date = mom_date.format('YYYY-MM-DD hh:mm A');
     							return new_date;
 						},
 						targets: 2,
@@ -272,9 +271,9 @@
 		info_submit_data = [];
 		
 		//xhr call to retrieve data
-		var xhrcall = $.ajax(textit_prefix + "/contacts?lastRespondedSort=1&lastRespondedTo=" + new_to_date);
+		var xhrcall = $.ajax(textit_prefix + "/inactivecontacts?lastRespondedSort=1&lastRespondedTo=" + new_to_date);
 		if(xhrcall.responseText != "[]"){
-			if ($.fn.DataTable.isDataTable( '#inactive_contactInfoTable' ) ) {
+			if ($.fn.DataTable.isDataTable('#inactive_contactInfoTable' ) ) {
 					$('#inactive_contactInfoTable').DataTable().destroy();	// Destroy dataTable
   					$('#inactive_contactInfoTable').empty();
 				}
