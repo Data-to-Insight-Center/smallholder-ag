@@ -6,6 +6,8 @@ import java.util.Properties;
 public class Constants {
 
     public static String apiUrl;
+    public static String apiUsername;
+    public static String apiPassword;
 
     static {
         try {
@@ -24,5 +26,7 @@ public class Constants {
             throw new Exception("Error while reading Matchmaker properties");
         }
         apiUrl = properties.getProperty("api.url");
+        apiUsername = properties.getProperty("api.username");
+        apiPassword = properties.getProperty("api.password");
     }
 }

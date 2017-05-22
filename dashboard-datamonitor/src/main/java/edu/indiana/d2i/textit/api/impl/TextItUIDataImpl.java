@@ -4,6 +4,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import edu.indiana.d2i.textit.api.TextItUIData;
 import edu.indiana.d2i.textit.api.util.Constants;
 import org.json.JSONArray;
@@ -41,7 +42,11 @@ public class TextItUIDataImpl extends TextItUIData {
 
 	public TextItUIDataImpl() {
 		this.serviceUrl = Constants.apiUrl;
-		resource = Client.create().resource(serviceUrl);
+        Client c = Client.create();
+        if(Constants.apiUsername != null && Constants.apiPassword != null) {
+            c.addFilter(new HTTPBasicAuthFilter(Constants.apiUsername, Constants.apiPassword));
+        }
+		resource = c.resource(serviceUrl);
 		control.setNoCache(true);
 	}
 
