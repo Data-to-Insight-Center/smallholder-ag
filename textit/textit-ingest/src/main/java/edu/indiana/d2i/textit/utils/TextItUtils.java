@@ -77,7 +77,7 @@ public class TextItUtils {
                 String flow_uuid = (String) flowsDocument.get("uuid");
 
                 BasicDBObject runsQuery = new BasicDBObject();
-                runsQuery.put("flow_uuid", flow_uuid);
+                runsQuery.put("flow.uuid", flow_uuid);
                 FindIterable<Document> runsIter = runsCollection.find(runsQuery);
                 flowsIter.projection(new Document("created_on", 1).append("_id", 0));
                 MongoCursor<Document> runsCursor = runsIter.iterator();
