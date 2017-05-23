@@ -19,6 +19,7 @@
       <script src="media/js/jquery-min.js"></script>
       <script src="media/js/jquery-ui.js"></script>
       <script src="media/js/weather.js"></script>
+      <script src="resources/config.js"></script>
       <!-- Include date range picker plugin -->
       <script type="text/javascript" src="media/js/datepicker/daterangepicker.js"></script>
       <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/1/daterangepicker-bs3.css" />
@@ -200,7 +201,12 @@
       <script type="text/javascript" src="media/js/jquery.canvasjs.min.js"></script>
       <script type="text/javascript">
          $(document).ready(function() {
-         var textit_prefix = "./api/zambia";
+		 if (gOptions.enabled) {
+			 var textit_prefix = gOptions.zam_api_url;
+			 var uname = gOptions.uname;
+			 var pwd = gOptions.pwd;
+		 }
+         
          function getLastWeek(){
          var today = new Date();
          var lastWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
@@ -228,6 +234,12 @@
          var lastMonday = new Date(today.setDate(today.getDate()-(today.getDay()-1)%7));
          return lastMonday;
          }
+			 
+		 function make_base_auth(user, password) {
+			var tok = user + ':' + password;
+			var hash = btoa(tok);
+			return 'Basic ' + hash;
+		 }
          
          var now = new Date();
          var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -256,6 +268,9 @@
          var last_respond_to_date = moment(last_respond_date).format("YYYY-MM-DDTHH:mm:ss.SSS");
          $.ajax({
          url: textit_prefix + "/inactivecontacts?lastRespondedSort=1&lastRespondedTo=" + last_respond_to_date,
+		 beforeSend: function (xhr) {
+		 	xhr.setRequestHeader('Authorization', make_base_auth(uname, pwd));
+		 },
          success: function (lrcdata) {
          var total_lrc_contacts = lrcdata.length
          $("#no_response_last_month").html(total_lrc_contacts);
@@ -270,6 +285,9 @@
          var last_respond_to_date = moment(lastBeforeMonday).format("YYYY-MM-DDTHH:mm:ss.SSS");
          $.ajax({
          url: textit_prefix + "/inactivecontacts?lastRespondedSort=1&lastRespondedTo=" + last_respond_to_date,
+		 beforeSend: function (xhr) {
+		 	xhr.setRequestHeader('Authorization', make_base_auth(uname, pwd));
+		 },
          success: function (lrcdata) {
          var week_inactive_contacts = lrcdata.length
          $("#inactive_last_week").html(week_inactive_contacts);
@@ -284,6 +302,9 @@
          var last_respond_to_date = moment(lastMonday).format("YYYY-MM-DDTHH:mm:ss.SSS");
          $.ajax({
          url: textit_prefix + "/giventimeactivecontacts?lastRespondedSort=1&lastRespondedFrom=" + last_respond_from_date + "&lastRespondedTo=" + last_respond_to_date,
+		 beforeSend: function (xhr) {
+		 	xhr.setRequestHeader('Authorization', make_base_auth(uname, pwd));
+		 },
          success: function (lrcdata) {
          var week_active_contacts = lrcdata.length
          $("#active_last_week").html(week_active_contacts);
@@ -296,6 +317,9 @@
          
          $.ajax({
          url: textit_prefix + "/flows",
+		 beforeSend: function (xhr) {
+		 	xhr.setRequestHeader('Authorization', make_base_auth(uname, pwd));
+		 },
          success: function (data) {
          var total_flows = data.length;
          for (i in data) {
@@ -313,6 +337,9 @@
          var total_contacts=0;
          $.ajax({
          url: textit_prefix + "/contacts",
+		 beforeSend: function (xhr) {
+		 	xhr.setRequestHeader('Authorization', make_base_auth(uname, pwd));
+		 },
          success: function (cdata) {
          total_contacts = cdata.length;
          
@@ -323,6 +350,9 @@
          resend_flow = [];
          $.ajax({
          url: textit_prefix + "/lastweekflowcompletion",
+		 beforeSend: function (xhr) {
+		 	xhr.setRequestHeader('Authorization', make_base_auth(uname, pwd));
+		 },
          success: function (lcomp) {
          lcomp_flows = lcomp.length;
          for (i in lcomp) {
@@ -340,7 +370,11 @@
       </script>      
       <script>
          $(document).ready(function() { 
-         	var textit_prefix = "./api/zambia";
+         	if (gOptions.enabled) {
+			 var textit_prefix = gOptions.zam_api_url;
+			 var uname = gOptions.uname;
+			 var pwd = gOptions.pwd;
+		 	}
          	var now = new Date();
          	var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
          	var lastMonday = new Date(today.setDate(today.getDate()-(today.getDay()-1)%7));
@@ -375,9 +409,18 @@
          	}
          
          	var weekNumber = (beforeMonday).getWeek();
+			
+			function make_base_auth(user, password) {
+			var tok = user + ':' + password;
+			var hash = btoa(tok);
+			return 'Basic ' + hash;
+			}
          	
          	$.ajax({
 				url: textit_prefix + "/giventimeflowcompletion?from=" + lat_from_date + "&to=" + to_date,
+			    beforeSend: function (xhr) {
+					xhr.setRequestHeader('Authorization', make_base_auth(uname, pwd));
+			    },
 				success: function (fdata) {
 				for (i in fdata) {
 					last_week_flows.push({"flow_name":fdata[i].flow_name, "uuid":fdata[i].uuid, "deployed_on":fdata[i].deployed_on});
@@ -409,7 +452,10 @@
          	
          	/*  1st graph - Daily run completion rate*/
          	$.ajax({
-         		url: textit_prefix + "/givenflowidflowcompletion?flowId=" + answer,				
+         		url: textit_prefix + "/givenflowidflowcompletion?flowId=" + answer,
+			    beforeSend: function (xhr) {
+					xhr.setRequestHeader('Authorization', make_base_auth(uname, pwd));
+			    },				
          		success: function (sdata) {
          
          		response_array = [];
@@ -532,6 +578,9 @@
          	
          	$.ajax({
          		url: textit_prefix + "/givenflowidflowcompletion?flowId=" + selected_flow_id,
+			    beforeSend: function (xhr) {
+					xhr.setRequestHeader('Authorization', make_base_auth(uname, pwd));
+			    },
          		success: function (sdata) {
          
          		response_array = [];
@@ -644,7 +693,10 @@
          	
          	/*  2nd graph - Flow completion rate*/
          	$.ajax({
-         		url: textit_prefix + "/givenflowidflowcompletion?flowId=" + answer2,				
+         		url: textit_prefix + "/givenflowidflowcompletion?flowId=" + answer2,
+			    beforeSend: function (xhr) {
+					xhr.setRequestHeader('Authorization', make_base_auth(uname, pwd));
+			    },				
          		success: function (sdata) {
          
          		graph2_response_array = [];
@@ -762,6 +814,9 @@
          	
          	$.ajax({
          		url: textit_prefix + "/givenflowidflowcompletion?flowId=" + selected_flow_id,
+			    beforeSend: function (xhr) {
+					xhr.setRequestHeader('Authorization', make_base_auth(uname, pwd));
+			    },
          		success: function (s2data) {
          
          		graph2_response_array = [];
