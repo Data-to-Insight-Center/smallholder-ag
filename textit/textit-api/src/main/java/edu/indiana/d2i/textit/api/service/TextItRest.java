@@ -63,6 +63,7 @@ public class TextItRest {
         textLables.add("variety 1 of 2");
         textLables.add("variety 2 of 2");
         textLables.add("when");
+        //textLables.add("storage");
     }
 
     @GET
@@ -1950,7 +1951,10 @@ public class TextItRest {
             if (contactDoc != null && contactDoc.containsKey("name")) {
                 contactObj.put("name", contactDoc.get("name"));
             }
-            if (getPhoneOfContact(contactDoc) != null) {
+//            if (getPhoneOfContact(contactDoc) != null) {
+//                contactObj.put("phone", getPhoneOfContact(contactDoc));
+//            }
+            if (contactDoc != null &&  getPhoneOfContact(contactDoc) != null) {
                 contactObj.put("phone", getPhoneOfContact(contactDoc));
             }
             for(String field : contactsField) {
