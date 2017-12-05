@@ -12,7 +12,8 @@ This module is doing below functionalities.
 Python 2.7 and its core libraries.
 
 ### Download project
-Checkout the Smallholder-Ag project
+Checkout the Smallholder-Ag project.
+
 git clone https://github.com/Data-to-Insight-Center/smallholder-ag.git
 
 #### OR
