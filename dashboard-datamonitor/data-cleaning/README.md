@@ -9,7 +9,7 @@ This module is doing below functionalities.
 
 ### Configure and run data cleaning module scripts
 
-Documentation at: hhttps://github.com/Data-to-Insight-Center/smallholder-ag/wiki/Data-Cleaning
+Documentation at: https://github.com/Data-to-Insight-Center/smallholder-ag/wiki/Data-Cleaning
 
 ### Pre-requisits:
 
