@@ -1,5 +1,3 @@
-## Data Cleaning
-
 ### Data Cleaning
 
 This module performs the below functionalities.
