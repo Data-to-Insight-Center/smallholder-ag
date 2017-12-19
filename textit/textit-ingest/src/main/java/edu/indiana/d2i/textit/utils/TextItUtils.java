@@ -65,6 +65,8 @@ public class TextItUtils {
         else
             flowsIter = flowsCollection.find(andQuery);
 
+        //TODO
+
         flowsIter.projection(new Document("_id", 0));
         MongoCursor<Document> flowsCursor = flowsIter.iterator();
 
@@ -78,7 +80,13 @@ public class TextItUtils {
 
                 BasicDBObject runsQuery = new BasicDBObject();
                 runsQuery.put("flow.uuid", flow_uuid);
+                //FindIterable<Document> runsIter;
                 FindIterable<Document> runsIter = runsCollection.find(runsQuery);
+//                if (run_filter != null){
+//                    runsIter = runsCollection.find(Filters.and(runsQuery, run_filter));
+//                }else{
+//                    runsIter = runsCollection.find(runsQuery);
+//                }
                 flowsIter.projection(new Document("created_on", 1).append("_id", 0));
                 MongoCursor<Document> runsCursor = runsIter.iterator();
                 int count = 0;

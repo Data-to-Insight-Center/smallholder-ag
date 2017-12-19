@@ -31,15 +31,38 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
     private SimpleDateFormat df_dm = new SimpleDateFormat("d MMM");
     private static ArrayList<String> excludeFlowsMatch = new ArrayList<>();
     private static ArrayList<String> excludeFlows = new ArrayList<>();
+    private static ArrayList<String> textLables = new ArrayList<>();
 
     private String EMAILS;
     private int TEXT_TIME;
     private String COUNTRY;
+    //private Map<String, ArrayList<String>> FLOWS_TO_QTYPE;
 
     public ResponsesByContactsAnalyzer(Properties properties) {
         EMAILS = properties.getProperty("notification.email.addresses");
         TEXT_TIME = Integer.parseInt(properties.getProperty("text.time"));
         COUNTRY = properties.getProperty("mongodb.split.db.name");
+
+//        String flows_to_qype_string = properties.getProperty("flows.to.qtype.map");
+//        String[] list_string = flows_to_qype_string.split("|");
+//
+//        FLOWS_TO_QTYPE = new HashMap<>();
+//
+//
+//        for (int i=0; i<list_string.length; i++) {
+//
+//            String season_name = (list_string[i].split(":"))[0];
+//            String[] qtype_names = (list_string[i].split(":"))[1].split(",");
+//            ArrayList<String> qtypes_list = new ArrayList<String>();
+//            for (int j=0; j<qtype_names.length; j++) {
+//                qtypes_list.add(qtype_names[j]);
+//            }
+//            FLOWS_TO_QTYPE.put(season_name, qtypes_list);
+//        }
+//
+//        for (String s : FLOWS_TO_QTYPE.keySet()) {
+//            //System.out.println(s + " is " + FLOWS_TO_QTYPE.get(s));
+//        }
 
         excludeFlows.add("inter-season flow 1"); //TODO remove hardcoded values for test flows
         excludeFlows.add("inter-season flow 2");
@@ -47,6 +70,13 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
         excludeFlowsMatch.add("join");
         excludeFlowsMatch.add("copy");
         excludeFlowsMatch.add("15-16");
+
+        textLables.add("variety 1");
+        textLables.add("variety 1 of 1");
+        textLables.add("variety 1 of 2");
+        textLables.add("variety 2 of 2");
+        textLables.add("when");
+        //textLables.add("storage");
     }
 
     @Override
@@ -149,11 +179,21 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
             //weekQuestionLabels.put(label, new ArrayList<String>());
 
             Bson flowsFilter = null;
-            if(qType != null)
-                flowsFilter = Filters.in("rulesets.label", qType);
+//            if(qType != null)
+//                flowsFilter = Filters.in("rulesets.label", qType);
+
+            // Newly Added
+            /*Bson runsFilter = null;
+            ArrayList<Bson> qtypeArray = new ArrayList<>();
+            for(String qtype : qType) {
+                Bson ques_filter = Filters.exists("values" + qtype);
+                qtypeArray.add(ques_filter);
+            }
+            runsFilter = Filters.or(qtypeArray);*/
 
             ArrayList<Document> flowsIter = null;
             try {
+                //flowsIter = TextItUtils.getFlowsByDeploymentDate(flowsCollection, runsCollection, flowsFilter, df_Z.format(currBeg), df_Z.format(currEnd), runsFilter);
                 flowsIter = TextItUtils.getFlowsByDeploymentDate(flowsCollection, runsCollection, flowsFilter, df_Z.format(currBeg), df_Z.format(currEnd));
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -189,41 +229,61 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
 
                 System.out.println("--");
 
-                List<String> qUuid = new ArrayList<String>();
-                Object rulesets = flowsDocument.get("rulesets");
-                if (rulesets instanceof ArrayList) {
-                    ArrayList<Document> rulesetsArray = (ArrayList<Document>) rulesets;
-                    for (Document rule : rulesetsArray) {
-                        if (qType.contains(rule.getString("label"))) {
-                           // if(!weekQuestionLabels.get(label).contains(rule.getString("label"))) {
-                           //     weekQuestionLabels.get(label).add(rule.getString("label"));
-                           // }
-                            qUuid.add(rule.getString("node"));
-                        }
-                    }
+//                List<String> qUuid = new ArrayList<String>();
+//                Object rulesets = flowsDocument.get("rulesets");
+//                if (rulesets instanceof ArrayList) {
+//                    ArrayList<Document> rulesetsArray = (ArrayList<Document>) rulesets;
+//                    for (Document rule : rulesetsArray) {
+//                        if (qType.contains(rule.getString("label"))) {
+//                           // if(!weekQuestionLabels.get(label).contains(rule.getString("label"))) {
+//                           //     weekQuestionLabels.get(label).add(rule.getString("label"));
+//                           // }
+//                            qUuid.add(rule.getString("node"));
+//                        }
+//                    }
+//                }
+
+
+                ArrayList<Bson> typeExists = new ArrayList<Bson>();
+                List<String> qTypeStr = new ArrayList<>();
+                for(String type : qType) {
+                    qTypeStr.add(type.replace(' ', '_'));
+                    typeExists.add(Filters.exists("values." + type.replace(' ', '_'), true));
                 }
 
                 BasicDBObject runsQuery = new BasicDBObject();
                 runsQuery.put("flow_uuid", flow_uuid);
                 //FindIterable<Document> runsIter = runsCollection.find(runsQuery);
-                FindIterable<Document> runsIter = runsCollection.find(Filters.and(runsQuery, Filters.in("values.node", qUuid)));
+                //FindIterable<Document> runsIter = runsCollection.find(Filters.and(runsQuery, Filters.in("values.node", qUuid)));
+
+                //FindIterable<Document> runsIter = runsCollection.find(Filters.and(runsQuery, runsFilter));
+                FindIterable<Document> runsIter = runsCollection.find(Filters.and(runsQuery, Filters.or(typeExists)));
                 runsIter.projection(new Document("_id", 0));
                 MongoCursor<Document> runsCursor = runsIter.iterator();
 
                 while (runsCursor.hasNext()) {
                     Document runsDocument = runsCursor.next();
-                    Object values = runsDocument.get("values");
-                    String contact = (String) runsDocument.get("contact");
-                    if (values instanceof ArrayList) {
-                        ArrayList<Document> valuesArray = (ArrayList<Document>) values;
-                        for (Document value : valuesArray) {
-                            Document category = (Document) value.get("category");
+                    //Object values = runsDocument.get("values");
+                    Document values = (Document) runsDocument.get("values");
+                    //String contact = (String) runsDocument.get("contact");
+                    String contact = (String)((Document) runsDocument.get("contact")).get("uuid");
+                    //if (values instanceof ArrayList) {
+                        //ArrayList<Document> valuesArray = (ArrayList<Document>) values;
+                        //for (Document value : valuesArray) {
+                    for (String qStr : qTypeStr) {
+                            //Document category = (Document) value.get("category");
                             //String date = null;
 
-                            String qLabel = (String) value.get("label");
-                            String qNode = (String) value.get("node");
-                            if(qUuid.size() != 0 && !qUuid.contains(qNode))
+                            if(!values.containsKey(qStr))
                                 continue;
+                            Document value = (Document) values.get(qStr);
+
+                            //String qLabel = (String) value.get("label");
+                            //String qNode = (String) value.get("node");
+                            //if(qUuid.size() != 0 && !qUuid.contains(qNode))
+                                //continue;
+
+                            String qLabel = qStr.replace("_", " ");
 
                             Date dateZ = null;
                             try {
@@ -237,12 +297,23 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
                                 continue;
                             }
 
-                            String qVal = category.get("base") != null ? category.getString("base") : category.getString("eng");
-                            if (qVal.equals("numeric") && value.containsKey("value")) {
+
+                            String category = (String) value.get("category");
+                            //String qVal = category.get("base") != null ? category.getString("base") : category.getString("eng");
+                            String qVal = category;
+//                            if (qVal.equals("numeric") && value.containsKey("value")) {
+//                                qVal = "" + value.get("value");
+//                            }
+//                            if (qVal.equalsIgnoreCase("Other") && value.containsKey("value")) {
+//                                qVal += "-" + ("" + value.get("value"));
+//                            }
+                            if (category.equals("numeric") && value.containsKey("value")) {
+                                qVal = "" + value.get("value");
+                            } else if (textLables.contains(qLabel) && value.containsKey("value")) {
                                 qVal = "" + value.get("value");
                             }
-                            if (qVal.equalsIgnoreCase("Other") && value.containsKey("value")) {
-                                qVal += "-" + ("" + value.get("value"));
+                            else if (category.equalsIgnoreCase("Other") && value.containsKey("value")) {
+                                qVal = "Other-" + ("" + value.get("value"));
                             }
                             String week = label;
 
@@ -274,7 +345,7 @@ public class ResponsesByContactsAnalyzer implements Analyzer {
                                 qMap.put(contact, qObject);
                             }
                         }
-                    }
+                    //}
                 }
             }
 
